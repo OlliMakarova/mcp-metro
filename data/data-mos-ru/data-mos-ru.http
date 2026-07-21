@@ -1,0 +1,33 @@
+# ══════════════════════════════════════════════════════════════════════════
+# API портала открытых данных Москвы (data.mos.ru)
+# Набор данных 1488 — «Станции Московского метрополитена» (311 записей).
+# Базовый адрес API: https://apidata.mos.ru/v1
+# Авторизация — параметром api_key в строке запроса.
+# Все примеры ниже проверены 2026-07-21 и возвращают код 200.
+# ══════════════════════════════════════════════════════════════════════════
+
+### Получить все станции московского метрополитена (основной рабочий запрос)
+# Возвращает массив объектов вида:
+# { "global_id": ..., "Number": ..., "Cells": { "ID", "Station", "Line", "AdmArea",
+#   "District", "MCDStation", "AeroexpressStation", "RailwayStation",
+#   "RailwayTerminal", "ObjectStatus", "RouteIcon", "global_id" } }
+GET https://apidata.mos.ru/v1/datasets/1488/rows?api_key=af2a7b9f66ddacdcad2bfc4442a494cd
+
+### Метаданные набора данных (название, описание, версия, список колонок)
+GET https://apidata.mos.ru/v1/datasets/1488?api_key=af2a7b9f66ddacdcad2bfc4442a494cd
+
+### Количество записей в наборе (возвращает число, сейчас 311)
+GET https://apidata.mos.ru/v1/datasets/1488/count?api_key=af2a7b9f66ddacdcad2bfc4442a494cd
+
+### Постраничная выборка: первые 5 станций ($top — размер страницы, $skip — смещение)
+GET https://apidata.mos.ru/v1/datasets/1488/rows?api_key=af2a7b9f66ddacdcad2bfc4442a494cd&$top=5&$skip=0
+
+### Поиск станции по названию через $filter (пример: «Арбатская»)
+# Значение фильтра — Cells/Station eq 'Арбатская'. Кириллица закодирована в UTF-8
+# процентным кодированием, иначе сервер возвращает пустой результат.
+GET https://apidata.mos.ru/v1/datasets/1488/rows?api_key=af2a7b9f66ddacdcad2bfc4442a494cd&$filter=Cells/Station%20eq%20%27%D0%90%D1%80%D0%B1%D0%B0%D1%82%D1%81%D0%BA%D0%B0%D1%8F%27
+
+### Поиск станции по названию через $filter (пример: «Арбатская»)
+# Значение фильтра — Cells/Station eq 'Арбатская'. Кириллица закодирована в UTF-8
+# процентным кодированием, иначе сервер возвращает пустой результат.
+GET https://apidata.mos.ru/v1/datasets/1488/rows?api_key=af2a7b9f66ddacdcad2bfc4442a494cd&$filter=Cells/Station%20eq%20%Арбатская
