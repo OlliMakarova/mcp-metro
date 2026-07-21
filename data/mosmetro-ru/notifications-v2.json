@@ -1,0 +1,4908 @@
+{
+  "success": true,
+  "data": [
+    {
+      "id": 1776,
+      "title": {
+        "ru": "На станции «Петровско-Разумовская» (выходы № 2-5) закрыт на ремонт эскалатор"
+      },
+      "description": {
+        "ru": "С 23.09.2025 по 30.12.2026 на станции «Петровско-Разумовская» (выходы № 2-5) закрыт на ремонт эскалатор."
+      },
+      "startDate": "2025-09-22T21:00:25",
+      "endDate": "2026-12-30T20:00:34",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 247,
+          "title": {
+            "ru": "Ремонт эскалатора"
+          },
+          "description": {
+            "ru": "С 23.09.2025 по 30.12.2026 на станции «Петровско-Разумовская» (выходы № 2-5) закрыт на ремонт эскалатор."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 195,
+          "title": {
+            "ru": "Ремонт эскалатора"
+          },
+          "description": {
+            "ru": "С 23.09.2025 по 30.12.2026 на станции «Петровско-Разумовская» (выходы № 2-5) закрыт на ремонт эскалатор."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 7,
+          "name": "Серпуховско-Тимирязевская линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_9.svg",
+          "ordering": 9,
+          "allStationsClosed": false
+        },
+        {
+          "id": 10,
+          "name": "Люблинско-Дмитровская линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_10.svg",
+          "ordering": 10,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 1659,
+      "title": {
+        "ru": "На станции «Раменки» (выходы № 1-4) закрыт на ремонт эскалатор"
+      },
+      "description": {
+        "ru": "С 19.05.2025 по 30.12.2026 на станции «Раменки» (выходы № 1-4) закрыт на ремонт эскалатор."
+      },
+      "startDate": "2025-05-18T21:00:03",
+      "endDate": "2026-12-30T20:00:08",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 294,
+          "title": {
+            "ru": "Ремонт эскалатора"
+          },
+          "description": {
+            "ru": "С 19.05.2025 по 30.12.2026 на станции «Раменки» (выходы № 1-4) закрыт на ремонт эскалатор."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 13,
+          "name": "Солнцевская линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_80.svg",
+          "ordering": 80,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 1852,
+      "title": {
+        "ru": "Выход № 1 станции «Нагатинская» частично закрыт на ремонт"
+      },
+      "description": {
+        "ru": "С 31.12.2025 по 31.12.2026 выход № 1 станции «Нагатинская» частично закрыт на ремонт."
+      },
+      "startDate": "2025-12-31T02:00:39",
+      "endDate": "2026-12-31T02:00:02",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 226,
+          "title": {
+            "ru": "Закрытие выхода"
+          },
+          "description": {
+            "ru": "С 31.12.2025 по 31.12.2026 выход № 1 станции «Нагатинская» частично закрыт на ремонт."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 7,
+          "name": "Серпуховско-Тимирязевская линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_9.svg",
+          "ordering": 9,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 1763,
+      "title": {
+        "ru": "На станции МЦК ЗИЛ (выходы № 1-2) закрыт на ремонт эскалатор"
+      },
+      "description": {
+        "ru": "С 15.09.2025 по 10.08.2026 на станции МЦК ЗИЛ (выходы № 1-2) закрыт на ремонт эскалатор."
+      },
+      "startDate": "2025-09-15T11:00:42",
+      "endDate": "2026-08-10T20:00:49",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 368,
+          "title": {
+            "ru": "Ремонт эскалатора"
+          },
+          "description": {
+            "ru": "С 15.09.2025 по 10.08.2026 на станции МЦК ЗИЛ (выходы № 1-2) закрыт на ремонт эскалатор."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 16,
+          "name": "МЦК",
+          "icon": "https://prodapp.mosmetro.ru/static/line_14.svg",
+          "ordering": 14,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 1519,
+      "title": {
+        "ru": "Выход № 3 станции «Царицыно» закрыт на ремонт"
+      },
+      "description": {
+        "ru": "С 19.10.2024 по 30.12.2026 выход № 3 станции «Царицыно» закрыт на ремонт.\nВход и выход пассажиров – через выходы № 1-2."
+      },
+      "startDate": "2024-10-19T02:30:49",
+      "endDate": "2026-12-30T02:00:57",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 101,
+          "title": {
+            "ru": "Ремонт выхода"
+          },
+          "description": {
+            "ru": "С 19.10.2024 по 30.12.2026 выход № 3 станции «Царицыно» закрыт на ремонт.\nВход и выход пассажиров – через выходы № 1-2."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 2,
+          "name": "Замоскворецкая линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_2.svg",
+          "ordering": 2,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 1868,
+      "title": {
+        "ru": "На станции «Сретенский бульвар» (выходы № 7-8) закрыт на ремонт эскалатор"
+      },
+      "description": {
+        "ru": "С 10.02.2026 по 30.07.2026 на станции «Сретенский бульвар» (выходы № 7-8) закрыт на ремонт эскалатор."
+      },
+      "startDate": "2026-02-09T21:00:37",
+      "endDate": "2026-07-30T20:00:45",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 253,
+          "title": {
+            "ru": "Ремонт эскалатора"
+          },
+          "description": {
+            "ru": "С 10.02.2026 по 29.04.2026 на станции «Сретенский бульвар» (выходы № 7-8) закрыт на ремонт эскалатор."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 10,
+          "name": "Люблинско-Дмитровская линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_10.svg",
+          "ordering": 10,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 1785,
+      "title": {
+        "ru": "На станции «Площадь Ильича» (выход № 1) закрыт на ремонт эскалатор"
+      },
+      "description": {
+        "ru": "С 23.10.2025 по 30.09.2026 на станции «Площадь Ильича» (выход № 1) закрыт на ремонт эскалатор."
+      },
+      "startDate": "2025-10-22T21:00:50",
+      "endDate": "2026-09-30T20:00:55",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 241,
+          "title": {
+            "ru": "Ремонт эскалатора"
+          },
+          "description": {
+            "ru": "С 23.10.2025 по 30.09.2026 на станции «Площадь Ильича» (выход № 1) закрыт на ремонт эскалатор."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 9,
+          "name": "Калининская линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_8.svg",
+          "ordering": 8,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 1808,
+      "title": {
+        "ru": "Выход № 1 станции «Лермонтовский проспект» закрыт на ремонт"
+      },
+      "description": {
+        "ru": "С 06.11.2025 по 31.12.2026 выход № 1 станции «Лермонтовский проспект» закрыт на ремонт."
+      },
+      "startDate": "2025-11-05T23:30:16",
+      "endDate": "2026-12-31T02:30:37",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 217,
+          "title": {
+            "ru": "Закрытие выхода"
+          },
+          "description": {
+            "ru": "С 06.11.2025 по 31.12.2026 выход № 1 станции «Лермонтовский проспект» закрыт на ремонт."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 8,
+          "name": "Таганско-Краснопресненская линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_7.svg",
+          "ordering": 7,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 1665,
+      "title": {
+        "ru": "На станции МЦК Окружная (выход № 11) закрыт на ремонт лифт"
+      },
+      "description": {
+        "ru": "С 05.05.2025 по 30.08.2026 на станции МЦК Окружная (выход № 11) закрыт на ремонт лифт."
+      },
+      "startDate": "2025-05-05T17:00:22",
+      "endDate": "2026-08-30T05:00:30",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 389,
+          "title": {
+            "ru": "Ремонт лифта"
+          },
+          "description": {
+            "ru": "С 05.05.2025 по 30.08.2026 на станции МЦК Окружная (выход № 11) закрыт на ремонт лифт."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 16,
+          "name": "МЦК",
+          "icon": "https://prodapp.mosmetro.ru/static/line_14.svg",
+          "ordering": 14,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 1859,
+      "title": {
+        "ru": "На станции «Бутырская» (выходы № 1-2) закрыт на ремонт эскалатор"
+      },
+      "description": {
+        "ru": "С 23.01.2026 по 30.09.2026 на станции «Бутырская» (выходы № 1-2) закрыт на ремонт эскалатор."
+      },
+      "startDate": "2026-01-22T21:00:49",
+      "endDate": "2026-09-30T20:00:57",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 249,
+          "title": {
+            "ru": "Ремонт эскалатора"
+          },
+          "description": {
+            "ru": "С 23.01.2026 по 30.09.2026 на станции «Бутырская» (выходы № 1-2) закрыт на ремонт эскалатор."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 10,
+          "name": "Люблинско-Дмитровская линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_10.svg",
+          "ordering": 10,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 1825,
+      "title": {
+        "ru": "На станции «Римская» (выходы № 1-4) закрыт на ремонт эскалатор"
+      },
+      "description": {
+        "ru": "С 04.12.2025 по 30.09.2026 на станции «Римская» (выходы № 1-4) закрыт на ремонт эскалатор."
+      },
+      "startDate": "2025-12-03T21:00:57",
+      "endDate": "2026-09-30T20:00:06",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 257,
+          "title": {
+            "ru": "Ремонт эскалатора"
+          },
+          "description": {
+            "ru": "С 04.12.2025 по 30.09.2026 на станции «Римская» (выходы № 1-4) закрыт на ремонт эскалатор."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 10,
+          "name": "Люблинско-Дмитровская линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_10.svg",
+          "ordering": 10,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 1834,
+      "title": {
+        "ru": "На станции «Университет» (выход № 1) закрыт на ремонт эскалатор"
+      },
+      "description": {
+        "ru": "С 05.12.2025 по 30.09.2026 на станции «Университет» (выход № 1) закрыт на ремонт эскалатор."
+      },
+      "startDate": "2025-12-04T21:00:41",
+      "endDate": "2026-09-30T20:00:47",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 23,
+          "title": {
+            "ru": "Ремонт эскалатора"
+          },
+          "description": {
+            "ru": "С 05.12.2025 по 30.09.2026 на станции «Университет» (выход № 1) закрыт на ремонт эскалатор."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 1,
+          "name": "Сокольническая линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_1.svg",
+          "ordering": 1,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 1879,
+      "title": {
+        "ru": "На станции МЦК Соколиная гора (выходы № 1-2) закрыт на ремонт лифт"
+      },
+      "description": {
+        "ru": "С 03.03.2026 по 30.08.2026 на станции МЦК Соколиная гора (выходы № 1-2) закрыт на ремонт лифт."
+      },
+      "startDate": "2026-03-03T02:00:50",
+      "endDate": "2026-08-30T17:00:43",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 351,
+          "title": {
+            "ru": "Ремонт лифта"
+          },
+          "description": {
+            "ru": "С 03.03.2026 по 30.08.2026 на станции МЦК Соколиная гора (выходы № 1-2) закрыт на ремонт лифт."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 16,
+          "name": "МЦК",
+          "icon": "https://prodapp.mosmetro.ru/static/line_14.svg",
+          "ordering": 14,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 1881,
+      "title": {
+        "ru": "На станции «Петровский парк» (выход № 5) закрыт на ремонт лифт"
+      },
+      "description": {
+        "ru": "С 03.03.2026 по 30.08.2026 на станции «Петровский парк» (выход № 5) закрыт на ремонт лифт"
+      },
+      "startDate": "2026-03-03T05:00:35",
+      "endDate": "2026-08-30T17:00:43",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 403,
+          "title": {
+            "ru": "Ремонт лифта"
+          },
+          "description": {
+            "ru": "С 03.03.2026 по 30.08.2026 на станции «Петровский парк» (выход № 5) закрыт на ремонт лифт"
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 11,
+          "name": "Большая кольцевая линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_11.svg",
+          "ordering": 11,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 1882,
+      "title": {
+        "ru": "На станции «Технопарк» (выход № 1) закрыта на ремонт подъемная платформа"
+      },
+      "description": {
+        "ru": "С 03.03.2026 по 30.08.2026 на станции «Технопарк» (выход № 1) закрыта на ремонт подъемная платформа."
+      },
+      "startDate": "2026-03-03T05:00:17",
+      "endDate": "2026-08-30T17:00:24",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 89,
+          "title": {
+            "ru": "Ремонт подъемной платформы"
+          },
+          "description": {
+            "ru": "С 03.03.2026 по 30.08.2026 на станции «Технопарк» (выход № 1) закрыта на ремонт подъемная платформа."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 2,
+          "name": "Замоскворецкая линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_2.svg",
+          "ordering": 2,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 1848,
+      "title": {
+        "ru": "На станции «Шоссе Энтузиастов» (выходы № 1-4) закрыт на ремонт эскалатор"
+      },
+      "description": {
+        "ru": "С 10.12.2025 по 30.12.2026 на станции «Шоссе Энтузиастов» (выходы № 1-4) закрыт на ремонт эскалатор."
+      },
+      "startDate": "2025-12-09T21:00:53",
+      "endDate": "2026-12-30T20:00:03",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 239,
+          "title": {
+            "ru": "Ремонт эскалатора"
+          },
+          "description": {
+            "ru": "С 10.12.2025 по 30.12.2026 на станции «Шоссе Энтузиастов» (выходы № 1-4) закрыт на ремонт эскалатор."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 9,
+          "name": "Калининская линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_8.svg",
+          "ordering": 8,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 1877,
+      "title": {
+        "ru": "На станции «Баррикадная» (выход № 2) закрыт на ремонт эскалатор"
+      },
+      "description": {
+        "ru": "С 17.03.2026 по 29.07.2026 на станции «Баррикадная» (выход № 2) закрыт на ремонт эскалатор."
+      },
+      "startDate": "2026-03-16T21:00:53",
+      "endDate": "2026-07-29T20:00:00",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 203,
+          "title": {
+            "ru": "Ремонт эскалатора"
+          },
+          "description": {
+            "ru": "С 17.03.2026 по 29.07.2026 на станции «Баррикадная» (выход № 2) закрыт на ремонт эскалатор."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 8,
+          "name": "Таганско-Краснопресненская линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_7.svg",
+          "ordering": 7,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 1876,
+      "title": {
+        "ru": "На станции «Третьяковская» (выход № 2) закрыт на ремонт эскалатор"
+      },
+      "description": {
+        "ru": "С 19.03.2026 по 30.12.2026 на станции «Третьяковская» (выход № 2) закрыт на ремонт эскалатор."
+      },
+      "startDate": "2026-03-19T20:00:31",
+      "endDate": "2026-12-30T20:00:38",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 243,
+          "title": {
+            "ru": "Ремонт эскалатора"
+          },
+          "description": {
+            "ru": "С 19.03.2026 по 30.12.2026 на станции «Третьяковская» (выход № 2) закрыт на ремонт эскалатор."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 169,
+          "title": {
+            "ru": "Ремонт эскалатора"
+          },
+          "description": {
+            "ru": "С 19.03.2026 по 30.12.2026 на станции «Третьяковская» (выход № 2) закрыт на ремонт эскалатор."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 5,
+          "name": "Калужско-Рижская линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_6.svg",
+          "ordering": 6,
+          "allStationsClosed": false
+        },
+        {
+          "id": 9,
+          "name": "Калининская линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_8.svg",
+          "ordering": 8,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 1890,
+      "title": {
+        "ru": "Выходы № 1-4 и № 5-8 станции «Профсоюзная» поочерёдно закроют на ремонт"
+      },
+      "description": {
+        "ru": "С 01.04.2026 по 29.12.2026 выходы № 1-4 и № 5-8 станции «Профсоюзная» поочерёдно закроют на ремонт."
+      },
+      "startDate": "2026-03-31T23:30:03",
+      "endDate": "2026-12-29T02:00:12",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 180,
+          "title": {
+            "ru": "Закрытие выходов"
+          },
+          "description": {
+            "ru": "С 01.04.2026 по 29.12.2026 выходы № 1-4 и № 5-8 станции «Профсоюзная» поочерёдно закроют на ремонт."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 5,
+          "name": "Калужско-Рижская линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_6.svg",
+          "ordering": 6,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 1886,
+      "title": {
+        "ru": "На станции «Лефортово» (выход № 1) закрыт на ремонт лифт"
+      },
+      "description": {
+        "ru": "С 06.03.2026 по 30.08.2026 на станции «Лефортово» (выход № 1) закрыт на ремонт лифт"
+      },
+      "startDate": "2026-03-05T21:00:11",
+      "endDate": "2026-08-30T20:00:22",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 392,
+          "title": {
+            "ru": "Ремонт лифта"
+          },
+          "description": {
+            "ru": "С 06.03.2026 по 30.08.2026 на станции «Лефортово» (выход № 1) закрыт на ремонт лифт"
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 11,
+          "name": "Большая кольцевая линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_11.svg",
+          "ordering": 11,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 1894,
+      "title": {
+        "ru": "На станции «Улица Дмитриевского» (выходы № 1-3) закрыт на ремонт лифт"
+      },
+      "description": {
+        "ru": "С 19.03.2026 по 30.09.2026 на станции «Улица Дмитриевского» (выходы № 1-3) закрыт на ремонт лифт."
+      },
+      "startDate": "2026-03-19T02:00:47",
+      "endDate": "2026-09-30T05:00:57",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 399,
+          "title": {
+            "ru": "Ремонт лифта"
+          },
+          "description": {
+            "ru": "С 19.03.2026 по 30.09.2026 на станции «Улица Дмитриевского» (выходы № 1-3) закрыт на ремонт лифт."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 17,
+          "name": "Некрасовская линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_15.svg",
+          "ordering": 15,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 1908,
+      "title": {
+        "ru": "На станции «Косино» (выходы № 5-6) закрыта на ремонт подъемная платформа"
+      },
+      "description": {
+        "ru": "С 30.03.2026 по 30.08.2026 на станции «Косино» (выходы № 5-6) закрыта на ремонт подъемная платформа."
+      },
+      "startDate": "2026-03-29T21:00:41",
+      "endDate": "2026-08-30T20:00:50",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 398,
+          "title": {
+            "ru": "Ремонт подъемной платформы"
+          },
+          "description": {
+            "ru": "С 30.03.2026 по 30.08.2026 на станции «Косино» (выходы № 5-6) закрыта на ремонт подъемная платформа."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 17,
+          "name": "Некрасовская линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_15.svg",
+          "ordering": 15,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 1897,
+      "title": {
+        "ru": "В переходе со станции «Мичуринский проспект» на Большую кольцевую линию закрыт на ремонт эскалатор"
+      },
+      "description": {
+        "ru": "С 07.04.2026 по 30.09.2026 в переходе со станции «Мичуринский проспект» на Большую кольцевую линию закрыт на ремонт эскалатор."
+      },
+      "startDate": "2026-04-06T21:00:48",
+      "endDate": "2026-09-30T20:00:54",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 296,
+          "title": {
+            "ru": "Ремонт эскалатора"
+          },
+          "description": {
+            "ru": "С 07.04.2026 по 30.09.2026 в переходе со станции «Мичуринский проспект» на Большую кольцевую линию закрыт на ремонт эскалатор."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 426,
+          "title": {
+            "ru": "Ремонт эскалатора"
+          },
+          "description": {
+            "ru": "С 07.04.2026 по 30.09.2026 в переходе со станции «Мичуринский проспект» на Большую кольцевую линию закрыт на ремонт эскалатор."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 13,
+          "name": "Солнцевская линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_80.svg",
+          "ordering": 80,
+          "allStationsClosed": false
+        },
+        {
+          "id": 11,
+          "name": "Большая кольцевая линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_11.svg",
+          "ordering": 11,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 1854,
+      "title": {
+        "ru": "На станции «Дубровка» (выходы № 1-3) закрыт на ремонт эскалатор"
+      },
+      "description": {
+        "ru": "С 10.01.2026 по 31.08.2026 на станции «Дубровка» (выходы № 1-3) закрыт на ремонт эскалатор."
+      },
+      "startDate": "2026-01-09T21:00:59",
+      "endDate": "2026-08-31T20:00:12",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 261,
+          "title": {
+            "ru": "Ремонт эскалатора"
+          },
+          "description": {
+            "ru": "С 10.01.2026 по 31.08.2026 на станции «Дубровка» (выходы № 1-3) закрыт на ремонт эскалатор."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 10,
+          "name": "Люблинско-Дмитровская линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_10.svg",
+          "ordering": 10,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 1912,
+      "title": {
+        "ru": "Будьте внимательнее!"
+      },
+      "description": {
+        "ru": "Платформа станции «Партизанская» разделена по центру дополнительным путём. Пожалуйста, будьте внимательны при нахождении на платформе."
+      },
+      "startDate": "2026-04-10T06:59:08",
+      "endDate": "2027-06-10T06:59:09",
+      "hiddenEndDate": true,
+      "stations": [
+        {
+          "stationId": 123,
+          "title": {
+            "ru": "Будьте внимательнее!"
+          },
+          "description": {
+            "ru": "Платформа станции «Партизанская» разделена по центру дополнительным путём. Пожалуйста, будьте внимательны при нахождении на платформе."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 1904,
+      "title": {
+        "ru": "В переходе со станции «Проспект Мира» на Кольцевую линию закрыт на ремонт эскалатор"
+      },
+      "description": {
+        "ru": "С 09.04.2026 по 30.07.2026 в переходе со станции «Проспект Мира» на Кольцевую линию закрыт на ремонт эскалатор."
+      },
+      "startDate": "2026-04-08T21:00:22",
+      "endDate": "2026-07-30T20:00:32",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 159,
+          "title": {
+            "ru": "Ремонт эскалатора"
+          },
+          "description": {
+            "ru": "С 09.04.2026 по 30.07.2026 в переходе со станции «Проспект Мира» на Кольцевую линию закрыт на ремонт эскалатор."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 161,
+          "title": {
+            "ru": "Ремонт эскалатора"
+          },
+          "description": {
+            "ru": "С 09.04.2026 по 30.07.2026 в переходе со станции «Проспект Мира» на Кольцевую линию закрыт на ремонт эскалатор."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 5,
+          "name": "Калужско-Рижская линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_6.svg",
+          "ordering": 6,
+          "allStationsClosed": false
+        },
+        {
+          "id": 6,
+          "name": "Кольцевая линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_5.svg",
+          "ordering": 5,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 1849,
+      "title": {
+        "ru": "На станции «Трубная» (выход № 2) закрыт на ремонт эскалатор"
+      },
+      "description": {
+        "ru": "С 13.01.2026 по 30.07.2026 на станции «Трубная» (выход № 2) закрыт на ремонт эскалатор."
+      },
+      "startDate": "2026-01-12T21:00:46",
+      "endDate": "2026-07-30T20:00:55",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 252,
+          "title": {
+            "ru": "Ремонт эскалатора"
+          },
+          "description": {
+            "ru": "С 13.01.2026 по 30.07.2026 на станции «Трубная» (выход № 2) закрыт на ремонт эскалатор."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 10,
+          "name": "Люблинско-Дмитровская линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_10.svg",
+          "ordering": 10,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 1816,
+      "title": {
+        "ru": "На станции Дубровка МЦК (выход № 1) закрыт на ремонт эскалатор"
+      },
+      "description": {
+        "ru": "С 22.10.2025 по 10.08.2026 на станции Дубровка МЦК (выход № 1) закрыт на ремонт эскалатор."
+      },
+      "startDate": "2025-10-22T01:30:59",
+      "endDate": "2026-08-10T20:00:12",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 364,
+          "title": {
+            "ru": "Ремонт эскалатора"
+          },
+          "description": {
+            "ru": "С 22.10.2025 по 10.08.2026 на станции Дубровка МЦК (выход № 1) закрыт на ремонт эскалатор."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 16,
+          "name": "МЦК",
+          "icon": "https://prodapp.mosmetro.ru/static/line_14.svg",
+          "ordering": 14,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 2057,
+      "title": {
+        "ru": "На станции «Борисово» (выход № 2) закрыт на ремонт эскалатор"
+      },
+      "description": {
+        "ru": "С 16.07.2026 по 06.08.2026 на станции «Борисово» (выход № 2) закрыт на ремонт эскалатор."
+      },
+      "startDate": "2026-07-15T21:37:16",
+      "endDate": "2026-08-06T20:00:21",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 273,
+          "title": {
+            "ru": "Ремонт эскалатора"
+          },
+          "description": {
+            "ru": "С 16.07.2026 по 06.08.2026 на станции «Борисово» (выход № 2) закрыт на ремонт эскалатор."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 10,
+          "name": "Люблинско-Дмитровская линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_10.svg",
+          "ordering": 10,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 1726,
+      "title": {
+        "ru": "На станции «Яхромская» (выход № 3) закрыт на ремонт лифт"
+      },
+      "description": {
+        "ru": "С 28.07.2025 по 30.08.2026 на станции «Яхромская» (выход № 3) закрыт на ремонт лифт."
+      },
+      "startDate": "2025-07-27T22:30:33",
+      "endDate": "2026-08-30T05:00:59",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 577,
+          "title": {
+            "ru": "Ремонт лифта"
+          },
+          "description": {
+            "ru": "С 28.07.2025 по 30.08.2026 на станции «Яхромская» (выход № 3) закрыт на ремонт лифт."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 10,
+          "name": "Люблинско-Дмитровская линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_10.svg",
+          "ordering": 10,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 1931,
+      "title": {
+        "ru": "Выходы № 3-4 станции «Строгино» закрыты на ремонт"
+      },
+      "description": {
+        "ru": "С 26.04.2025 по 31.12.2027 выходы № 3-4 станции «Строгино» закрыты на ремонт.\nВход и выход пассажиров – через выходы № 1-2."
+      },
+      "startDate": "2025-04-25T23:30:16",
+      "endDate": "2027-12-31T02:30:40",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 96,
+          "title": {
+            "ru": "Закрытие выходов"
+          },
+          "description": {
+            "ru": "С 26.04.2025 по 31.12.2027 выходы № 3-4 станции «Строгино» закрыты на ремонт.\nВход и выход пассажиров – через выходы № 1-2."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 3,
+          "name": "Арбатско-Покровская линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_3.svg",
+          "ordering": 3,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 1813,
+      "title": {
+        "ru": "На станции «Менделеевская» (выходы № 2-4) закрыт на ремонт эскалатор"
+      },
+      "description": {
+        "ru": "С 11.11.2025 по 30.09.2026 на станции «Менделеевская» (выходы № 2-4) закрыт на ремонт эскалатор."
+      },
+      "startDate": "2025-11-10T21:00:03",
+      "endDate": "2026-09-30T20:00:11",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 211,
+          "title": {
+            "ru": "Ремонт эскалатора"
+          },
+          "description": {
+            "ru": "С 11.11.2025 по 30.09.2026 на станции «Менделеевская» (выходы № 2-4) закрыт на ремонт эскалатор."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 7,
+          "name": "Серпуховско-Тимирязевская линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_9.svg",
+          "ordering": 9,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 1999,
+      "title": {
+        "ru": "На станции МЦК Дубровка (выход № 1) закрыт на ремонт лифт"
+      },
+      "description": {
+        "ru": "С 28.05.2026 по 30.08.2026 на станции МЦК Дубровка (выход № 1) закрыт на ремонт лифт."
+      },
+      "startDate": "2026-05-27T21:00:50",
+      "endDate": "2026-08-30T17:00:01",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 364,
+          "title": {
+            "ru": "Ремонт лифта"
+          },
+          "description": {
+            "ru": "С 28.05.2026 по 30.08.2026 на станции МЦК Дубровка (выход № 1) закрыт на ремонт лифт."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 16,
+          "name": "МЦК",
+          "icon": "https://prodapp.mosmetro.ru/static/line_14.svg",
+          "ordering": 14,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 1832,
+      "title": {
+        "ru": "В переходе со станции «Чкаловская» на Арбатско-Покровскую линию закрыт на ремонт эскалатор"
+      },
+      "description": {
+        "ru": "С 05.12.2025 по 30.09.2026 в переходе со станции «Чкаловская» на Арбатско-Покровскую линию закрыт на ремонт эскалатор."
+      },
+      "startDate": "2025-12-04T21:00:26",
+      "endDate": "2026-09-30T20:00:34",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 255,
+          "title": {
+            "ru": "Ремонт эскалатора"
+          },
+          "description": {
+            "ru": "С 05.12.2025 по 30.09.2026 в переходе со станции «Чкаловская» на Арбатско-Покровскую линию закрыт на ремонт эскалатор."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 119,
+          "title": {
+            "ru": "Ремонт эскалатора"
+          },
+          "description": {
+            "ru": "С 05.12.2025 по 30.09.2026 в переходе со станции «Чкаловская» на Арбатско-Покровскую линию закрыт на ремонт эскалатор."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 10,
+          "name": "Люблинско-Дмитровская линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_10.svg",
+          "ordering": 10,
+          "allStationsClosed": false
+        },
+        {
+          "id": 3,
+          "name": "Арбатско-Покровская линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_3.svg",
+          "ordering": 3,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 1954,
+      "title": {
+        "ru": "На станции «Народное Ополчение» (выходы № 1-2) закрыт на ремонт эскалатор"
+      },
+      "description": {
+        "ru": "С 13.05.2026 по 24.09.2026 на станции «Народное Ополчение» (выходы № 1-2) закрыт на ремонт эскалатор."
+      },
+      "startDate": "2026-05-12T21:00:00",
+      "endDate": "2026-09-24T20:00:06",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 409,
+          "title": {
+            "ru": "Ремонт эскалатора"
+          },
+          "description": {
+            "ru": "С 13.05.2026 по 24.09.2026 на станции «Народное Ополчение» (выходы № 1-2) закрыт на ремонт эскалатор."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 11,
+          "name": "Большая кольцевая линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_11.svg",
+          "ordering": 11,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 1959,
+      "title": {
+        "ru": "На станции МЦК Балтийская (выходы № 1-2) закрыт на ремонт эскалатор"
+      },
+      "description": {
+        "ru": "С 08.05.2026 по 08.08.2026 на станции МЦК Балтийская (выходы № 1-2) закрыт на ремонт эскалатор."
+      },
+      "startDate": "2026-05-08T01:50:03",
+      "endDate": "2026-08-08T01:50:11",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 386,
+          "title": {
+            "ru": "Ремонт эскалатора"
+          },
+          "description": {
+            "ru": "С 08.05.2026 по 08.08.2026 на станции МЦК Балтийская (выходы № 1-2) закрыт на ремонт эскалатор."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 16,
+          "name": "МЦК",
+          "icon": "https://prodapp.mosmetro.ru/static/line_14.svg",
+          "ordering": 14,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 1955,
+      "title": {
+        "ru": "На станции «Третьяковская» (выход № 2) закрыт на ремонт эскалатор"
+      },
+      "description": {
+        "ru": "С 01.06.2026 по 28.08.2026 на станции «Третьяковская» (выход № 2) закрыт на ремонт эскалатор."
+      },
+      "startDate": "2026-05-31T21:00:15",
+      "endDate": "2026-08-28T20:00:22",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 169,
+          "title": {
+            "ru": "Ремонт эскалатора"
+          },
+          "description": {
+            "ru": "С 01.06.2026 по 28.08.2026 на станции «Третьяковская» (выход № 2) закрыт на ремонт эскалатор."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 5,
+          "name": "Калужско-Рижская линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_6.svg",
+          "ordering": 6,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 1957,
+      "title": {
+        "ru": "На станции «Окружная» (выходы № 2-3) закрыт на ремонт эскалатор"
+      },
+      "description": {
+        "ru": "С 22.05.2026 по 24.09.2026 на станции «Окружная» (выходы № 2-3) закрыт на ремонт эскалатор."
+      },
+      "startDate": "2026-05-21T21:00:23",
+      "endDate": "2026-09-24T20:00:28",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 246,
+          "title": {
+            "ru": "Ремонт эскалатора"
+          },
+          "description": {
+            "ru": "С 22.05.2026 по 24.09.2026 на станции «Окружная» (выходы № 2-3) закрыт на ремонт эскалатор."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 10,
+          "name": "Люблинско-Дмитровская линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_10.svg",
+          "ordering": 10,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 1985,
+      "title": {
+        "ru": "На станции «Митино» (выход № 2) закрыт на ремонт лифт"
+      },
+      "description": {
+        "ru": "С 06.03.2026 по 30.08.2026 на станции «Митино» (выход № 2) закрыт на ремонт лифт."
+      },
+      "startDate": "2026-03-06T05:00:35",
+      "endDate": "2026-08-30T17:00:46",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 91,
+          "title": {
+            "ru": "Ремонт лифта"
+          },
+          "description": {
+            "ru": "С 06.03.2026 по 30.08.2026 на станции «Митино» (выход № 2) закрыт на ремонт лифт."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 3,
+          "name": "Арбатско-Покровская линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_3.svg",
+          "ordering": 3,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 2021,
+      "title": {
+        "ru": "На станции «Прокшино» (выход № 2) закрыт на ремонт лифт"
+      },
+      "description": {
+        "ru": "С 24.06.2026 по 30.10.2026 на станции «Прокшино» (выход № 2) закрыт на ремонт лифт."
+      },
+      "startDate": "2026-06-24T05:16:35",
+      "endDate": "2026-10-30T17:00:41",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 37,
+          "title": {
+            "ru": "Ремонт лифта"
+          },
+          "description": {
+            "ru": "С 24.06.2026 по 30.10.2026 на станции «Прокшино» (выход № 2) закрыт на ремонт лифт."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 1,
+          "name": "Сокольническая линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_1.svg",
+          "ordering": 1,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 1956,
+      "title": {
+        "ru": "На станции «Нижегородская» (выходы № 1-3) закрыт на ремонт эскалатор"
+      },
+      "description": {
+        "ru": "С 19.05.2026 по 31.08.2026 на станции «Нижегородская» (выходы № 1-3) закрыт на ремонт эскалатор."
+      },
+      "startDate": "2026-05-19T20:00:32",
+      "endDate": "2026-08-31T20:00:40",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 493,
+          "title": {
+            "ru": "Ремонт эскалатора"
+          },
+          "description": {
+            "ru": "С 19.05.2026 по 31.08.2026 на станции «Нижегородская» (выходы № 1-3) закрыт на ремонт эскалатор."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 11,
+          "name": "Большая кольцевая линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_11.svg",
+          "ordering": 11,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 1970,
+      "title": {
+        "ru": "На станции «Бульвар Адмирала Ушакова» (выход № 1) поочерёдно закроют на ремонт эскалаторы"
+      },
+      "description": {
+        "ru": "С 25.05.2026 по 30.12.2026 на станции «Бульвар Адмирала Ушакова» (выход № 1) поочерёдно закроют на ремонт эскалаторы."
+      },
+      "startDate": "2026-05-24T21:00:03",
+      "endDate": "2026-12-30T20:00:13",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 281,
+          "title": {
+            "ru": "Ремонт эскалатора"
+          },
+          "description": {
+            "ru": "С 25.05.2026 по 30.12.2026 на станции «Бульвар Адмирала Ушакова» (выход № 1) поочерёдно закроют на ремонт эскалаторы."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 12,
+          "name": "Бутовская линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_12.svg",
+          "ordering": 12,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 1972,
+      "title": {
+        "ru": "На станции МЦК Нижегородская (выход № 4) закрыты на ремонт лифты"
+      },
+      "description": {
+        "ru": "С 06.03.205 на станции МЦК Нижегородская (выход № 4) закрыты на ремонт лифты."
+      },
+      "startDate": "2026-03-06T05:00:19",
+      "endDate": "2026-08-31T17:00:29",
+      "hiddenEndDate": true,
+      "stations": [
+        {
+          "stationId": 357,
+          "title": {
+            "ru": "Ремонт лифтов"
+          },
+          "description": {
+            "ru": "С 06.03.205 на станции МЦК Нижегородская (выход № 4) закрыты на ремонт лифты."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 16,
+          "name": "МЦК",
+          "icon": "https://prodapp.mosmetro.ru/static/line_14.svg",
+          "ordering": 14,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 1980,
+      "title": {
+        "ru": "На станции «Бунинская аллея» (выход № 1) поочерёдно закроют на ремонт эскалаторы"
+      },
+      "description": {
+        "ru": "С 29.05.2026 по 30.12.2026 на станции «Бунинская аллея» (выход № 1) поочерёдно закроют на ремонт эскалаторы."
+      },
+      "startDate": "2026-05-28T21:00:34",
+      "endDate": "2026-12-30T20:00:40",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 283,
+          "title": {
+            "ru": "Ремонт эскалаторов"
+          },
+          "description": {
+            "ru": "С 29.05.2026 по 30.12.2026 на станции «Бунинская аллея» (выход № 1) поочерёдно закроют на ремонт эскалаторы."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 12,
+          "name": "Бутовская линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_12.svg",
+          "ordering": 12,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 1967,
+      "title": {
+        "ru": "На станции «Улица Дмитриевского» (выходы № 1-3) закрыт на ремонт эскалатор"
+      },
+      "description": {
+        "ru": "С 25.05.2026 по 03.09.2026 на станции «Улица Дмитриевского» (выходы № 1-3) закрыт на ремонт эскалатор."
+      },
+      "startDate": "2026-05-24T21:00:26",
+      "endDate": "2026-09-03T20:00:31",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 399,
+          "title": {
+            "ru": "Ремонт эскалатора"
+          },
+          "description": {
+            "ru": "С 25.05.2026 по 03.09.2026 на станции «Улица Дмитриевского» (выходы № 1-3) закрыт на ремонт эскалатор."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 17,
+          "name": "Некрасовская линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_15.svg",
+          "ordering": 15,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 1969,
+      "title": {
+        "ru": "На станции «Планерная» (выход № 1) закрыт на ремонт эскалатор"
+      },
+      "description": {
+        "ru": "С 25.05.2026 по 30.09.2026 на станции «Планерная» (выход № 1) закрыт на ремонт эскалатор."
+      },
+      "startDate": "2026-05-24T21:00:11",
+      "endDate": "2026-09-30T20:00:17",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 191,
+          "title": {
+            "ru": "Ремонт эскалатора"
+          },
+          "description": {
+            "ru": "С 25.05.2026 по 30.09.2026 на станции «Планерная» (выход № 1) закрыт на ремонт эскалатор."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 8,
+          "name": "Таганско-Краснопресненская линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_7.svg",
+          "ordering": 7,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 1982,
+      "title": {
+        "ru": "На станции «Улица Скобелевская» (выход № 1) закрыт на ремонт эскалатор"
+      },
+      "description": {
+        "ru": "С 29.05.2026 по 30.10.2026 на станции «Улица Скобелевская» (выход № 1) закрыт на ремонт эскалатор."
+      },
+      "startDate": "2026-05-28T21:00:23",
+      "endDate": "2026-10-30T20:00:28",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 280,
+          "title": {
+            "ru": "Ремонт эскалатора"
+          },
+          "description": {
+            "ru": "С 29.05.2026 по 30.10.2026 на станции «Улица Скобелевская» (выход № 1) закрыт на ремонт эскалатор."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 12,
+          "name": "Бутовская линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_12.svg",
+          "ordering": 12,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 1996,
+      "title": {
+        "ru": "На станции «Румянцево» (выход № 2) закрыт на ремонт эскалатор"
+      },
+      "description": {
+        "ru": "С 01.06.2026 по 31.08.2026 на станции «Румянцево» (выход № 2) закрыт на ремонт эскалатор."
+      },
+      "startDate": "2026-06-01T09:00:43",
+      "endDate": "2026-08-31T20:00:53",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 34,
+          "title": {
+            "ru": "Ремонт эскалатора"
+          },
+          "description": {
+            "ru": "С 01.06.2026 по 31.08.2026 на станции «Румянцево» (выход № 2) закрыт на ремонт эскалатор."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 1,
+          "name": "Сокольническая линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_1.svg",
+          "ordering": 1,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 1991,
+      "title": {
+        "ru": "Выход № 11 станции «Площадь Революции» закрыт на ремонт"
+      },
+      "description": {
+        "ru": "С 16.06.2025 выход № 11 станции «Площадь Революции» закрыт на ремонт.\nВход и выход пассажиров через выход № 10."
+      },
+      "startDate": "2025-06-15T21:00:01",
+      "endDate": "2026-08-31T20:00:12",
+      "hiddenEndDate": true,
+      "stations": [
+        {
+          "stationId": 118,
+          "title": {
+            "ru": "Закрытие выхода"
+          },
+          "description": {
+            "ru": "С 16.06.2025 выход № 11 станции «Площадь Революции» закрыт на ремонт.\nВход и выход пассажиров через выход № 10."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 3,
+          "name": "Арбатско-Покровская линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_3.svg",
+          "ordering": 3,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 1995,
+      "title": {
+        "ru": "На станции «Трубная» (выход № 2) закрыт на ремонт эскалатор"
+      },
+      "description": {
+        "ru": "С 04.06.2026 по 30.09.2026 на станции «Трубная» (выход № 2) закрыт на ремонт эскалатор."
+      },
+      "startDate": "2026-06-03T21:00:41",
+      "endDate": "2026-09-30T20:00:47",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 252,
+          "title": {
+            "ru": "Ремонт эскалатора"
+          },
+          "description": {
+            "ru": "С 04.06.2026 по 30.09.2026 на станции «Трубная» (выход № 2) закрыт на ремонт эскалатор"
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 10,
+          "name": "Люблинско-Дмитровская линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_10.svg",
+          "ordering": 10,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 1692,
+      "title": {
+        "ru": "На станции «Новокосино» (выходы № 3-4) закрыт на ремонт лифт"
+      },
+      "description": {
+        "ru": "С 30.05.2025 по 30.08.2026 на станции «Новокосино» (выходы № 3-4) закрыт на ремонт лифт."
+      },
+      "startDate": "2025-05-30T17:00:16",
+      "endDate": "2026-08-30T17:00:27",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 236,
+          "title": {
+            "ru": "Ремонт лифта"
+          },
+          "description": {
+            "ru": "С 30.05.2025 по 30.08.2026 на станции «Новокосино» (выходы № 3-4) закрыт на ремонт лифт."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 9,
+          "name": "Калининская линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_8.svg",
+          "ordering": 8,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 2000,
+      "title": {
+        "ru": "На станции МЦК Панфиловская (выходы № 1-2) закрыт на ремонт лифт"
+      },
+      "description": {
+        "ru": "С 28.05.2026 по 30.08.2026 на станции МЦК Панфиловская (выходы № 1-2) закрыт на ремонт лифт."
+      },
+      "startDate": "2026-05-28T05:00:15",
+      "endDate": "2026-08-30T17:00:24",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 384,
+          "title": {
+            "ru": "Ремонт лифта"
+          },
+          "description": {
+            "ru": "С 28.05.2026 по 30.08.2026 на станции МЦК Панфиловская (выходы № 1-2) закрыт на ремонт лифт."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 16,
+          "name": "МЦК",
+          "icon": "https://prodapp.mosmetro.ru/static/line_14.svg",
+          "ordering": 14,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 2003,
+      "title": {
+        "ru": "На станции МЦК Измайлово (выход № 2) закрыт на ремонт лифт"
+      },
+      "description": {
+        "ru": "С 28.05.2026 по 30.08.2026 на станции МЦК Измайлово (выход № 2) закрыт на ремонт лифт.\n"
+      },
+      "startDate": "2026-05-27T21:00:02",
+      "endDate": "2026-08-30T17:00:13",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 349,
+          "title": {
+            "ru": "Ремонт лифта"
+          },
+          "description": {
+            "ru": "С 28.05.2026 по 30.08.2026 на станции МЦК Измайлово (выход № 2) закрыт на ремонт лифт.\n"
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 16,
+          "name": "МЦК",
+          "icon": "https://prodapp.mosmetro.ru/static/line_14.svg",
+          "ordering": 14,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 1961,
+      "title": {
+        "ru": "В переходе со станции «Черкизовская» на МЦК закрыт на ремонт эскалатор"
+      },
+      "description": {
+        "ru": "Со 02.06.2026 по 30.07.2026 в переходе со станции «Черкизовская» на МЦК закрыт на ремонт эскалатор."
+      },
+      "startDate": "2026-06-01T21:00:34",
+      "endDate": "2026-07-30T20:00:42",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 8,
+          "title": {
+            "ru": "Ремонт эскалатора"
+          },
+          "description": {
+            "ru": "Со 02.06.2026 по 30.07.2026 в переходе со станции «Черкизовская» на МЦК закрыт на ремонт эскалатор."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 1,
+          "name": "Сокольническая линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_1.svg",
+          "ordering": 1,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 1682,
+      "title": {
+        "ru": "Изменения на D2"
+      },
+      "description": {
+        "ru": "С 20 июня поезда «на Нахабино» временно не останавливаются на Перерве\n-Чтобы уехать с Перервы в сторону центра Москвы, отправляйтесь с платформы «на Подольск» до станции Курьяново и бесплатно пересаживайтесь на встречный поезд\n- Чтобы добраться до Перервы со стороны Подольска, следуйте до станции Депо и садитесь в поезд обратного направления\n\nНа обеих станциях одна островная платформа, поэтому для пересадки просто перейдите с одной стороны платформы на другую.\n\n- Поезда в сторону Подольска следуют в обычном режиме"
+      },
+      "startDate": "2025-06-19T21:00:51",
+      "endDate": "2027-12-31T20:00:45",
+      "hiddenEndDate": true,
+      "stations": [
+        {
+          "stationId": 341,
+          "title": {
+            "ru": "Изменения на D2"
+          },
+          "description": {
+            "ru": "С 20 июня поезда «на Нахабино» временно не останавливаются на Перерве\n-Чтобы уехать с Перервы в сторону центра Москвы, отправляйтесь с платформы «на Подольск» до станции Курьяново и бесплатно пересаживайтесь на встречный поезд\n- Чтобы добраться до Перервы со стороны Подольска, следуйте до станции Депо и садитесь в поезд обратного направления\n\nНа обеих станциях одна островная платформа, поэтому для пересадки просто перейдите с одной стороны платформы на другую.\n\n- Поезда в сторону Подольска следуют в обычном режиме"
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 343,
+          "title": {
+            "ru": "Изменения на D2"
+          },
+          "description": {
+            "ru": "С 20 июня поезда «на Нахабино» временно не останавливаются на Перерве\n-Чтобы уехать с Перервы в сторону центра Москвы, отправляйтесь с платформы «на Подольск» до станции Курьяново и бесплатно пересаживайтесь на встречный поезд\n- Чтобы добраться до Перервы со стороны Подольска, следуйте до станции Депо и садитесь в поезд обратного направления\n\nНа обеих станциях одна островная платформа, поэтому для пересадки просто перейдите с одной стороны платформы на другую.\n\n- Поезда в сторону Подольска следуют в обычном режиме"
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 344,
+          "title": {
+            "ru": "Изменения на D2"
+          },
+          "description": {
+            "ru": "С 20 июня поезда «на Нахабино» временно не останавливаются на Перерве\n-Чтобы уехать с Перервы в сторону центра Москвы, отправляйтесь с платформы «на Подольск» до станции Курьяново и бесплатно пересаживайтесь на встречный поезд\n- Чтобы добраться до Перервы со стороны Подольска, следуйте до станции Депо и садитесь в поезд обратного направления\n\nНа обеих станциях одна островная платформа, поэтому для пересадки просто перейдите с одной стороны платформы на другую.\n\n- Поезда в сторону Подольска следуют в обычном режиме"
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 346,
+          "title": {
+            "ru": "Изменения на D2"
+          },
+          "description": {
+            "ru": "С 20 июня поезда «на Нахабино» временно не останавливаются на Перерве\n-Чтобы уехать с Перервы в сторону центра Москвы, отправляйтесь с платформы «на Подольск» до станции Курьяново и бесплатно пересаживайтесь на встречный поезд\n- Чтобы добраться до Перервы со стороны Подольска, следуйте до станции Депо и садитесь в поезд обратного направления\n\nНа обеих станциях одна островная платформа, поэтому для пересадки просто перейдите с одной стороны платформы на другую.\n\n- Поезда в сторону Подольска следуют в обычном режиме"
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 348,
+          "title": {
+            "ru": "Изменения на D2"
+          },
+          "description": {
+            "ru": "С 20 июня поезда «на Нахабино» временно не останавливаются на Перерве\n-Чтобы уехать с Перервы в сторону центра Москвы, отправляйтесь с платформы «на Подольск» до станции Курьяново и бесплатно пересаживайтесь на встречный поезд\n- Чтобы добраться до Перервы со стороны Подольска, следуйте до станции Депо и садитесь в поезд обратного направления\n\nНа обеих станциях одна островная платформа, поэтому для пересадки просто перейдите с одной стороны платформы на другую.\n\n- Поезда в сторону Подольска следуют в обычном режиме"
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 350,
+          "title": {
+            "ru": "Изменения на D2"
+          },
+          "description": {
+            "ru": "С 20 июня поезда «на Нахабино» временно не останавливаются на Перерве\n-Чтобы уехать с Перервы в сторону центра Москвы, отправляйтесь с платформы «на Подольск» до станции Курьяново и бесплатно пересаживайтесь на встречный поезд\n- Чтобы добраться до Перервы со стороны Подольска, следуйте до станции Депо и садитесь в поезд обратного направления\n\nНа обеих станциях одна островная платформа, поэтому для пересадки просто перейдите с одной стороны платформы на другую.\n\n- Поезда в сторону Подольска следуют в обычном режиме"
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 367,
+          "title": {
+            "ru": "Изменения на D2"
+          },
+          "description": {
+            "ru": "С 20 июня поезда «на Нахабино» временно не будут останавливаться на Перерве\n-Чтобы уехать с Перервы в сторону центра Москвы, отправляйтесь с платформы «на Подольск» до станции Курьяново и бесплатно пересаживайтесь на встречный поезд\n- Чтобы добраться до Перервы со стороны Подольска, следуйте до станции Депо и садитесь в поезд обратного направления\n\nНа обеих станциях одна островная платформа, поэтому для пересадки просто перейдите с одной стороны платформы на другую.\n\n- Поезда в сторону Подольска следуют в обычном режиме"
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 371,
+          "title": {
+            "ru": "Изменения на D2"
+          },
+          "description": {
+            "ru": "С 20 июня поезда «на Нахабино» временно не будут останавливаться на Перерве\n-Чтобы уехать с Перервы в сторону центра Москвы, отправляйтесь с платформы «на Подольск» до станции Курьяново и бесплатно пересаживайтесь на встречный поезд\n- Чтобы добраться до Перервы со стороны Подольска, следуйте до станции Депо и садитесь в поезд обратного направления\n\nНа обеих станциях одна островная платформа, поэтому для пересадки просто перейдите с одной стороны платформы на другую.\n\n- Поезда в сторону Подольска следуют в обычном режиме"
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 373,
+          "title": {
+            "ru": "Изменения на D2"
+          },
+          "description": {
+            "ru": "С 20 июня поезда «на Нахабино» временно не будут останавливаться на Перерве\n-Чтобы уехать с Перервы в сторону центра Москвы, отправляйтесь с платформы «на Подольск» до станции Курьяново и бесплатно пересаживайтесь на встречный поезд\n- Чтобы добраться до Перервы со стороны Подольска, следуйте до станции Депо и садитесь в поезд обратного направления\n\nНа обеих станциях одна островная платформа, поэтому для пересадки просто перейдите с одной стороны платформы на другую.\n\n- Поезда в сторону Подольска следуют в обычном режиме"
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 376,
+          "title": {
+            "ru": "Изменения на D2"
+          },
+          "description": {
+            "ru": "С 20 июня поезда «на Нахабино» временно не будут останавливаться на Перерве\n-Чтобы уехать с Перервы в сторону центра Москвы, отправляйтесь с платформы «на Подольск» до станции Курьяново и бесплатно пересаживайтесь на встречный поезд\n- Чтобы добраться до Перервы со стороны Подольска, следуйте до станции Депо и садитесь в поезд обратного направления\n\nНа обеих станциях одна островная платформа, поэтому для пересадки просто перейдите с одной стороны платформы на другую.\n\n- Поезда в сторону Подольска следуют в обычном режиме"
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 325,
+          "title": {
+            "ru": "Изменения на D2"
+          },
+          "description": {
+            "ru": "С 20 июня поезда «на Нахабино» временно не останавливаюся на Перерве\n-Чтобы уехать с Перервы в сторону центра Москвы, отправляйтесь с платформы «на Подольск» до станции Курьяново и бесплатно пересаживайтесь на встречный поезд\n- Чтобы добраться до Перервы со стороны Подольска, следуйте до станции Депо и садитесь в поезд обратного направления\n\nНа обеих станциях одна островная платформа, поэтому для пересадки просто перейдите с одной стороны платформы на другую.\n\n- Поезда в сторону Подольска следуют в обычном режиме"
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 326,
+          "title": {
+            "ru": "Изменения на D2"
+          },
+          "description": {
+            "ru": "С 20 июня поезда «на Нахабино» временно не  останавливаются на Перерве\n-Чтобы уехать с Перервы в сторону центра Москвы, отправляйтесь с платформы «на Подольск» до станции Курьяново и бесплатно пересаживайтесь на встречный поезд\n- Чтобы добраться до Перервы со стороны Подольска, следуйте до станции Депо и садитесь в поезд обратного направления\n\nНа обеих станциях одна островная платформа, поэтому для пересадки просто перейдите с одной стороны платформы на другую.\n\n- Поезда в сторону Подольска следуют в обычном режиме"
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 327,
+          "title": {
+            "ru": "Изменения на D2"
+          },
+          "description": {
+            "ru": "С 20 июня поезда «на Нахабино» временно не  останавливаются на Перерве\n-Чтобы уехать с Перервы в сторону центра Москвы, отправляйтесь с платформы «на Подольск» до станции Курьяново и бесплатно пересаживайтесь на встречный поезд\n- Чтобы добраться до Перервы со стороны Подольска, следуйте до станции Депо и садитесь в поезд обратного направления\n\nНа обеих станциях одна островная платформа, поэтому для пересадки просто перейдите с одной стороны платформы на другую.\n\n- Поезда в сторону Подольска следуют в обычном режиме"
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 328,
+          "title": {
+            "ru": "Изменения на D2"
+          },
+          "description": {
+            "ru": "С 20 июня поезда «на Нахабино» временно не останавливаются на Перерве\n-Чтобы уехать с Перервы в сторону центра Москвы, отправляйтесь с платформы «на Подольск» до станции Курьяново и бесплатно пересаживайтесь на встречный поезд\n- Чтобы добраться до Перервы со стороны Подольска, следуйте до станции Депо и садитесь в поезд обратного направления\n\nНа обеих станциях одна островная платформа, поэтому для пересадки просто перейдите с одной стороны платформы на другую.\n\n- Поезда в сторону Подольска следуют в обычном режиме"
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 329,
+          "title": {
+            "ru": "Изменения на D2"
+          },
+          "description": {
+            "ru": "С 20 июня поезда «на Нахабино» временно не останавливаются на Перерве\n-Чтобы уехать с Перервы в сторону центра Москвы, отправляйтесь с платформы «на Подольск» до станции Курьяново и бесплатно пересаживайтесь на встречный поезд\n- Чтобы добраться до Перервы со стороны Подольска, следуйте до станции Депо и садитесь в поезд обратного направления\n\nНа обеих станциях одна островная платформа, поэтому для пересадки просто перейдите с одной стороны платформы на другую.\n\n- Поезда в сторону Подольска следуют в обычном режиме"
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 330,
+          "title": {
+            "ru": "Изменения на D2"
+          },
+          "description": {
+            "ru": "С 20 июня поезда «на Нахабино» временно не  останавливаются на Перерве\n-Чтобы уехать с Перервы в сторону центра Москвы, отправляйтесь с платформы «на Подольск» до станции Курьяново и бесплатно пересаживайтесь на встречный поезд\n- Чтобы добраться до Перервы со стороны Подольска, следуйте до станции Депо и садитесь в поезд обратного направления\n\nНа обеих станциях одна островная платформа, поэтому для пересадки просто перейдите с одной стороны платформы на другую.\n\n- Поезда в сторону Подольска следуют в обычном режиме"
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 331,
+          "title": {
+            "ru": "Изменения на D2"
+          },
+          "description": {
+            "ru": "С 20 июня поезда «на Нахабино» временно не останавливаются на Перерве\n-Чтобы уехать с Перервы в сторону центра Москвы, отправляйтесь с платформы «на Подольск» до станции Курьяново и бесплатно пересаживайтесь на встречный поезд\n- Чтобы добраться до Перервы со стороны Подольска, следуйте до станции Депо и садитесь в поезд обратного направления\n\nНа обеих станциях одна островная платформа, поэтому для пересадки просто перейдите с одной стороны платформы на другую.\n\n- Поезда в сторону Подольска следуют в обычном режиме"
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 332,
+          "title": {
+            "ru": "Изменения на D2"
+          },
+          "description": {
+            "ru": "С 20 июня поезда «на Нахабино» временно не останавливаются на Перерве\n-Чтобы уехать с Перервы в сторону центра Москвы, отправляйтесь с платформы «на Подольск» до станции Курьяново и бесплатно пересаживайтесь на встречный поезд\n- Чтобы добраться до Перервы со стороны Подольска, следуйте до станции Депо и садитесь в поезд обратного направления\n\nНа обеих станциях одна островная платформа, поэтому для пересадки просто перейдите с одной стороны платформы на другую.\n\n- Поезда в сторону Подольска следуют в обычном режиме"
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 333,
+          "title": {
+            "ru": "Изменения на D2"
+          },
+          "description": {
+            "ru": "С 20 июня поезда «на Нахабино» временно не останавливаются на Перерве\n-Чтобы уехать с Перервы в сторону центра Москвы, отправляйтесь с платформы «на Подольск» до станции Курьяново и бесплатно пересаживайтесь на встречный поезд\n- Чтобы добраться до Перервы со стороны Подольска, следуйте до станции Депо и садитесь в поезд обратного направления\n\nНа обеих станциях одна островная платформа, поэтому для пересадки просто перейдите с одной стороны платформы на другую.\n\n- Поезда в сторону Подольска следуют в обычном режиме"
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 334,
+          "title": {
+            "ru": "Изменения на D2"
+          },
+          "description": {
+            "ru": "С 20 июня поезда «на Нахабино» временно не останавливаются на Перерве\n-Чтобы уехать с Перервы в сторону центра Москвы, отправляйтесь с платформы «на Подольск» до станции Курьяново и бесплатно пересаживайтесь на встречный поезд\n- Чтобы добраться до Перервы со стороны Подольска, следуйте до станции Депо и садитесь в поезд обратного направления\n\nНа обеих станциях одна островная платформа, поэтому для пересадки просто перейдите с одной стороны платформы на другую.\n\n- Поезда в сторону Подольска следуют в обычном режиме"
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 335,
+          "title": {
+            "ru": "Изменения на D2"
+          },
+          "description": {
+            "ru": "С 20 июня поезда «на Нахабино» временно не  останавливаются на Перерве\n-Чтобы уехать с Перервы в сторону центра Москвы, отправляйтесь с платформы «на Подольск» до станции Курьяново и бесплатно пересаживайтесь на встречный поезд\n- Чтобы добраться до Перервы со стороны Подольска, следуйте до станции Депо и садитесь в поезд обратного направления\n\nНа обеих станциях одна островная платформа, поэтому для пересадки просто перейдите с одной стороны платформы на другую.\n\n- Поезда в сторону Подольска следуют в обычном режиме"
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 336,
+          "title": {
+            "ru": "Изменения на D2"
+          },
+          "description": {
+            "ru": "С 20 июня поезда «на Нахабино» временно не  останавливаются на Перерве\n-Чтобы уехать с Перервы в сторону центра Москвы, отправляйтесь с платформы «на Подольск» до станции Курьяново и бесплатно пересаживайтесь на встречный поезд\n- Чтобы добраться до Перервы со стороны Подольска, следуйте до станции Депо и садитесь в поезд обратного направления\n\nНа обеих станциях одна островная платформа, поэтому для пересадки просто перейдите с одной стороны платформы на другую.\n\n- Поезда в сторону Подольска следуют в обычном режиме"
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 337,
+          "title": {
+            "ru": "Изменения на D2"
+          },
+          "description": {
+            "ru": "С 20 июня поезда «на Нахабино» временно не останавливаются на Перерве\n-Чтобы уехать с Перервы в сторону центра Москвы, отправляйтесь с платформы «на Подольск» до станции Курьяново и бесплатно пересаживайтесь на встречный поезд\n- Чтобы добраться до Перервы со стороны Подольска, следуйте до станции Депо и садитесь в поезд обратного направления\n\nНа обеих станциях одна островная платформа, поэтому для пересадки просто перейдите с одной стороны платформы на другую.\n\n- Поезда в сторону Подольска следуют в обычном режиме"
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 339,
+          "title": {
+            "ru": "Изменения на D2"
+          },
+          "description": {
+            "ru": "С 20 июня поезда «на Нахабино» временно не останавливаются на Перерве\n-Чтобы уехать с Перервы в сторону центра Москвы, отправляйтесь с платформы «на Подольск» до станции Курьяново и бесплатно пересаживайтесь на встречный поезд\n- Чтобы добраться до Перервы со стороны Подольска, следуйте до станции Депо и садитесь в поезд обратного направления\n\nНа обеих станциях одна островная платформа, поэтому для пересадки просто перейдите с одной стороны платформы на другую.\n\n- Поезда в сторону Подольска следуют в обычном режиме"
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 501,
+          "title": {
+            "ru": "Изменения на D2"
+          },
+          "description": {
+            "ru": "С 20 июня поезда «на Нахабино» временно не останавливаются на Перерве\n-Чтобы уехать с Перервы в сторону центра Москвы, отправляйтесь с платформы «на Подольск» до станции Курьяново и бесплатно пересаживайтесь на встречный поезд\n- Чтобы добраться до Перервы со стороны Подольска, следуйте до станции Депо и садитесь в поезд обратного направления\n\nНа обеих станциях одна островная платформа, поэтому для пересадки просто перейдите с одной стороны платформы на другую.\n\n- Поезда в сторону Подольска следуют в обычном режиме"
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 378,
+          "title": {
+            "ru": "Изменения на D2"
+          },
+          "description": {
+            "ru": "С 20 июня поезда «на Нахабино» временно не останавливаются на Перерве\n-Чтобы уехать с Перервы в сторону центра Москвы, отправляйтесь с платформы «на Подольск» до станции Курьяново и бесплатно пересаживайтесь на встречный поезд\n- Чтобы добраться до Перервы со стороны Подольска, следуйте до станции Депо и садитесь в поезд обратного направления\n\nНа обеих станциях одна островная платформа, поэтому для пересадки просто перейдите с одной стороны платформы на другую.\n\n- Поезда в сторону Подольска следуют в обычном режиме"
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 354,
+          "title": {
+            "ru": "Изменения на D2"
+          },
+          "description": {
+            "ru": "С 20 июня поезда «на Нахабино» временно не останавливаются на Перерве\n-Чтобы уехать с Перервы в сторону центра Москвы, отправляйтесь с платформы «на Подольск» до станции Курьяново и бесплатно пересаживайтесь на встречный поезд\n- Чтобы добраться до Перервы со стороны Подольска, следуйте до станции Депо и садитесь в поезд обратного направления\n\nНа обеих станциях одна островная платформа, поэтому для пересадки просто перейдите с одной стороны платформы на другую.\n\n- Поезда в сторону Подольска следуют в обычном режиме"
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 352,
+          "title": {
+            "ru": "Изменения на D2"
+          },
+          "description": {
+            "ru": "С 20 июня поезда «на Нахабино» временно не останавливаются на Перерве\n-Чтобы уехать с Перервы в сторону центра Москвы, отправляйтесь с платформы «на Подольск» до станции Курьяново и бесплатно пересаживайтесь на встречный поезд\n- Чтобы добраться до Перервы со стороны Подольска, следуйте до станции Депо и садитесь в поезд обратного направления\n\nНа обеих станциях одна островная платформа, поэтому для пересадки просто перейдите с одной стороны платформы на другую.\n\n- Поезда в сторону Подольска следуют в обычном режиме"
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 362,
+          "title": {
+            "ru": "Изменения на D2"
+          },
+          "description": {
+            "ru": "С 20 июня поезда «на Нахабино» временно не  останавливаются на Перерве\n-Чтобы уехать с Перервы в сторону центра Москвы, отправляйтесь с платформы «на Подольск» до станции Курьяново и бесплатно пересаживайтесь на встречный поезд\n- Чтобы добраться до Перервы со стороны Подольска, следуйте до станции Депо и садитесь в поезд обратного направления\n\nНа обеих станциях одна островная платформа, поэтому для пересадки просто перейдите с одной стороны платформы на другую.\n\n- Поезда в сторону Подольска следуют в обычном режиме"
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 445,
+          "title": {
+            "ru": "Изменения на D2"
+          },
+          "description": {
+            "ru": "С 20 июня поезда «на Нахабино» временно не останавливаются на Перерве\n-Чтобы уехать с Перервы в сторону центра Москвы, отправляйтесь с платформы «на Подольск» до станции Курьяново и бесплатно пересаживайтесь на встречный поезд\n- Чтобы добраться до Перервы со стороны Подольска, следуйте до станции Депо и садитесь в поезд обратного направления\n\nНа обеих станциях одна островная платформа, поэтому для пересадки просто перейдите с одной стороны платформы на другую.\n\n- Поезда в сторону Подольска следуют в обычном режиме"
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 356,
+          "title": {
+            "ru": "Изменения на D2"
+          },
+          "description": {
+            "ru": "С 20 июня поезда «на Нахабино» временно не останавливаются на Перерве\n-Чтобы уехать с Перервы в сторону центра Москвы, отправляйтесь с платформы «на Подольск» до станции Курьяново и бесплатно пересаживайтесь на встречный поезд\n- Чтобы добраться до Перервы со стороны Подольска, следуйте до станции Депо и садитесь в поезд обратного направления\n\nНа обеих станциях одна островная платформа, поэтому для пересадки просто перейдите с одной стороны платформы на другую.\n\n- Поезда в сторону Подольска следуют в обычном режиме"
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 358,
+          "title": {
+            "ru": "Изменения на D2"
+          },
+          "description": {
+            "ru": "С 20 июня поезда «на Нахабино» временно не  останавливаются на Перерве\n-Чтобы уехать с Перервы в сторону центра Москвы, отправляйтесь с платформы «на Подольск» до станции Курьяново и бесплатно пересаживайтесь на встречный поезд\n- Чтобы добраться до Перервы со стороны Подольска, следуйте до станции Депо и садитесь в поезд обратного направления\n\nНа обеих станциях одна островная платформа, поэтому для пересадки просто перейдите с одной стороны платформы на другую.\n\n- Поезда в сторону Подольска следуют в обычном режиме"
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 363,
+          "title": {
+            "ru": "Изменения на D2"
+          },
+          "description": {
+            "ru": "С 20 июня поезда «на Нахабино» временно не останавливаются на Перерве\n-Чтобы уехать с Перервы в сторону центра Москвы, отправляйтесь с платформы «на Подольск» до станции Курьяново и бесплатно пересаживайтесь на встречный поезд\n- Чтобы добраться до Перервы со стороны Подольска, следуйте до станции Депо и садитесь в поезд обратного направления\n\nНа обеих станциях одна островная платформа, поэтому для пересадки просто перейдите с одной стороны платформы на другую.\n\n- Поезда в сторону Подольска следуют в обычном режиме"
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 365,
+          "title": {
+            "ru": "Изменения на D2"
+          },
+          "description": {
+            "ru": "С 20 июня поезда «на Нахабино» временно не останавливаются на Перерве\n-Чтобы уехать с Перервы в сторону центра Москвы, отправляйтесь с платформы «на Подольск» до станции Курьяново и бесплатно пересаживайтесь на встречный поезд\n- Чтобы добраться до Перервы со стороны Подольска, следуйте до станции Депо и садитесь в поезд обратного направления\n\nНа обеих станциях одна островная платформа, поэтому для пересадки просто перейдите с одной стороны платформы на другую.\n\n- Поезда в сторону Подольска следуют в обычном режиме"
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 360,
+          "title": {
+            "ru": "Изменения на D2"
+          },
+          "description": {
+            "ru": "С 20 июня поезда «на Нахабино» временно не останавливаются на Перерве\n-Чтобы уехать с Перервы в сторону центра Москвы, отправляйтесь с платформы «на Подольск» до станции Курьяново и бесплатно пересаживайтесь на встречный поезд\n- Чтобы добраться до Перервы со стороны Подольска, следуйте до станции Депо и садитесь в поезд обратного направления\n\nНа обеих станциях одна островная платформа, поэтому для пересадки просто перейдите с одной стороны платформы на другую.\n\n- Поезда в сторону Подольска следуют в обычном режиме"
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 369,
+          "title": {
+            "ru": "Изменения на D2"
+          },
+          "description": {
+            "ru": "С 20 июня поезда «на Нахабино» временно не  останавливаются на Перерве\n-Чтобы уехать с Перервы в сторону центра Москвы, отправляйтесь с платформы «на Подольск» до станции Курьяново и бесплатно пересаживайтесь на встречный поезд\n- Чтобы добраться до Перервы со стороны Подольска, следуйте до станции Депо и садитесь в поезд обратного направления\n\nНа обеих станциях одна островная платформа, поэтому для пересадки просто перейдите с одной стороны платформы на другую.\n\n- Поезда в сторону Подольска следуют в обычном режиме"
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 374,
+          "title": {
+            "ru": "Изменения на D2"
+          },
+          "description": {
+            "ru": "С 20 июня поезда «на Нахабино» временно не останавливаются на Перерве\n-Чтобы уехать с Перервы в сторону центра Москвы, отправляйтесь с платформы «на Подольск» до станции Курьяново и бесплатно пересаживайтесь на встречный поезд\n- Чтобы добраться до Перервы со стороны Подольска, следуйте до станции Депо и садитесь в поезд обратного направления\n\nНа обеих станциях одна островная платформа, поэтому для пересадки просто перейдите с одной стороны платформы на другую.\n\n- Поезда в сторону Подольска следуют в обычном режиме"
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 15,
+          "name": "МЦД-2",
+          "icon": "https://prodapp.mosmetro.ru/static/line_17.svg",
+          "ordering": 17,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 1966,
+      "title": {
+        "ru": "На станции «ЦСКА» (выход № 2) закрыт на ремонт эскалатор"
+      },
+      "description": {
+        "ru": "Со 02.06.2026 по 31.08.2026 на станции «ЦСКА» (выход № 2) закрыт на ремонт эскалатор."
+      },
+      "startDate": "2026-06-01T21:00:30",
+      "endDate": "2026-08-31T20:00:36",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 404,
+          "title": {
+            "ru": "Ремонт эскалатора"
+          },
+          "description": {
+            "ru": "Со 02.06.2026 по 31.08.2026 на станции «ЦСКА» (выход № 2) закрыт на ремонт эскалатор."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 11,
+          "name": "Большая кольцевая линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_11.svg",
+          "ordering": 11,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 2013,
+      "title": {
+        "ru": "Будьте внимательнее!"
+      },
+      "description": {
+        "ru": "На станции «Печатники» БКЛ между платформами расположены действующие пути. Пожалуйста будьте внимательны при нахождении на платформе."
+      },
+      "startDate": "2026-06-15T11:06:09",
+      "endDate": "2026-12-31T11:06:10",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 495,
+          "title": {
+            "ru": "Будьте внимательнее!"
+          },
+          "description": {
+            "ru": "На станции «Печатники» БКЛ между платформами расположены действующие пути. Пожалуйста будьте внимательны при нахождении на платформе."
+          },
+          "status": "INFO"
+        }
+      ],
+      "lines": [],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 2017,
+      "title": {
+        "ru": "На станции МЦК Лихоборы (выходы № 1-2) закрыт на ремонт лифт"
+      },
+      "description": {
+        "ru": "С 02.06.2026 по 30.08.2026 на станции МЦК Лихоборы (выходы № 1-2) закрыт на ремонт лифт."
+      },
+      "startDate": "2026-06-02T05:00:41",
+      "endDate": "2026-08-30T17:00:47",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 388,
+          "title": {
+            "ru": "Ремонт лифта"
+          },
+          "description": {
+            "ru": "С 02.06.2026 по 30.08.2026 на станции МЦК Лихоборы (выходы № 1-2) закрыт на ремонт лифт."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 16,
+          "name": "МЦК",
+          "icon": "https://prodapp.mosmetro.ru/static/line_14.svg",
+          "ordering": 14,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 2032,
+      "title": {
+        "ru": "В переходе со станции «Площадь Революции» на Замоскворецкую линию закрыт на ремонт эскалатор"
+      },
+      "description": {
+        "ru": "Со 02.07.2026 по 03.08.2026 в переходе со станции «Площадь Революции» на Замоскворецкую линию закрыт на ремонт эскалатор."
+      },
+      "startDate": "2026-07-01T21:00:05",
+      "endDate": "2026-08-03T20:00:10",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 118,
+          "title": {
+            "ru": "Ремонт эскалатора"
+          },
+          "description": {
+            "ru": "Со 02.07.2026 по 03.08.2026 в переходе со станции «Площадь Революции» на Замоскворецкую линию закрыт на ремонт эскалатор."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 3,
+          "name": "Арбатско-Покровская линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_3.svg",
+          "ordering": 3,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 2033,
+      "title": {
+        "ru": "На станции «Боровское шоссе» (выход № 1) закрыт на ремонт эскалатор"
+      },
+      "description": {
+        "ru": "Со 02.07.2026 по 03.08.2026 на станции «Боровское шоссе» (выход № 1) закрыт на ремонт эскалатор."
+      },
+      "startDate": "2026-07-01T21:00:56",
+      "endDate": "2026-08-03T20:00:00",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 305,
+          "title": {
+            "ru": "Ремонт эскалатора"
+          },
+          "description": {
+            "ru": "Со 02.07.2026 по 03.08.2026 на станции «Боровское шоссе» (выход № 1) закрыт на ремонт эскалатор."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 13,
+          "name": "Солнцевская линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_80.svg",
+          "ordering": 80,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 2034,
+      "title": {
+        "ru": "На станции «Хорошёвская» (выход № 8) поочерёдно закроют на ремонт эскалаторы"
+      },
+      "description": {
+        "ru": "Со 02.07.2026 по 31.08.2026 на станции «Хорошёвская» (выход № 8) поочерёдно закроют на ремонт эскалаторы."
+      },
+      "startDate": "2026-07-01T21:44:45",
+      "endDate": "2026-08-31T20:00:49",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 405,
+          "title": {
+            "ru": "Ремонт эскалаторов"
+          },
+          "description": {
+            "ru": "Со 02.07.2026 по 31.08.2026 на станции «Хорошёвская» (выход № 8) поочерёдно закроют на ремонт эскалаторы."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 11,
+          "name": "Большая кольцевая линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_11.svg",
+          "ordering": 11,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 2023,
+      "title": {
+        "ru": "На станции «Маяковская» (выход № 1) закрыт на ремонт эскалатор"
+      },
+      "description": {
+        "ru": "С 26.06.2026 по 23.07.2026 на станции «Маяковская» (выход № 1) закрыт на ремонт эскалатор."
+      },
+      "startDate": "2026-06-25T21:00:54",
+      "endDate": "2026-07-23T20:00:59",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 45,
+          "title": {
+            "ru": "Ремонт эскалатора"
+          },
+          "description": {
+            "ru": "С 26.06.2026 по 23.07.2026 на станции «Маяковская» (выход № 1) закрыт на ремонт эскалатор."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 2,
+          "name": "Замоскворецкая линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_2.svg",
+          "ordering": 2,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 2024,
+      "title": {
+        "ru": "На станции «Домодедовская» (выходы № 4-13) поочерёдно закроют на ремонт эскалаторы"
+      },
+      "description": {
+        "ru": "С 26.06.2026 по 12.11.2026 на станции «Домодедовская» (выходы № 4-13) поочерёдно закроют на ремонт эскалаторы."
+      },
+      "startDate": "2026-06-25T21:00:45",
+      "endDate": "2026-11-12T20:00:51",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 142,
+          "title": {
+            "ru": "Ремонт эскалаторов"
+          },
+          "description": {
+            "ru": "С 26.06.2026 по 12.11.2026 на станции «Домодедовская» (выходы № 4-13) поочерёдно закроют на ремонт эскалаторы."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 2,
+          "name": "Замоскворецкая линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_2.svg",
+          "ordering": 2,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 2025,
+      "title": {
+        "ru": "На станции «Китай-город» (выходы № 1-7) закрыт на ремонт эскалатор"
+      },
+      "description": {
+        "ru": "С 29.06.2026 по 04.09.2026 на станции «Китай-город» (выходы № 1-7) закрыт на ремонт эскалатор."
+      },
+      "startDate": "2026-06-28T21:00:38",
+      "endDate": "2026-09-04T20:00:46",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 166,
+          "title": {
+            "ru": "Ремонт эскалатора"
+          },
+          "description": {
+            "ru": "С 29.06.2026 по 04.09.2026 на станции «Китай-город» (выходы № 1-7) закрыт на ремонт эскалатор."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 207,
+          "title": {
+            "ru": "Ремонт эскалатора"
+          },
+          "description": {
+            "ru": "С 29.06.2026 по 04.09.2026 на станции «Китай-город» (выходы № 1-7) закрыт на ремонт эскалатор."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 5,
+          "name": "Калужско-Рижская линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_6.svg",
+          "ordering": 6,
+          "allStationsClosed": false
+        },
+        {
+          "id": 8,
+          "name": "Таганско-Краснопресненская линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_7.svg",
+          "ordering": 7,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 2029,
+      "title": {
+        "ru": "На станции «Владыкино» (выход № 1) поочерёдно закроют на ремонт эскалаторы"
+      },
+      "description": {
+        "ru": "С 29.06.2026 по 12.11.2026 на станции «Владыкино» (выход № 1) поочерёдно закроют на ремонт эскалаторы."
+      },
+      "startDate": "2026-06-28T21:00:46",
+      "endDate": "2026-11-12T20:00:52",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 192,
+          "title": {
+            "ru": "Ремонт эскалаторов"
+          },
+          "description": {
+            "ru": "С 29.06.2026 по 12.11.2026 на станции «Владыкино» (выход № 1) поочерёдно закроют на ремонт эскалаторы."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 7,
+          "name": "Серпуховско-Тимирязевская линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_9.svg",
+          "ordering": 9,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 1360,
+      "title": {
+        "ru": "С 22 июня закрыт участок «Хорошёвская» – «Деловой центр»"
+      },
+      "description": {
+        "ru": "С 22 июня в связи со строительством Рублёво-Архангельской линии закрыт участок «Хорошёвская» – «Деловой центр».\nДля проезда к закрытым станциям пользуйтесь Солнцевской, Филёвской линией, МЦК, D1, D4 и наземным транспортом."
+      },
+      "startDate": "2024-06-22T02:00:19",
+      "endDate": "2026-09-05T02:00:28",
+      "hiddenEndDate": true,
+      "stations": [
+        {
+          "stationId": 407,
+          "title": {
+            "ru": "Закрытие участка «Хорошёвская» – «Деловой центр»"
+          },
+          "description": {
+            "ru": "С 22 июня в связи со строительством Рублёво-Архангельской линии закрыт участок «Хорошёвская» – «Деловой центр». Поезда от «Хорошёвской» идут только по Большой кольцевой линии.\nПереход со станции «Деловой центр» Солнцевской линии на Большую кольцевую линию закрыт. \nДля проезда к закрытым станциям пользуйтесь Солнцевской и Филёвской линиями, МЦК, D1, D4 и наземным транспортом."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 406,
+          "title": {
+            "ru": "Закрытие участка «Хорошёвская» – «Деловой центр»"
+          },
+          "description": {
+            "ru": "С 22 июня в связи со строительством Рублёво-Архангельской линии закрыт участок «Хорошёвская» – «Деловой центр». Поезда от «Хорошёвской» идут только по Большой кольцевой линии.\nСтанция «Шелепиха» полностью закрыта на вход и выход пассажиров. Для проезда к закрытым станциям пользуйтесь Солнцевской и Филёвской линиями, МЦК, D1, D4 и наземным транспортом."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 405,
+          "title": {
+            "ru": "Закрытие участка «Хорошёвская» – «Деловой центр»"
+          },
+          "description": {
+            "ru": "С 22 июня в связи со строительством Рублёво-Архангельской линии закрыт участок «Хорошёвская» – «Деловой центр».\nПоезда от «Хорошёвской» идут только по Большой кольцевой линии. Станция «Хорошёвская» открыта на вход и выход пассажиров.\nДля проезда к закрытым станциям пользуйтесь Солнцевской и Филёвской линиями, МЦК, D1, D4 и наземным транспортом."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 264,
+          "title": {
+            "ru": "Закрытие участка «Хорошёвская» – «Деловой центр»"
+          },
+          "description": {
+            "ru": "С 22 июня в связи со строительством Рублёво-Архангельской линии закрыт участок «Хорошёвская» – «Деловой центр». Поезда от «Хорошёвской» идут только по Большой кольцевой линии.\nСтанция «Деловой центр» полностью закрыта на вход и выход пассажиров. Для проезда к закрытым станциям пользуйтесь Солнцевской и Филёвской линиями, МЦК, D1, D4 и наземным транспортом."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 140,
+          "title": {
+            "ru": "Закрытие участка «Хорошёвская» – «Деловой центр»"
+          },
+          "description": {
+            "ru": "С 22 июня в связи со строительством Рублёво-Архангельской линии закрыт участок «Хорошёвская» – «Деловой центр». Поезда от «Хорошёвской» идут только по Большой кольцевой линии.\nПереход со станции «Деловой центр» Филёвской линии на Большую кольцевую линию закрыт. \nДля проезда к закрытым станциям пользуйтесь Солнцевской и Филёвской линиями, МЦК, D1, D4 и наземным транспортом."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 11,
+          "name": "Большая кольцевая линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_11.svg",
+          "ordering": 11,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 2028,
+      "title": {
+        "ru": "На станции «Парк культуры» (выход № 2) закрыт на ремонт эскалатор"
+      },
+      "description": {
+        "ru": "С 06.07.2026 по 31.08.2026 на станции «Парк культуры» (выход № 2) закрыт на ремонт эскалатор.\nПо будням с 07:30 до 10:30 и с 16:30 до 19:00 входа на станцию и перехода на Кольцевую линию нет. Пользуйтесь Сокольнической линией и другими пересадками."
+      },
+      "startDate": "2026-07-05T21:00:43",
+      "endDate": "2026-08-31T20:00:49",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 171,
+          "title": {
+            "ru": "Ремонт эскалатора"
+          },
+          "description": {
+            "ru": "С 06.07.2026 по 31.08.2026 на станции «Парк культуры» (выход № 2) закрыт на ремонт эскалатор.\nПо будням с 07:30 до 10:30 и с 16:30 до 19:00 входа на станцию и перехода на Кольцевую линию нет. Пользуйтесь Сокольнической линией и другими пересадками."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 6,
+          "name": "Кольцевая линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_5.svg",
+          "ordering": 5,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 2037,
+      "title": {
+        "ru": "В переходе со станции «Комсомольская» на Сокольническую линию закрыт на ремонт эскалатор"
+      },
+      "description": {
+        "ru": "Со 02.07.2026 по 03.08.2026 в переходе со станции «Комсомольская» на Сокольническую линию закрыт на ремонт эскалатор."
+      },
+      "startDate": "2026-07-01T21:00:07",
+      "endDate": "2026-08-03T20:00:18",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 163,
+          "title": {
+            "ru": "Ремонт эскалатора"
+          },
+          "description": {
+            "ru": "Со 02.07.2026 по 03.08.2026 в переходе со станции «Комсомольская» на Сокольническую линию закрыт на ремонт эскалатор."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 12,
+          "title": {
+            "ru": "Ремонт эскалатора"
+          },
+          "description": {
+            "ru": "Со 02.07.2026 по 03.08.2026 в переходе со станции «Комсомольская» на Кольцевую линию закрыт на ремонт эскалатор."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 6,
+          "name": "Кольцевая линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_5.svg",
+          "ordering": 5,
+          "allStationsClosed": false
+        },
+        {
+          "id": 1,
+          "name": "Сокольническая линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_1.svg",
+          "ordering": 1,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 1930,
+      "title": {
+        "ru": "На станции «Электрозаводская» (выход № 1) закрыт на ремонт эскалатор"
+      },
+      "description": {
+        "ru": "С 28.04.2026 по 29.09.2026 на станции «Электрозаводская» (выход № 1) закрыт на ремонт эскалатор."
+      },
+      "startDate": "2026-04-28T13:28:28",
+      "endDate": "2026-09-29T20:00:44",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 121,
+          "title": {
+            "ru": "Ремонт эскалатора"
+          },
+          "description": {
+            "ru": "С 28.04.2026 по 29.09.2026 на станции «Электрозаводская» (выход № 1) закрыт на ремонт эскалатор."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 3,
+          "name": "Арбатско-Покровская линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_3.svg",
+          "ordering": 3,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 2040,
+      "title": {
+        "ru": "На станции «Жулебино» (выходы № 8-11) закрыт на ремонт эскалатор"
+      },
+      "description": {
+        "ru": "С 30.06.2026 по 30.12.2026 на станции «Жулебино» (выходы № 8-11) закрыт на ремонт эскалатор."
+      },
+      "startDate": "2026-06-29T21:00:02",
+      "endDate": "2026-12-30T20:00:11",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 219,
+          "title": {
+            "ru": "Ремонт эскалатора"
+          },
+          "description": {
+            "ru": "С 30.06.2026 по 30.12.2026 на станции «Жулебино» (выходы № 8-11) закрыт на ремонт эскалатор."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 8,
+          "name": "Таганско-Краснопресненская линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_7.svg",
+          "ordering": 7,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 2042,
+      "title": {
+        "ru": "На станции «Красногвардейская» (выходы № 1-4) закрыт на ремонт эскалатор"
+      },
+      "description": {
+        "ru": "С 04.07.2026 по 23.07.2026 на станции «Красногвардейская» (выходы № 1-4) закрыт на ремонт эскалатор."
+      },
+      "startDate": "2026-07-03T21:00:23",
+      "endDate": "2026-07-23T20:00:27",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 147,
+          "title": {
+            "ru": "Ремонт эскалатора"
+          },
+          "description": {
+            "ru": "С 04.07.2026 по 23.07.2026 на станции «Красногвардейская» (выходы № 1-4) закрыт на ремонт эскалатор."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 2,
+          "name": "Замоскворецкая линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_2.svg",
+          "ordering": 2,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 2020,
+      "title": {
+        "ru": "С 6 июля поезда D4 временно не останавливаются на станции Серп и Молот"
+      },
+      "description": {
+        "ru": "С 6 июля из-за переустройства железнодорожных путей для строительства нового Московского городского вокзала, поезда D4 временно не останавливаются на станции Серп и Молот.\nПользуйтесь станциями метро «Римская», «Площадь Ильича» и станцией Москва-Товарная D2.\n\nСтройте маршруты в приложении «Метро Москвы» и «Московский транспорт»."
+      },
+      "startDate": "2026-07-05T23:00:52",
+      "endDate": "2026-08-31T20:59:06",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 543,
+          "title": {
+            "ru": "Закрытие станции"
+          },
+          "description": {
+            "ru": "С 6 июля из-за переустройства железнодорожных путей для строительства нового Московского городского вокзала, поезда D4 временно не будут останавливаться на станции Серп и Молот.\nПользуйтесь станциями метро «Римская», «Площадь Ильича» и станцией Москва-Товарная D2.\n\nСтройте маршруты в приложении «Метро Москвы» и «Московский транспорт»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 544,
+          "title": {
+            "ru": "Закрытие станции"
+          },
+          "description": {
+            "ru": "С 6 июля из-за переустройства железнодорожных путей для строительства нового Московского городского вокзала, поезда D4 временно не будут останавливаться на станции Серп и Молот.\nПользуйтесь станциями метро «Римская», «Площадь Ильича» и станцией Москва-Товарная D2.\n\nСтройте маршруты в приложении «Метро Москвы» и «Московский транспорт»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 554,
+          "title": {
+            "ru": "Закрытие станции"
+          },
+          "description": {
+            "ru": "С 6 июля из-за переустройства железнодорожных путей для строительства нового Московского городского вокзала, поезда D4 временно не будут останавливаться на станции Серп и Молот.\nПользуйтесь станциями метро «Римская», «Площадь Ильича» и станцией Москва-Товарная D2.\n\nСтройте маршруты в приложении «Метро Москвы» и «Московский транспорт»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 556,
+          "title": {
+            "ru": "Закрытие станции"
+          },
+          "description": {
+            "ru": "С 6 июля из-за переустройства железнодорожных путей для строительства нового Московского городского вокзала, поезда D4 временно не будут останавливаться на станции Серп и Молот.\nПользуйтесь станциями метро «Римская», «Площадь Ильича» и станцией Москва-Товарная D2.\n\nСтройте маршруты в приложении «Метро Москвы» и «Московский транспорт»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 545,
+          "title": {
+            "ru": "Закрытие станции"
+          },
+          "description": {
+            "ru": "С 6 июля из-за переустройства железнодорожных путей для строительства нового Московского городского вокзала, поезда D4 временно не будут останавливаться на станции Серп и Молот.\nПользуйтесь станциями метро «Римская», «Площадь Ильича» и станцией Москва-Товарная D2.\n\nСтройте маршруты в приложении «Метро Москвы» и «Московский транспорт»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 546,
+          "title": {
+            "ru": "Закрытие станции"
+          },
+          "description": {
+            "ru": "С 6 июля из-за переустройства железнодорожных путей для строительства нового Московского городского вокзала, поезда D4 временно не будут останавливаться на станции Серп и Молот.\nПользуйтесь станциями метро «Римская», «Площадь Ильича» и станцией Москва-Товарная D2.\n\nСтройте маршруты в приложении «Метро Москвы» и «Московский транспорт»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 547,
+          "title": {
+            "ru": "Закрытие станции"
+          },
+          "description": {
+            "ru": "С 6 июля из-за переустройства железнодорожных путей для строительства нового Московского городского вокзала, поезда D4 временно не будут останавливаться на станции Серп и Молот.\nПользуйтесь станциями метро «Римская», «Площадь Ильича» и станцией Москва-Товарная D2.\n\nСтройте маршруты в приложении «Метро Москвы» и «Московский транспорт»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 555,
+          "title": {
+            "ru": "Закрытие станции"
+          },
+          "description": {
+            "ru": "С 6 июля из-за переустройства железнодорожных путей для строительства нового Московского городского вокзала, поезда D4 временно не будут останавливаться на станции Серп и Молот.\nПользуйтесь станциями метро «Римская», «Площадь Ильича» и станцией Москва-Товарная D2.\n\nСтройте маршруты в приложении «Метро Москвы» и «Московский транспорт»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 557,
+          "title": {
+            "ru": "Закрытие станции"
+          },
+          "description": {
+            "ru": "С 6 июля из-за переустройства железнодорожных путей для строительства нового Московского городского вокзала, поезда D4 временно не будут останавливаться на станции Серп и Молот.\nПользуйтесь станциями метро «Римская», «Площадь Ильича» и станцией Москва-Товарная D2.\n\nСтройте маршруты в приложении «Метро Москвы» и «Московский транспорт»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 548,
+          "title": {
+            "ru": "Закрытие станции"
+          },
+          "description": {
+            "ru": "С 6 июля из-за переустройства железнодорожных путей для строительства нового Московского городского вокзала, поезда D4 временно не будут останавливаться на станции Серп и Молот.\nПользуйтесь станциями метро «Римская», «Площадь Ильича» и станцией Москва-Товарная D2.\n\nСтройте маршруты в приложении «Метро Москвы» и «Московский транспорт»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 549,
+          "title": {
+            "ru": "Закрытие станции"
+          },
+          "description": {
+            "ru": "С 6 июля из-за переустройства железнодорожных путей для строительства нового Московского городского вокзала, поезда D4 временно не будут останавливаться на станции Серп и Молот.\nПользуйтесь станциями метро «Римская», «Площадь Ильича» и станцией Москва-Товарная D2.\n\nСтройте маршруты в приложении «Метро Москвы» и «Московский транспорт»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 551,
+          "title": {
+            "ru": "Закрытие станции"
+          },
+          "description": {
+            "ru": "С 6 июля из-за переустройства железнодорожных путей для строительства нового Московского городского вокзала, поезда D4 временно не будут останавливаться на станции Серп и Молот.\nПользуйтесь станциями метро «Римская», «Площадь Ильича» и станцией Москва-Товарная D2.\n\nСтройте маршруты в приложении «Метро Москвы» и «Московский транспорт»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 552,
+          "title": {
+            "ru": "Закрытие станции"
+          },
+          "description": {
+            "ru": "С 6 июля из-за переустройства железнодорожных путей для строительства нового Московского городского вокзала, поезда D4 временно не будут останавливаться на станции Серп и Молот.\nПользуйтесь станциями метро «Римская», «Площадь Ильича» и станцией Москва-Товарная D2.\n\nСтройте маршруты в приложении «Метро Москвы» и «Московский транспорт»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 553,
+          "title": {
+            "ru": "Закрытие станции"
+          },
+          "description": {
+            "ru": "С 6 июля из-за переустройства железнодорожных путей для строительства нового Московского городского вокзала, поезда D4 временно не будут останавливаться на станции Серп и Молот.\nПользуйтесь станциями метро «Римская», «Площадь Ильича» и станцией Москва-Товарная D2.\n\nСтройте маршруты в приложении «Метро Москвы» и «Московский транспорт»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 540,
+          "title": {
+            "ru": "Закрытие станции"
+          },
+          "description": {
+            "ru": "С 6 июля из-за переустройства железнодорожных путей для строительства нового Московского городского вокзала, поезда D4 временно не будут останавливаться на станции Серп и Молот.\nПользуйтесь станциями метро «Римская», «Площадь Ильича» и станцией Москва-Товарная D2.\n\nСтройте маршруты в приложении «Метро Москвы» и «Московский транспорт»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 541,
+          "title": {
+            "ru": "Закрытие станции"
+          },
+          "description": {
+            "ru": "С 6 июля из-за переустройства железнодорожных путей для строительства нового Московского городского вокзала, поезда D4 временно не будут останавливаться на станции Серп и Молот.\nПользуйтесь станциями метро «Римская», «Площадь Ильича» и станцией Москва-Товарная D2.\n\nСтройте маршруты в приложении «Метро Москвы» и «Московский транспорт»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 542,
+          "title": {
+            "ru": "Закрытие станции"
+          },
+          "description": {
+            "ru": "С 6 июля из-за переустройства железнодорожных путей для строительства нового Московского городского вокзала, поезда D4 временно не будут останавливаться на станции Серп и Молот.\nПользуйтесь станциями метро «Римская», «Площадь Ильича» и станцией Москва-Товарная D2.\n\nСтройте маршруты в приложении «Метро Москвы» и «Московский транспорт»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 558,
+          "title": {
+            "ru": "Закрытие станции"
+          },
+          "description": {
+            "ru": "С 6 июля из-за переустройства железнодорожных путей для строительства нового Московского городского вокзала, поезда D4 временно не будут останавливаться на станции Серп и Молот.\nПользуйтесь станциями метро «Римская», «Площадь Ильича» и станцией Москва-Товарная D2.\n\nСтройте маршруты в приложении «Метро Москвы» и «Московский транспорт»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 559,
+          "title": {
+            "ru": "Закрытие станции"
+          },
+          "description": {
+            "ru": "С 6 июля из-за переустройства железнодорожных путей для строительства нового Московского городского вокзала, поезда D4 временно не будут останавливаться на станции Серп и Молот.\nПользуйтесь станциями метро «Римская», «Площадь Ильича» и станцией Москва-Товарная D2.\n\nСтройте маршруты в приложении «Метро Москвы» и «Московский транспорт»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 560,
+          "title": {
+            "ru": "Закрытие станции"
+          },
+          "description": {
+            "ru": "С 6 июля из-за переустройства железнодорожных путей для строительства нового Московского городского вокзала, поезда D4 временно не будут останавливаться на станции Серп и Молот.\nПользуйтесь станциями метро «Римская», «Площадь Ильича» и станцией Москва-Товарная D2.\n\nСтройте маршруты в приложении «Метро Москвы» и «Московский транспорт»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 561,
+          "title": {
+            "ru": "Закрытие станции"
+          },
+          "description": {
+            "ru": "С 6 июля из-за переустройства железнодорожных путей для строительства нового Московского городского вокзала, поезда D4 временно не будут останавливаться на станции Серп и Молот.\nПользуйтесь станциями метро «Римская», «Площадь Ильича» и станцией Москва-Товарная D2.\n\nСтройте маршруты в приложении «Метро Москвы» и «Московский транспорт»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 562,
+          "title": {
+            "ru": "Закрытие станции"
+          },
+          "description": {
+            "ru": "С 6 июля из-за переустройства железнодорожных путей для строительства нового Московского городского вокзала, поезда D4 временно не будут останавливаться на станции Серп и Молот.\nПользуйтесь станциями метро «Римская», «Площадь Ильича» и станцией Москва-Товарная D2.\n\nСтройте маршруты в приложении «Метро Москвы» и «Московский транспорт»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 563,
+          "title": {
+            "ru": "Закрытие станции"
+          },
+          "description": {
+            "ru": "С 6 июля из-за переустройства железнодорожных путей для строительства нового Московского городского вокзала, поезда D4 временно не будут останавливаться на станции Серп и Молот.\nПользуйтесь станциями метро «Римская», «Площадь Ильича» и станцией Москва-Товарная D2.\n\nСтройте маршруты в приложении «Метро Москвы» и «Московский транспорт»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 564,
+          "title": {
+            "ru": "Закрытие станции"
+          },
+          "description": {
+            "ru": "С 6 июля из-за переустройства железнодорожных путей для строительства нового Московского городского вокзала, поезда D4 временно не будут останавливаться на станции Серп и Молот.\nПользуйтесь станциями метро «Римская», «Площадь Ильича» и станцией Москва-Товарная D2.\n\nСтройте маршруты в приложении «Метро Москвы» и «Московский транспорт»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 575,
+          "title": {
+            "ru": "Закрытие станции"
+          },
+          "description": {
+            "ru": "С 6 июля из-за переустройства железнодорожных путей для строительства нового Московского городского вокзала, поезда D4 временно не будут останавливаться на станции Серп и Молот.\nПользуйтесь станциями метро «Римская», «Площадь Ильича» и станцией Москва-Товарная D2.\n\nСтройте маршруты в приложении «Метро Москвы» и «Московский транспорт»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 576,
+          "title": {
+            "ru": "Закрытие станции"
+          },
+          "description": {
+            "ru": "С 6 июля из-за переустройства железнодорожных путей для строительства нового Московского городского вокзала, поезда D4 временно не будут останавливаться на станции Серп и Молот.\nПользуйтесь станциями метро «Римская», «Площадь Ильича» и станцией Москва-Товарная D2.\n\nСтройте маршруты в приложении «Метро Москвы» и «Московский транспорт»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 565,
+          "title": {
+            "ru": "Закрытие станции"
+          },
+          "description": {
+            "ru": "С 6 июля из-за переустройства железнодорожных путей для строительства нового Московского городского вокзала, поезда D4 временно не будут останавливаться на станции Серп и Молот.\nПользуйтесь станциями метро «Римская», «Площадь Ильича» и станцией Москва-Товарная D2.\n\nСтройте маршруты в приложении «Метро Москвы» и «Московский транспорт»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 566,
+          "title": {
+            "ru": "Закрытие станции"
+          },
+          "description": {
+            "ru": "С 6 июля из-за переустройства железнодорожных путей для строительства нового Московского городского вокзала, поезда D4 временно не будут останавливаться на станции Серп и Молот.\nПользуйтесь станциями метро «Римская», «Площадь Ильича» и станцией Москва-Товарная D2.\n\nСтройте маршруты в приложении «Метро Москвы» и «Московский транспорт»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 567,
+          "title": {
+            "ru": "Закрытие станции"
+          },
+          "description": {
+            "ru": "С 6 июля из-за переустройства железнодорожных путей для строительства нового Московского городского вокзала, поезда D4 временно не будут останавливаться на станции Серп и Молот.\nПользуйтесь станциями метро «Римская», «Площадь Ильича» и станцией Москва-Товарная D2.\n\nСтройте маршруты в приложении «Метро Москвы» и «Московский транспорт»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 568,
+          "title": {
+            "ru": "Закрытие станции"
+          },
+          "description": {
+            "ru": "С 6 июля из-за переустройства железнодорожных путей для строительства нового Московского городского вокзала, поезда D4 временно не будут останавливаться на станции Серп и Молот.\nПользуйтесь станциями метро «Римская», «Площадь Ильича» и станцией Москва-Товарная D2.\n\nСтройте маршруты в приложении «Метро Москвы» и «Московский транспорт»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 569,
+          "title": {
+            "ru": "Закрытие станции"
+          },
+          "description": {
+            "ru": "С 6 июля из-за переустройства железнодорожных путей для строительства нового Московского городского вокзала, поезда D4 временно не будут останавливаться на станции Серп и Молот.\nПользуйтесь станциями метро «Римская», «Площадь Ильича» и станцией Москва-Товарная D2.\n\nСтройте маршруты в приложении «Метро Москвы» и «Московский транспорт»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 570,
+          "title": {
+            "ru": "Закрытие станции"
+          },
+          "description": {
+            "ru": "С 6 июля из-за переустройства железнодорожных путей для строительства нового Московского городского вокзала, поезда D4 временно не будут останавливаться на станции Серп и Молот.\nПользуйтесь станциями метро «Римская», «Площадь Ильича» и станцией Москва-Товарная D2.\n\nСтройте маршруты в приложении «Метро Москвы» и «Московский транспорт»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 571,
+          "title": {
+            "ru": "Закрытие станции"
+          },
+          "description": {
+            "ru": "С 6 июля из-за переустройства железнодорожных путей для строительства нового Московского городского вокзала, поезда D4 временно не будут останавливаться на станции Серп и Молот.\nПользуйтесь станциями метро «Римская», «Площадь Ильича» и станцией Москва-Товарная D2.\n\nСтройте маршруты в приложении «Метро Москвы» и «Московский транспорт»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 572,
+          "title": {
+            "ru": "Закрытие станции"
+          },
+          "description": {
+            "ru": "С 6 июля из-за переустройства железнодорожных путей для строительства нового Московского городского вокзала, поезда D4 временно не будут останавливаться на станции Серп и Молот.\nПользуйтесь станциями метро «Римская», «Площадь Ильича» и станцией Москва-Товарная D2.\n\nСтройте маршруты в приложении «Метро Москвы» и «Московский транспорт»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 573,
+          "title": {
+            "ru": "Закрытие станции"
+          },
+          "description": {
+            "ru": "С 6 июля из-за переустройства железнодорожных путей для строительства нового Московского городского вокзала, поезда D4 временно не будут останавливаться на станции Серп и Молот.\nПользуйтесь станциями метро «Римская», «Площадь Ильича» и станцией Москва-Товарная D2.\n\nСтройте маршруты в приложении «Метро Москвы» и «Московский транспорт»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 574,
+          "title": {
+            "ru": "Закрытие станции"
+          },
+          "description": {
+            "ru": "С 6 июля из-за переустройства железнодорожных путей для строительства нового Московского городского вокзала, поезда D4 временно не будут останавливаться на станции Серп и Молот.\nПользуйтесь станциями метро «Римская», «Площадь Ильича» и станцией Москва-Товарная D2.\n\nСтройте маршруты в приложении «Метро Москвы» и «Московский транспорт»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 550,
+          "title": {
+            "ru": "Внимание!"
+          },
+          "description": {
+            "ru": "С 6 июля из-за переустройства железнодорожных путей для строительства нового Московского городского вокзала, поезда D4 временно не будут останавливаться на станции Серп и Молот.\nПользуйтесь станциями метро «Римская», «Площадь Ильича» и станцией Москва-Товарная D2.\n\nСтройте маршруты в приложении «Метро Москвы» и «Московский транспорт»."
+          },
+          "status": "CLOSED"
+        }
+      ],
+      "lines": [
+        {
+          "id": 37,
+          "name": "МЦД-4",
+          "icon": "https://prodapp.mosmetro.ru/static/4_vector.svg",
+          "ordering": 19,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [
+        {
+          "connectionId": 488,
+          "status": "CLOSED",
+          "redraw": false
+        },
+        {
+          "connectionId": 487,
+          "status": "CLOSED",
+          "redraw": false
+        }
+      ],
+      "transitions": [
+        {
+          "transitionId": 260,
+          "status": "CLOSED"
+        },
+        {
+          "transitionId": 259,
+          "status": "CLOSED"
+        },
+        {
+          "transitionId": 258,
+          "status": "CLOSED"
+        }
+      ],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [
+        {
+          "id": 617,
+          "perspective": false,
+          "alternative": true,
+          "stationFromId": 549,
+          "stationToId": 551,
+          "pathLength": 540,
+          "bi": true,
+          "svg": "<path id=\"connection-617\" d=\"M2528.16 1691.96C2545.32 1709.13 2568.51 1718.89 2592.76 1719.19L2593.92 1719.2H2633.49V1720.7L2593.92 1720.7C2568.85 1720.7 2544.82 1710.74 2527.09 1693.02L2443.45 1609.37L2440.62 1612.2L2524.27 1695.85C2542.74 1714.32 2567.79 1724.7 2593.92 1724.7H2633.49V1726.2H2593.92C2567.81 1726.2 2542.75 1715.99 2524.09 1697.78L2523.21 1696.91L2438.5 1612.2L2443.45 1607.25L2528.16 1691.96ZM2881 1726.2L2633.5 1726.2V1724.7H2879.5V1720.7H2633.5V1719.2L2881 1719.2V1726.2ZM2633.5 1724.7L2633.49 1724.7V1720.7H2633.5V1724.7Z\" fill=\"#45B384\"/>",
+          "closedBackward": null
+        }
+      ],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 2041,
+      "title": {
+        "ru": "Выходы № 3-5 станции «Сокольники» частично закрыты на ремонт"
+      },
+      "description": {
+        "ru": "С 06.07.2026 по 20.08.2026 выходы № 3-5 станции «Сокольники» частично закрыты на ремонт."
+      },
+      "startDate": "2026-07-06T02:00:07",
+      "endDate": "2026-08-20T02:00:24",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 498,
+          "title": {
+            "ru": "Закрытие выходов"
+          },
+          "description": {
+            "ru": "С 06.07.2026 по 20.08.2026 выходы № 3-5 станции «Сокольники» частично закрыты на ремонт."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 11,
+          "name": "Большая кольцевая линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_11.svg",
+          "ordering": 11,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 2045,
+      "title": {
+        "ru": "В переходе со станции «Боровицкая» на Арбатско-Покровскую линию закрыт на ремонт эскалатор"
+      },
+      "description": {
+        "ru": "С 07.07.2026 по 03.09.2026 в переходе со станции «Боровицкая» на Арбатско-Покровскую линию закрыт на ремонт эскалатор."
+      },
+      "startDate": "2026-07-06T21:00:31",
+      "endDate": "2026-09-03T20:00:38",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 222,
+          "title": {
+            "ru": "Ремонт эскалатора"
+          },
+          "description": {
+            "ru": "С 07.07.2026 по 03.09.2026 в переходе со станции «Боровицкая» на Арбатско-Покровскую линию закрыт на ремонт эскалатор."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 7,
+          "name": "Серпуховско-Тимирязевская линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_9.svg",
+          "ordering": 9,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 2047,
+      "title": {
+        "ru": "На станции «Орехово» (выход № 1) закрыт на ремонт эскалатор"
+      },
+      "description": {
+        "ru": "С 07.07.2026 по 23.07.2026 на станции «Орехово» (выход № 1) закрыт на ремонт эскалатор."
+      },
+      "startDate": "2026-07-07T19:00:58",
+      "endDate": "2026-07-23T20:00:05",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 116,
+          "title": {
+            "ru": "Ремонт эскалатора"
+          },
+          "description": {
+            "ru": "С 07.07.2026 по 23.07.2026 на станции «Орехово» (выход № 1) закрыт на ремонт эскалатор."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 2,
+          "name": "Замоскворецкая линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_2.svg",
+          "ordering": 2,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 2048,
+      "title": {
+        "ru": "На станции «Речной вокзал» (выход № 2) закрыт на ремонт эскалатор"
+      },
+      "description": {
+        "ru": "С 07.07.2026 по 23.07.2026 на станции «Речной вокзал» (выход № 2) закрыт на ремонт эскалатор."
+      },
+      "startDate": "2026-07-07T19:00:50",
+      "endDate": "2026-07-23T20:00:54",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 7,
+          "title": {
+            "ru": "Ремонт эскалатора"
+          },
+          "description": {
+            "ru": "С 07.07.2026 по 23.07.2026 на станции «Речной вокзал» (выход № 2) закрыт на ремонт эскалатор."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 2,
+          "name": "Замоскворецкая линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_2.svg",
+          "ordering": 2,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 2050,
+      "title": {
+        "ru": "На станции «Тимирязевская» (выходы № 1-4) закрыт на ремонт эскалатор"
+      },
+      "description": {
+        "ru": "С 07.07.2026 по 06.08.2026 на станции «Тимирязевская» (выходы № 1-4) закрыт на ремонт эскалатор."
+      },
+      "startDate": "2026-07-07T19:00:52",
+      "endDate": "2026-08-06T20:00:58",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 198,
+          "title": {
+            "ru": "Ремонт эскалатора"
+          },
+          "description": {
+            "ru": "С 07.07.2026 по 06.08.2026 на станции «Тимирязевская» (выходы № 1-4) закрыт на ремонт эскалатор."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 7,
+          "name": "Серпуховско-Тимирязевская линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_9.svg",
+          "ordering": 9,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 2051,
+      "title": {
+        "ru": "Изменения на D3 "
+      },
+      "description": {
+        "ru": "С 15 июля из-за строительства путевой инфраструктуры для ВСМ и нового городского вокзала, поезда D3 временно не будут останавливаться на станции Петровско-Разумовская.\nСтройте маршруты от/до одноимённых станций D1, Серпуховско-Тимирязевской или Люблинско-Дмитровской линий метро.\nЧтобы добраться до этих станций на D3:\n* следуйте до станции D3 Лихоборы;\n* пересаживайтесь на МЦК и проезжайте одну станцию до Окружной;\n* переходите на D1 или метро и следуйте до Петровско-Разумовской.\nТакже стройте маршрут через D3 Останкино с пересадкой на метро «Бутырская».\n"
+      },
+      "startDate": "2026-07-14T21:00:37",
+      "endDate": "2026-12-31T20:00:44",
+      "hiddenEndDate": true,
+      "stations": [
+        {
+          "stationId": 539,
+          "title": {
+            "ru": "Изменения на D3 "
+          },
+          "description": {
+            "ru": "С 15 июля из-за строительства путевой инфраструктуры для ВСМ и нового городского вокзала, поезда D3 временно не будут останавливаться на станции Петровско-Разумовская.\nСтройте маршруты от/до одноимённых станций D1, Серпуховско-Тимирязевской или Люблинско-Дмитровской линий метро.\nЧтобы добраться до этих станций на D3:\n* следуйте до станции D3 Лихоборы;\n* пересаживайтесь на МЦК и проезжайте одну станцию до Окружной;\n* переходите на D1 или метро и следуйте до Петровско-Разумовской.\nТакже стройте маршрут через D3 Останкино с пересадкой на метро «Бутырская».\n"
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 538,
+          "title": {
+            "ru": "Изменения на D3 "
+          },
+          "description": {
+            "ru": "С 15 июля из-за строительства путевой инфраструктуры для ВСМ и нового городского вокзала, поезда D3 временно не будут останавливаться на станции Петровско-Разумовская.\nСтройте маршруты от/до одноимённых станций D1, Серпуховско-Тимирязевской или Люблинско-Дмитровской линий метро.\nЧтобы добраться до этих станций на D3:\n* следуйте до станции D3 Лихоборы;\n* пересаживайтесь на МЦК и проезжайте одну станцию до Окружной;\n* переходите на D1 или метро и следуйте до Петровско-Разумовской.\nТакже стройте маршрут через D3 Останкино с пересадкой на метро «Бутырская»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 537,
+          "title": {
+            "ru": "Изменения на D3"
+          },
+          "description": {
+            "ru": "С 15 июля из-за строительства путевой инфраструктуры для ВСМ и нового городского вокзала, поезда D3 временно не будут останавливаться на станции Петровско-Разумовская.\nСтройте маршруты от/до одноимённых станций D1, Серпуховско-Тимирязевской или Люблинско-Дмитровской линий метро.\nЧтобы добраться до этих станций на D3:\n* следуйте до станции D3 Лихоборы;\n* пересаживайтесь на МЦК и проезжайте одну станцию до Окружной;\n* переходите на D1 или метро и следуйте до Петровско-Разумовской.\nТакже стройте маршрут через D3 Останкино с пересадкой на метро «Бутырская»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 536,
+          "title": {
+            "ru": "Изменения на D3"
+          },
+          "description": {
+            "ru": "С 15 июля из-за строительства путевой инфраструктуры для ВСМ и нового городского вокзала, поезда D3 временно не будут останавливаться на станции Петровско-Разумовская.\nСтройте маршруты от/до одноимённых станций D1, Серпуховско-Тимирязевской или Люблинско-Дмитровской линий метро.\nЧтобы добраться до этих станций на D3:\n* следуйте до станции D3 Лихоборы;\n* пересаживайтесь на МЦК и проезжайте одну станцию до Окружной;\n* переходите на D1 или метро и следуйте до Петровско-Разумовской.\nТакже стройте маршрут через D3 Останкино с пересадкой на метро «Бутырская»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 535,
+          "title": {
+            "ru": "Изменения на D3"
+          },
+          "description": {
+            "ru": "С 15 июля из-за строительства путевой инфраструктуры для ВСМ и нового городского вокзала, поезда D3 временно не будут останавливаться на станции Петровско-Разумовская.\nСтройте маршруты от/до одноимённых станций D1, Серпуховско-Тимирязевской или Люблинско-Дмитровской линий метро.\nЧтобы добраться до этих станций на D3:\n* следуйте до станции D3 Лихоборы;\n* пересаживайтесь на МЦК и проезжайте одну станцию до Окружной;\n* переходите на D1 или метро и следуйте до Петровско-Разумовской.\nТакже стройте маршрут через D3 Останкино с пересадкой на метро «Бутырская»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 534,
+          "title": {
+            "ru": "Изменения на D3"
+          },
+          "description": {
+            "ru": "С 15 июля из-за строительства путевой инфраструктуры для ВСМ и нового городского вокзала, поезда D3 временно не будут останавливаться на станции Петровско-Разумовская.\nСтройте маршруты от/до одноимённых станций D1, Серпуховско-Тимирязевской или Люблинско-Дмитровской линий метро.\nЧтобы добраться до этих станций на D3:\n* следуйте до станции D3 Лихоборы;\n* пересаживайтесь на МЦК и проезжайте одну станцию до Окружной;\n* переходите на D1 или метро и следуйте до Петровско-Разумовской.\nТакже стройте маршрут через D3 Останкино с пересадкой на метро «Бутырская»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 533,
+          "title": {
+            "ru": "Изменения на D3"
+          },
+          "description": {
+            "ru": "С 15 июля из-за строительства путевой инфраструктуры для ВСМ и нового городского вокзала, поезда D3 временно не будут останавливаться на станции Петровско-Разумовская.\nСтройте маршруты от/до одноимённых станций D1, Серпуховско-Тимирязевской или Люблинско-Дмитровской линий метро.\nЧтобы добраться до этих станций на D3:\n* следуйте до станции D3 Лихоборы;\n* пересаживайтесь на МЦК и проезжайте одну станцию до Окружной;\n* переходите на D1 или метро и следуйте до Петровско-Разумовской.\nТакже стройте маршрут через D3 Останкино с пересадкой на метро «Бутырская»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 532,
+          "title": {
+            "ru": "Изменения на D3"
+          },
+          "description": {
+            "ru": "С 15 июля из-за строительства путевой инфраструктуры для ВСМ и нового городского вокзала, поезда D3 временно не будут останавливаться на станции Петровско-Разумовская.\nСтройте маршруты от/до одноимённых станций D1, Серпуховско-Тимирязевской или Люблинско-Дмитровской линий метро.\nЧтобы добраться до этих станций на D3:\n* следуйте до станции D3 Лихоборы;\n* пересаживайтесь на МЦК и проезжайте одну станцию до Окружной;\n* переходите на D1 или метро и следуйте до Петровско-Разумовской.\nТакже стройте маршрут через D3 Останкино с пересадкой на метро «Бутырская»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 531,
+          "title": {
+            "ru": "Изменения на D3"
+          },
+          "description": {
+            "ru": "С 15 июля из-за строительства путевой инфраструктуры для ВСМ и нового городского вокзала, поезда D3 временно не будут останавливаться на станции Петровско-Разумовская.\nСтройте маршруты от/до одноимённых станций D1, Серпуховско-Тимирязевской или Люблинско-Дмитровской линий метро.\nЧтобы добраться до этих станций на D3:\n* следуйте до станции D3 Лихоборы;\n* пересаживайтесь на МЦК и проезжайте одну станцию до Окружной;\n* переходите на D1 или метро и следуйте до Петровско-Разумовской.\nТакже стройте маршрут через D3 Останкино с пересадкой на метро «Бутырская»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 530,
+          "title": {
+            "ru": "Изменения на D3"
+          },
+          "description": {
+            "ru": "С 15 июля из-за строительства путевой инфраструктуры для ВСМ и нового городского вокзала, поезда D3 временно не будут останавливаться на станции Петровско-Разумовская.\nСтройте маршруты от/до одноимённых станций D1, Серпуховско-Тимирязевской или Люблинско-Дмитровской линий метро.\nЧтобы добраться до этих станций на D3:\n* следуйте до станции D3 Лихоборы;\n* пересаживайтесь на МЦК и проезжайте одну станцию до Окружной;\n* переходите на D1 или метро и следуйте до Петровско-Разумовской.\nТакже стройте маршрут через D3 Останкино с пересадкой на метро «Бутырская»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 529,
+          "title": {
+            "ru": "Изменения на D3"
+          },
+          "description": {
+            "ru": "С 15 июля из-за строительства путевой инфраструктуры для ВСМ и нового городского вокзала, поезда D3 временно не будут останавливаться на станции Петровско-Разумовская.\nСтройте маршруты от/до одноимённых станций D1, Серпуховско-Тимирязевской или Люблинско-Дмитровской линий метро.\nЧтобы добраться до этих станций на D3:\n* следуйте до станции D3 Лихоборы;\n* пересаживайтесь на МЦК и проезжайте одну станцию до Окружной;\n* переходите на D1 или метро и следуйте до Петровско-Разумовской.\nТакже стройте маршрут через D3 Останкино с пересадкой на метро «Бутырская»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 528,
+          "title": {
+            "ru": "Изменения на D3"
+          },
+          "description": {
+            "ru": "С 15 июля из-за строительства путевой инфраструктуры для ВСМ и нового городского вокзала, поезда D3 временно не будут останавливаться на станции Петровско-Разумовская.\nСтройте маршруты от/до одноимённых станций D1, Серпуховско-Тимирязевской или Люблинско-Дмитровской линий метро.\nЧтобы добраться до этих станций на D3:\n* следуйте до станции D3 Лихоборы;\n* пересаживайтесь на МЦК и проезжайте одну станцию до Окружной;\n* переходите на D1 или метро и следуйте до Петровско-Разумовской.\nТакже стройте маршрут через D3 Останкино с пересадкой на метро «Бутырская»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 527,
+          "title": {
+            "ru": "Изменения на D3"
+          },
+          "description": {
+            "ru": "С 15 июля из-за строительства путевой инфраструктуры для ВСМ и нового городского вокзала, поезда D3 временно не будут останавливаться на станции Петровско-Разумовская.\nСтройте маршруты от/до одноимённых станций D1, Серпуховско-Тимирязевской или Люблинско-Дмитровской линий метро.\nЧтобы добраться до этих станций на D3:\n* следуйте до станции D3 Лихоборы;\n* пересаживайтесь на МЦК и проезжайте одну станцию до Окружной;\n* переходите на D1 или метро и следуйте до Петровско-Разумовской.\nТакже стройте маршрут через D3 Останкино с пересадкой на метро «Бутырская»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 526,
+          "title": {
+            "ru": "Изменения на D3"
+          },
+          "description": {
+            "ru": "С 15 июля из-за строительства путевой инфраструктуры для ВСМ и нового городского вокзала, поезда D3 временно не будут останавливаться на станции Петровско-Разумовская.\nСтройте маршруты от/до одноимённых станций D1, Серпуховско-Тимирязевской или Люблинско-Дмитровской линий метро.\nЧтобы добраться до этих станций на D3:\n* следуйте до станции D3 Лихоборы;\n* пересаживайтесь на МЦК и проезжайте одну станцию до Окружной;\n* переходите на D1 или метро и следуйте до Петровско-Разумовской.\nТакже стройте маршрут через D3 Останкино с пересадкой на метро «Бутырская»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 525,
+          "title": {
+            "ru": "Изменения на D3"
+          },
+          "description": {
+            "ru": "С 15 июля из-за строительства путевой инфраструктуры для ВСМ и нового городского вокзала, поезда D3 временно не будут останавливаться на станции Петровско-Разумовская.\nСтройте маршруты от/до одноимённых станций D1, Серпуховско-Тимирязевской или Люблинско-Дмитровской линий метро.\nЧтобы добраться до этих станций на D3:\n* следуйте до станции D3 Лихоборы;\n* пересаживайтесь на МЦК и проезжайте одну станцию до Окружной;\n* переходите на D1 или метро и следуйте до Петровско-Разумовской.\nТакже стройте маршрут через D3 Останкино с пересадкой на метро «Бутырская»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 524,
+          "title": {
+            "ru": "Изменения на D3"
+          },
+          "description": {
+            "ru": "С 15 июля из-за строительства путевой инфраструктуры для ВСМ и нового городского вокзала, поезда D3 временно не будут останавливаться на станции Петровско-Разумовская.\nСтройте маршруты от/до одноимённых станций D1, Серпуховско-Тимирязевской или Люблинско-Дмитровской линий метро.\nЧтобы добраться до этих станций на D3:\n* следуйте до станции D3 Лихоборы;\n* пересаживайтесь на МЦК и проезжайте одну станцию до Окружной;\n* переходите на D1 или метро и следуйте до Петровско-Разумовской.\nТакже стройте маршрут через D3 Останкино с пересадкой на метро «Бутырская»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 523,
+          "title": {
+            "ru": "Изменения на D3"
+          },
+          "description": {
+            "ru": "С 15 июля из-за строительства путевой инфраструктуры для ВСМ и нового городского вокзала, поезда D3 временно не будут останавливаться на станции Петровско-Разумовская.\nСтройте маршруты от/до одноимённых станций D1, Серпуховско-Тимирязевской или Люблинско-Дмитровской линий метро.\nЧтобы добраться до этих станций на D3:\n* следуйте до станции D3 Лихоборы;\n* пересаживайтесь на МЦК и проезжайте одну станцию до Окружной;\n* переходите на D1 или метро и следуйте до Петровско-Разумовской.\nТакже стройте маршрут через D3 Останкино с пересадкой на метро «Бутырская»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 522,
+          "title": {
+            "ru": "Изменения на D3"
+          },
+          "description": {
+            "ru": "С 15 июля из-за строительства путевой инфраструктуры для ВСМ и нового городского вокзала, поезда D3 временно не будут останавливаться на станции Петровско-Разумовская.\nСтройте маршруты от/до одноимённых станций D1, Серпуховско-Тимирязевской или Люблинско-Дмитровской линий метро.\nЧтобы добраться до этих станций на D3:\n* следуйте до станции D3 Лихоборы;\n* пересаживайтесь на МЦК и проезжайте одну станцию до Окружной;\n* переходите на D1 или метро и следуйте до Петровско-Разумовской.\nТакже стройте маршрут через D3 Останкино с пересадкой на метро «Бутырская»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 521,
+          "title": {
+            "ru": "Изменения на D3"
+          },
+          "description": {
+            "ru": "С 15 июля из-за строительства путевой инфраструктуры для ВСМ и нового городского вокзала, поезда D3 временно не будут останавливаться на станции Петровско-Разумовская.\nСтройте маршруты от/до одноимённых станций D1, Серпуховско-Тимирязевской или Люблинско-Дмитровской линий метро.\nЧтобы добраться до этих станций на D3:\n* следуйте до станции D3 Лихоборы;\n* пересаживайтесь на МЦК и проезжайте одну станцию до Окружной;\n* переходите на D1 или метро и следуйте до Петровско-Разумовской.\nТакже стройте маршрут через D3 Останкино с пересадкой на метро «Бутырская»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 520,
+          "title": {
+            "ru": "Изменения на D3"
+          },
+          "description": {
+            "ru": "С 15 июля из-за строительства путевой инфраструктуры для ВСМ и нового городского вокзала, поезда D3 временно не будут останавливаться на станции Петровско-Разумовская.\nСтройте маршруты от/до одноимённых станций D1, Серпуховско-Тимирязевской или Люблинско-Дмитровской линий метро.\nЧтобы добраться до этих станций на D3:\n* следуйте до станции D3 Лихоборы;\n* пересаживайтесь на МЦК и проезжайте одну станцию до Окружной;\n* переходите на D1 или метро и следуйте до Петровско-Разумовской.\nТакже стройте маршрут через D3 Останкино с пересадкой на метро «Бутырская»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 519,
+          "title": {
+            "ru": "Изменения на D3"
+          },
+          "description": {
+            "ru": "С 15 июля из-за строительства путевой инфраструктуры для ВСМ и нового городского вокзала, поезда D3 временно не будут останавливаться на станции Петровско-Разумовская.\nСтройте маршруты от/до одноимённых станций D1, Серпуховско-Тимирязевской или Люблинско-Дмитровской линий метро.\nЧтобы добраться до этих станций на D3:\n* следуйте до станции D3 Лихоборы;\n* пересаживайтесь на МЦК и проезжайте одну станцию до Окружной;\n* переходите на D1 или метро и следуйте до Петровско-Разумовской.\nТакже стройте маршрут через D3 Останкино с пересадкой на метро «Бутырская»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 518,
+          "title": {
+            "ru": "Изменения на D3"
+          },
+          "description": {
+            "ru": "С 15 июля из-за строительства путевой инфраструктуры для ВСМ и нового городского вокзала, поезда D3 временно не будут останавливаться на станции Петровско-Разумовская.\nСтройте маршруты от/до одноимённых станций D1, Серпуховско-Тимирязевской или Люблинско-Дмитровской линий метро.\nЧтобы добраться до этих станций на D3:\n* следуйте до станции D3 Лихоборы;\n* пересаживайтесь на МЦК и проезжайте одну станцию до Окружной;\n* переходите на D1 или метро и следуйте до Петровско-Разумовской.\nТакже стройте маршрут через D3 Останкино с пересадкой на метро «Бутырская»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 517,
+          "title": {
+            "ru": "Изменения на D3"
+          },
+          "description": {
+            "ru": "С 15 июля из-за строительства путевой инфраструктуры для ВСМ и нового городского вокзала, поезда D3 временно не будут останавливаться на станции Петровско-Разумовская.\nСтройте маршруты от/до одноимённых станций D1, Серпуховско-Тимирязевской или Люблинско-Дмитровской линий метро.\nЧтобы добраться до этих станций на D3:\n* следуйте до станции D3 Лихоборы;\n* пересаживайтесь на МЦК и проезжайте одну станцию до Окружной;\n* переходите на D1 или метро и следуйте до Петровско-Разумовской.\nТакже стройте маршрут через D3 Останкино с пересадкой на метро «Бутырская»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 516,
+          "title": {
+            "ru": "Изменения на D3"
+          },
+          "description": {
+            "ru": "С 15 июля из-за строительства путевой инфраструктуры для ВСМ и нового городского вокзала, поезда D3 временно не будут останавливаться на станции Петровско-Разумовская.\nСтройте маршруты от/до одноимённых станций D1, Серпуховско-Тимирязевской или Люблинско-Дмитровской линий метро.\nЧтобы добраться до этих станций на D3:\n* следуйте до станции D3 Лихоборы;\n* пересаживайтесь на МЦК и проезжайте одну станцию до Окружной;\n* переходите на D1 или метро и следуйте до Петровско-Разумовской.\nТакже стройте маршрут через D3 Останкино с пересадкой на метро «Бутырская»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 628,
+          "title": {
+            "ru": "Изменения на D3"
+          },
+          "description": {
+            "ru": "С 15 июля из-за строительства путевой инфраструктуры для ВСМ и нового городского вокзала, поезда D3 временно не будут останавливаться на станции Петровско-Разумовская.\nСтройте маршруты от/до одноимённых станций D1, Серпуховско-Тимирязевской или Люблинско-Дмитровской линий метро.\nЧтобы добраться до этих станций на D3:\n* следуйте до станции D3 Лихоборы;\n* пересаживайтесь на МЦК и проезжайте одну станцию до Окружной;\n* переходите на D1 или метро и следуйте до Петровско-Разумовской.\nТакже стройте маршрут через D3 Останкино с пересадкой на метро «Бутырская»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 515,
+          "title": {
+            "ru": "Изменения на D3"
+          },
+          "description": {
+            "ru": "С 15 июля из-за строительства путевой инфраструктуры для ВСМ и нового городского вокзала, поезда D3 временно не будут останавливаться на станции Петровско-Разумовская.\nСтройте маршруты от/до одноимённых станций D1, Серпуховско-Тимирязевской или Люблинско-Дмитровской линий метро.\nЧтобы добраться до этих станций на D3:\n* следуйте до станции D3 Лихоборы;\n* пересаживайтесь на МЦК и проезжайте одну станцию до Окружной;\n* переходите на D1 или метро и следуйте до Петровско-Разумовской.\nТакже стройте маршрут через D3 Останкино с пересадкой на метро «Бутырская»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 513,
+          "title": {
+            "ru": "Изменения на D3"
+          },
+          "description": {
+            "ru": "С 15 июля из-за строительства путевой инфраструктуры для ВСМ и нового городского вокзала, поезда D3 временно не будут останавливаться на станции Петровско-Разумовская.\nСтройте маршруты от/до одноимённых станций D1, Серпуховско-Тимирязевской или Люблинско-Дмитровской линий метро.\nЧтобы добраться до этих станций на D3:\n* следуйте до станции D3 Лихоборы;\n* пересаживайтесь на МЦК и проезжайте одну станцию до Окружной;\n* переходите на D1 или метро и следуйте до Петровско-Разумовской.\nТакже стройте маршрут через D3 Останкино с пересадкой на метро «Бутырская»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 512,
+          "title": {
+            "ru": "Изменения на D3"
+          },
+          "description": {
+            "ru": "С 15 июля из-за строительства путевой инфраструктуры для ВСМ и нового городского вокзала, поезда D3 временно не будут останавливаться на станции Петровско-Разумовская.\nСтройте маршруты от/до одноимённых станций D1, Серпуховско-Тимирязевской или Люблинско-Дмитровской линий метро.\nЧтобы добраться до этих станций на D3:\n* следуйте до станции D3 Лихоборы;\n* пересаживайтесь на МЦК и проезжайте одну станцию до Окружной;\n* переходите на D1 или метро и следуйте до Петровско-Разумовской.\nТакже стройте маршрут через D3 Останкино с пересадкой на метро «Бутырская»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 511,
+          "title": {
+            "ru": "Изменения на D3"
+          },
+          "description": {
+            "ru": "С 15 июля из-за строительства путевой инфраструктуры для ВСМ и нового городского вокзала, поезда D3 временно не будут останавливаться на станции Петровско-Разумовская.\nСтройте маршруты от/до одноимённых станций D1, Серпуховско-Тимирязевской или Люблинско-Дмитровской линий метро.\nЧтобы добраться до этих станций на D3:\n* следуйте до станции D3 Лихоборы;\n* пересаживайтесь на МЦК и проезжайте одну станцию до Окружной;\n* переходите на D1 или метро и следуйте до Петровско-Разумовской.\nТакже стройте маршрут через D3 Останкино с пересадкой на метро «Бутырская»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 510,
+          "title": {
+            "ru": "Изменения на D3"
+          },
+          "description": {
+            "ru": "С 15 июля из-за строительства путевой инфраструктуры для ВСМ и нового городского вокзала, поезда D3 временно не будут останавливаться на станции Петровско-Разумовская.\nСтройте маршруты от/до одноимённых станций D1, Серпуховско-Тимирязевской или Люблинско-Дмитровской линий метро.\nЧтобы добраться до этих станций на D3:\n* следуйте до станции D3 Лихоборы;\n* пересаживайтесь на МЦК и проезжайте одну станцию до Окружной;\n* переходите на D1 или метро и следуйте до Петровско-Разумовской.\nТакже стройте маршрут через D3 Останкино с пересадкой на метро «Бутырская»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 509,
+          "title": {
+            "ru": "Изменения на D3"
+          },
+          "description": {
+            "ru": "С 15 июля из-за строительства путевой инфраструктуры для ВСМ и нового городского вокзала, поезда D3 временно не будут останавливаться на станции Петровско-Разумовская.\nСтройте маршруты от/до одноимённых станций D1, Серпуховско-Тимирязевской или Люблинско-Дмитровской линий метро.\nЧтобы добраться до этих станций на D3:\n* следуйте до станции D3 Лихоборы;\n* пересаживайтесь на МЦК и проезжайте одну станцию до Окружной;\n* переходите на D1 или метро и следуйте до Петровско-Разумовской.\nТакже стройте маршрут через D3 Останкино с пересадкой на метро «Бутырская»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 508,
+          "title": {
+            "ru": "Изменения на D3"
+          },
+          "description": {
+            "ru": "С 15 июля из-за строительства путевой инфраструктуры для ВСМ и нового городского вокзала, поезда D3 временно не будут останавливаться на станции Петровско-Разумовская.\nСтройте маршруты от/до одноимённых станций D1, Серпуховско-Тимирязевской или Люблинско-Дмитровской линий метро.\nЧтобы добраться до этих станций на D3:\n* следуйте до станции D3 Лихоборы;\n* пересаживайтесь на МЦК и проезжайте одну станцию до Окружной;\n* переходите на D1 или метро и следуйте до Петровско-Разумовской.\nТакже стройте маршрут через D3 Останкино с пересадкой на метро «Бутырская»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 507,
+          "title": {
+            "ru": "Изменения на D3"
+          },
+          "description": {
+            "ru": "С 15 июля из-за строительства путевой инфраструктуры для ВСМ и нового городского вокзала, поезда D3 временно не будут останавливаться на станции Петровско-Разумовская.\nСтройте маршруты от/до одноимённых станций D1, Серпуховско-Тимирязевской или Люблинско-Дмитровской линий метро.\nЧтобы добраться до этих станций на D3:\n* следуйте до станции D3 Лихоборы;\n* пересаживайтесь на МЦК и проезжайте одну станцию до Окружной;\n* переходите на D1 или метро и следуйте до Петровско-Разумовской.\nТакже стройте маршрут через D3 Останкино с пересадкой на метро «Бутырская»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 506,
+          "title": {
+            "ru": "Изменения на D3"
+          },
+          "description": {
+            "ru": "С 15 июля из-за строительства путевой инфраструктуры для ВСМ и нового городского вокзала, поезда D3 временно не будут останавливаться на станции Петровско-Разумовская.\nСтройте маршруты от/до одноимённых станций D1, Серпуховско-Тимирязевской или Люблинско-Дмитровской линий метро.\nЧтобы добраться до этих станций на D3:\n* следуйте до станции D3 Лихоборы;\n* пересаживайтесь на МЦК и проезжайте одну станцию до Окружной;\n* переходите на D1 или метро и следуйте до Петровско-Разумовской.\nТакже стройте маршрут через D3 Останкино с пересадкой на метро «Бутырская»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 505,
+          "title": {
+            "ru": "Изменения на D3"
+          },
+          "description": {
+            "ru": "С 15 июля из-за строительства путевой инфраструктуры для ВСМ и нового городского вокзала, поезда D3 временно не будут останавливаться на станции Петровско-Разумовская.\nСтройте маршруты от/до одноимённых станций D1, Серпуховско-Тимирязевской или Люблинско-Дмитровской линий метро.\nЧтобы добраться до этих станций на D3:\n* следуйте до станции D3 Лихоборы;\n* пересаживайтесь на МЦК и проезжайте одну станцию до Окружной;\n* переходите на D1 или метро и следуйте до Петровско-Разумовской.\nТакже стройте маршрут через D3 Останкино с пересадкой на метро «Бутырская»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 504,
+          "title": {
+            "ru": "Изменения на D3"
+          },
+          "description": {
+            "ru": "С 15 июля из-за строительства путевой инфраструктуры для ВСМ и нового городского вокзала, поезда D3 временно не будут останавливаться на станции Петровско-Разумовская.\nСтройте маршруты от/до одноимённых станций D1, Серпуховско-Тимирязевской или Люблинско-Дмитровской линий метро.\nЧтобы добраться до этих станций на D3:\n* следуйте до станции D3 Лихоборы;\n* пересаживайтесь на МЦК и проезжайте одну станцию до Окружной;\n* переходите на D1 или метро и следуйте до Петровско-Разумовской.\nТакже стройте маршрут через D3 Останкино с пересадкой на метро «Бутырская»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 503,
+          "title": {
+            "ru": "Изменения на D3"
+          },
+          "description": {
+            "ru": "С 15 июля из-за строительства путевой инфраструктуры для ВСМ и нового городского вокзала, поезда D3 временно не будут останавливаться на станции Петровско-Разумовская.\nСтройте маршруты от/до одноимённых станций D1, Серпуховско-Тимирязевской или Люблинско-Дмитровской линий метро.\nЧтобы добраться до этих станций на D3:\n* следуйте до станции D3 Лихоборы;\n* пересаживайтесь на МЦК и проезжайте одну станцию до Окружной;\n* переходите на D1 или метро и следуйте до Петровско-Разумовской.\nТакже стройте маршрут через D3 Останкино с пересадкой на метро «Бутырская»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 502,
+          "title": {
+            "ru": "Изменения на D3"
+          },
+          "description": {
+            "ru": "С 15 июля из-за строительства путевой инфраструктуры для ВСМ и нового городского вокзала, поезда D3 временно не будут останавливаться на станции Петровско-Разумовская.\nСтройте маршруты от/до одноимённых станций D1, Серпуховско-Тимирязевской или Люблинско-Дмитровской линий метро.\nЧтобы добраться до этих станций на D3:\n* следуйте до станции D3 Лихоборы;\n* пересаживайтесь на МЦК и проезжайте одну станцию до Окружной;\n* переходите на D1 или метро и следуйте до Петровско-Разумовской.\nТакже стройте маршрут через D3 Останкино с пересадкой на метро «Бутырская»."
+          },
+          "status": "EMERGENCY"
+        },
+        {
+          "stationId": 514,
+          "title": {
+            "ru": "Внимание!"
+          },
+          "description": {
+            "ru": "С 15 июля из-за строительства путевой инфраструктуры для ВСМ и нового городского вокзала, поезда D3 временно не останавливаются на станции Петровско-Разумовская.\nСтройте маршруты от/до одноимённых станций D1, Серпуховско-Тимирязевской или Люблинско-Дмитровской линий метро.\nЧтобы добраться до этих станций на D3:\n* следуйте до станции D3 Лихоборы;\n* пересаживайтесь на МЦК и проезжайте одну станцию до Окружной;\n* переходите на D1 или метро и следуйте до Петровско-Разумовской.\nТакже стройте маршрут через D3 Останкино с пересадкой на метро «Бутырская»."
+          },
+          "status": "CLOSED"
+        }
+      ],
+      "lines": [
+        {
+          "id": 36,
+          "name": "МЦД-3",
+          "icon": "https://prodapp.mosmetro.ru/static/d3.svg",
+          "ordering": 18,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [
+        {
+          "connectionId": 452,
+          "status": "CLOSED",
+          "redraw": false
+        },
+        {
+          "connectionId": 453,
+          "status": "CLOSED",
+          "redraw": false
+        }
+      ],
+      "transitions": [
+        {
+          "transitionId": 240,
+          "status": "CLOSED"
+        },
+        {
+          "transitionId": 239,
+          "status": "CLOSED"
+        },
+        {
+          "transitionId": 355,
+          "status": "CLOSED"
+        }
+      ],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [
+        {
+          "id": 616,
+          "perspective": false,
+          "alternative": true,
+          "stationFromId": 513,
+          "stationToId": 515,
+          "pathLength": 540,
+          "bi": true,
+          "svg": "<path id=\"connection-616\" d=\"M1736.57 826.921C1773.78 864.136 1824.16 885.17 1876.75 885.496L1877.99 885.5H1959.06C1988.76 885.5 2017.25 897.3 2038.25 918.304L2075.74 955.791L2070.79 960.741L2033.3 923.254C2013.61 903.563 1986.91 892.5 1959.06 892.5H1877.99C1823.09 892.5 1770.44 870.691 1731.62 831.871L1709 809.25L1713.95 804.3L1736.57 826.921ZM1959.06 891C1987.3 891 2014.39 902.221 2034.37 922.194L2070.79 958.62L2073.62 955.791L2037.19 919.364C2016.47 898.642 1988.36 887 1959.06 887L1959.06 891ZM1711.12 809.25L1732.68 830.811C1771.22 869.349 1823.49 891 1877.99 891H1959.06L1959.06 887H1877.99C1824.55 887 1773.3 865.771 1735.51 827.982L1713.95 806.421L1711.12 809.25Z\" fill=\"#EA5B0C\"/>",
+          "closedBackward": null
+        }
+      ],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 2049,
+      "title": {
+        "ru": "На станции «Щукинская» (выходы № 3-4) закрыт на ремонт эскалатор"
+      },
+      "description": {
+        "ru": "С 09.07.2026 по 30.07.2026 на станции «Щукинская» (выходы № 3-4) закрыт на ремонт эскалатор."
+      },
+      "startDate": "2026-07-09T19:00:05",
+      "endDate": "2026-07-30T20:00:12",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 197,
+          "title": {
+            "ru": "Ремонт эскалатора"
+          },
+          "description": {
+            "ru": "С 09.07.2026 по 30.07.2026 на станции «Щукинская» (выходы № 3-4) закрыт на ремонт эскалатор."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 8,
+          "name": "Таганско-Краснопресненская линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_7.svg",
+          "ordering": 7,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 2054,
+      "title": {
+        "ru": "На станции МЦК Шелепиха (выход № 3) закрыт на ремонт эскалатор"
+      },
+      "description": {
+        "ru": "С 03.06.2026 по 03.12.2026 на станции МЦК Шелепиха (выход № 3) закрыт на ремонт эскалатор."
+      },
+      "startDate": "2026-06-03T05:20:41",
+      "endDate": "2026-12-03T17:00:47",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 381,
+          "title": {
+            "ru": "Ремонт эскалатора"
+          },
+          "description": {
+            "ru": "С 03.06.2026 по 03.12.2026 на станции МЦК Шелепиха (выход № 3) закрыт на ремонт эскалатор."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 16,
+          "name": "МЦК",
+          "icon": "https://prodapp.mosmetro.ru/static/line_14.svg",
+          "ordering": 14,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 2055,
+      "title": {
+        "ru": "Выходы № 1-6 станции «Кантемировская» поочерёдно закроют на ремонт"
+      },
+      "description": {
+        "ru": "С 15.07.2026 по 31.12.2026 выходы № 1, 2, 4, 5 станции «Кантемировская» поочерёдно закроют на полный ремонт, выходы № 3, 6 – на частичный ремонт."
+      },
+      "startDate": "2026-07-14T23:30:24",
+      "endDate": "2026-12-31T20:00:29",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 98,
+          "title": {
+            "ru": "Ремонт выходов"
+          },
+          "description": {
+            "ru": "С 15.07.2026 по 31.12.2026 выходы № 1, 2, 4, 5 станции «Кантемировская» поочерёдно закроют на полный ремонт, выходы № 3, 6 – на частичный ремонт."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 2,
+          "name": "Замоскворецкая линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_2.svg",
+          "ordering": 2,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 2056,
+      "title": {
+        "ru": "На станции «Воронцовская» (выходы № 11-12) закрыт на ремонт эскалатор"
+      },
+      "description": {
+        "ru": "С 15.07.2026 по 24.07.2026 на станции «Воронцовская» (выходы № 11-12) закрыт на ремонт эскалатор."
+      },
+      "startDate": "2026-07-14T21:00:02",
+      "endDate": "2026-07-24T20:00:07",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 429,
+          "title": {
+            "ru": "Ремонт эскалатора"
+          },
+          "description": {
+            "ru": "С 15.07.2026 по 24.07.2026 на станции «Воронцовская» (выходы № 11-12) закрыт на ремонт эскалатор."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 11,
+          "name": "Большая кольцевая линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_11.svg",
+          "ordering": 11,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 2062,
+      "title": {
+        "ru": "Выходы № 1, 4, 5 станции «Выхино» поочерёдно закроют на ремонт"
+      },
+      "description": {
+        "ru": "С 18.07.2026 по 26.07.2026 выходы № 1, 4, 5 станции «Выхино» поочерёдно закроют на ремонт."
+      },
+      "startDate": "2026-07-18T06:00:35",
+      "endDate": "2026-07-26T15:00:46",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 216,
+          "title": {
+            "ru": "Ремонт выходов"
+          },
+          "description": {
+            "ru": "С 18.07.2026 по 26.07.2026 выходы № 1, 4, 5 станции «Выхино» поочерёдно закроют на ремонт."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 8,
+          "name": "Таганско-Краснопресненская линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_7.svg",
+          "ordering": 7,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 2063,
+      "title": {
+        "ru": "На станции «Маяковская» (выход № 1) закроют на ремонт эскалатор"
+      },
+      "description": {
+        "ru": "С 24.07.2026 по 20.08.2026 на станции «Маяковская» (выход № 1) закроют на ремонт эскалатор."
+      },
+      "startDate": "2026-07-23T21:00:33",
+      "endDate": "2026-08-20T20:00:43",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 45,
+          "title": {
+            "ru": "Ремонт эскалатора"
+          },
+          "description": {
+            "ru": "С 24.07.2026 по 20.08.2026 на станции «Маяковская» (выход № 1) закроют на ремонт эскалатор."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 2,
+          "name": "Замоскворецкая линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_2.svg",
+          "ordering": 2,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 2058,
+      "title": {
+        "ru": "На станции «Фрунзенская» (выход № 1) закрыт на ремонт эскалатор"
+      },
+      "description": {
+        "ru": "С 16.07.2026 по 25.08.2026 на станции «Фрунзенская» (выход № 1) закрыт на ремонт эскалатор."
+      },
+      "startDate": "2026-07-15T21:00:00",
+      "endDate": "2026-08-25T20:00:06",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 20,
+          "title": {
+            "ru": "Ремонт эскалатора"
+          },
+          "description": {
+            "ru": "С 16.07.2026 по 25.08.2026 на станции «Фрунзенская» (выход № 1) закрыт на ремонт эскалатор."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 1,
+          "name": "Сокольническая линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_1.svg",
+          "ordering": 1,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 2064,
+      "title": {
+        "ru": "В переходе со станции «Лубянка» на Таганско-Краснопресненскую линию закрыт на ремонт эскалатор"
+      },
+      "description": {
+        "ru": "С 14.07.2026 по 30.07.2026 в переходе со станции «Лубянка» на Таганско-Краснопресненскую линию закрыт на ремонт эскалатор."
+      },
+      "startDate": "2026-07-14T19:13:46",
+      "endDate": "2026-07-30T20:00:51",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 15,
+          "title": {
+            "ru": "Ремонт эскалатора"
+          },
+          "description": {
+            "ru": "С 14.07.2026 по 30.07.2026 в переходе со станции «Лубянка» на Таганско-Краснопресненскую линию закрыт на ремонт эскалатор."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 8,
+          "name": "Таганско-Краснопресненская линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_7.svg",
+          "ordering": 7,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 2070,
+      "title": {
+        "ru": "На станции «Зюзино» (выход № 4) закрыт на ремонт лифт"
+      },
+      "description": {
+        "ru": "С 23.06.2026 по 30.10.2026 на станции «Зюзино» (выход № 4) закрыт на ремонт лифт."
+      },
+      "startDate": "2026-06-23T02:00:35",
+      "endDate": "2026-10-30T20:00:57",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 430,
+          "title": {
+            "ru": "Ремонт лифта"
+          },
+          "description": {
+            "ru": "С 23.06.2026 по 30.10.2026 на станции «Зюзино» (выход № 4) закрыт на ремонт лифт."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 11,
+          "name": "Большая кольцевая линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_11.svg",
+          "ordering": 11,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 2061,
+      "title": {
+        "ru": "Выходы № 3-7 станции «Печатники» закрыты на ремонт"
+      },
+      "description": {
+        "ru": "С 18.07.2026 по 18.10.2026 выходы № 3-7 станции «Печатники» закрыты на ремонт. Вход и выход пассажиров – через выход № 2."
+      },
+      "startDate": "2026-07-18T02:30:34",
+      "endDate": "2026-10-18T02:00:23",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 265,
+          "title": {
+            "ru": "Ремонт выходов"
+          },
+          "description": {
+            "ru": "С 18.07.2026 по 18.10.2026 выходы № 3-7 станции «Печатники» закрыты на ремонт. Вход и выход пассажиров – через выход № 2."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 10,
+          "name": "Люблинско-Дмитровская линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_10.svg",
+          "ordering": 10,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 2065,
+      "title": {
+        "ru": "В переходе со станции «Баррикадная» на Кольцевую линию закрыт на ремонт эскалатор"
+      },
+      "description": {
+        "ru": "С 21.07.2026 по 25.07.2026 в переходе со станции «Баррикадная» на Кольцевую линию закрыт на ремонт эскалатор."
+      },
+      "startDate": "2026-07-20T21:00:45",
+      "endDate": "2026-07-24T21:00:59",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 203,
+          "title": {
+            "ru": "Ремонт эскалатора"
+          },
+          "description": {
+            "ru": "С 21.07.2026 по 25.07.2026 в переходе со станции «Баррикадная» на Кольцевую линию закрыт на ремонт эскалатор."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 8,
+          "name": "Таганско-Краснопресненская линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_7.svg",
+          "ordering": 7,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 2071,
+      "title": {
+        "ru": "На станции «Чертановская» (выход № 1) закрыт на ремонт эскалатор"
+      },
+      "description": {
+        "ru": "С 20.07.2026 по 30.07.2026 на станции «Чертановская» (выход № 1) закрыт на ремонт эскалатор."
+      },
+      "startDate": "2026-07-19T21:00:27",
+      "endDate": "2026-07-30T20:00:34",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 230,
+          "title": {
+            "ru": "Ремонт эскалатора"
+          },
+          "description": {
+            "ru": "С 20.07.2026 по 30.07.2026 на станции «Чертановская» (выход № 1) закрыт на ремонт эскалатор."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 7,
+          "name": "Серпуховско-Тимирязевская линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_9.svg",
+          "ordering": 9,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 2072,
+      "title": {
+        "ru": "На станции «Белорусская» (выход № 1) закрыт на ремонт эскалатор"
+      },
+      "description": {
+        "ru": "С 04.07.2026 по 30.07.2026 на станции «Белорусская» (выход № 1) закрыт на ремонт эскалатор."
+      },
+      "startDate": "2026-07-03T21:00:27",
+      "endDate": "2026-07-30T20:00:34",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 176,
+          "title": {
+            "ru": "Ремонт эскалатора"
+          },
+          "description": {
+            "ru": "С 04.07.2026 по 30.07.2026 на станции «Белорусская» (выход № 1) закрыт на ремонт эскалатор."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 6,
+          "name": "Кольцевая линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_5.svg",
+          "ordering": 5,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    },
+    {
+      "id": 2043,
+      "title": {
+        "ru": "На станции «Крестьянская застава» (выход № 10) закрыт на ремонт эскалатор"
+      },
+      "description": {
+        "ru": "С 04.07.2026 по 27.08.2026 на станции «Крестьянская застава» (выход № 10) закрыт на ремонт эскалатор."
+      },
+      "startDate": "2026-07-03T21:00:11",
+      "endDate": "2026-08-27T20:00:14",
+      "hiddenEndDate": false,
+      "stations": [
+        {
+          "stationId": 259,
+          "title": {
+            "ru": "Ремонт эскалатора"
+          },
+          "description": {
+            "ru": "С 04.07.2026 по 27.08.2026 на станции «Крестьянская застава» (выход № 10) закрыт на ремонт эскалатор."
+          },
+          "status": "EMERGENCY"
+        }
+      ],
+      "lines": [
+        {
+          "id": 10,
+          "name": "Люблинско-Дмитровская линия",
+          "icon": "https://prodapp.mosmetro.ru/static/line_10.svg",
+          "ordering": 10,
+          "allStationsClosed": false
+        }
+      ],
+      "connections": [],
+      "transitions": [],
+      "alternativeLines": [],
+      "alternativeStations": [],
+      "alternativeConnections": [],
+      "alternativeTransitions": []
+    }
+  ]
+}
