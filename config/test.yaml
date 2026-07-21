@@ -1,0 +1,27 @@
+---
+# Test configuration - mocked database and minimal setup
+db:
+  postgres:
+    dbs:
+      main:
+        label: 'Test Database (Mocked)'
+        database: test_db
+        host: localhost
+        port: 5432
+        password: test_password
+        user: test_user
+
+logger:
+  level: error  # Minimize log output during tests
+  disableMasking: false  # Disable built-in secret/email/URL masking
+
+mcp:
+  transportType: stdio
+  rateLimit:
+    maxRequests: 1000
+    windowMs: 60000
+
+webServer:
+  host: '127.0.0.1'
+  port: 0  # Random port for testing
+  originHosts: ['localhost']

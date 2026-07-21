@@ -1,0 +1,14 @@
+---
+
+# Docker-specific configuration overrides.
+# Copy this file to local.yaml and modify as needed:
+#   cp config/local.docker.yaml config/local.yaml
+# local.yaml is mounted into the container at /app/config/local.yaml.
+
+webServer:
+  host: '0.0.0.0'
+  port: 9049
+
+logger:
+  level: info
+  useFileLogger: false

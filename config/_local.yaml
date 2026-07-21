@@ -1,0 +1,537 @@
+# Copy this file to local.yaml and update with your database credentials
+# local.yaml is gitignored and won't be committed
+# ^ *#>[^\n]+\n
+---
+
+#> ========================================================================
+#> Outbound access points — connection settings for remote services this MCP talks to.
+#> Each entry under accessPoints is keyed by a logical alias used in code to look up host/port/token.
+#> By default, hosts/ports are resolved via Consul; the fields below let you override that or
+#> describe a service that is not registered in Consul at all.
+#> ========================================================================
+# accessPoints:
+#   myService:
+#     #> Human-readable title shown in diagnostics and admin pages
+#     title: 'My remote service'
+#     #> Remote service host (used when noConsul=true or as a fallback)
+#     host: <host>
+#     #> Remote service TCP port
+#     port: 9999
+#     #> Auth token sent to the remote service
+#     token: '***'
+#     #> Use if the service developers do not provide registration in consul —
+#     #> disables Consul lookup and forces use of the host/port above
+#     noConsul: true
+#     #> Override the Consul service name to look up (defaults to the alias key)
+#     consulServiceName: <consulServiceName>
+
+#> ========================================================================
+#> ADMIN PANEL
+#> Token generation & validation UI served at /admin.
+#> Supports 4 authentication methods: permanentServerTokens, basic, jwtToken, ntlm.
+#> ========================================================================
+adminPanel:
+  #> Enable/disable admin panel. false — /admin is not mounted at all.
+  enabled: true
+  #> Authentication type: 'permanentServerTokens' | 'basic' | 'jwtToken' | 'ntlm' | 'none'
+  #> Accepts a single type (string) or multiple types (array):
+  #>   authType: 'basic'
+  #>   authType: ['jwtToken', 'basic']
+  #> 'none' / null / empty array / not set → panel opens WITHOUT authentication
+  #>   (convenience for local development and debugging; do NOT use in production).
+  #> For permanentServerTokens, basic, jwtToken — uses credentials from webServer.auth section.
+  #> For ntlm — uses AD configuration from ad.domains section.
+  #> When multiple types are set (e.g. ['jwtToken', 'basic']), the login page shows tabs
+  #> to choose between Token and Login (username/password) authentication.
+  authType:
+    - permanentServerTokens
+    - jwtToken
+
+#> Active Directory / LDAP settings.
+#> Used for authentication/authorization (e.g., NTLM in admin panel) and checking user membership in AD groups.
+ad:
+  #> Map of domains. Key is a domain name
+  domains:
+    MYDOMAIN:
+      #> Marks this domain as default one
+      default: true
+      #> List of LDAP controllers (can be multiple for failover).
+      #> Use ldap:// for plain LDAP or ldaps:// for LDAP over TLS.
+      controllers:
+        - 'ldap://c1.corp.com'
+        - 'ldap://c2.corp.com'
+      #> Service account (bind DN or username) used to connect to LDAP.
+      username: '***'
+      #> Service account password.
+      password: '***'
+      #> Base DN for LDAP searches. Auto-derived from controller URL if not set.
+      # baseDn: 'DC=corp,DC=com'
+  #> Cache TTL for group membership checks (default: 600000 = 10 min)
+  # groupCacheTtlMs: 600000
+  #> Cache TTL for user/group DN lookups (default: 86400000 = 24 hours)
+  # dnCacheTtlMs: 86400000
+
+#> Built-in chat UI for testing MCP tools with an LLM.
+agentTester:
+  #> Enables the Agent Tester UI at /agent-tester
+  enabled: true
+  #> true (default) — show Agent Tester link in home page footer; false — hide link without disabling tester
+  showFooterLink: true
+  #> true — protect Agent Tester with full multi-auth (permanentTokens/basic/JWT/custom);
+  #> browser users see a login dialog, headless clients pass Authorization header
+  useAuth: false
+  #> Browser login session lifetime in milliseconds. Default: 28800000 (8 hours).
+  #> Applies only when useAuth is true. Sessions are in-memory on the server — lost on restart.
+  sessionTtlMs: 28800000
+  #> JWT TTL (seconds) for tokens auto-issued via /agent-tester/api/auth-token (auto-fill of Authorization header
+  #> in the chat UI and for headless clients). Default: 1800 (30 min). The UI refreshes the token every
+  #> max(30, ttlSec/3 - 60) seconds (≈ 1/3 of TTL with a 60s safety lead, lower-bounded by 30s).
+  tokenTTLSec: 1800
+  #> true — emit structured JSON events (tool_call, tool_result, llm_response, response) to stdout during agent execution
+  logJson: false
+  #> OpenAI-compatible LLM credentials used by Agent Tester to drive tool calls
+  openAi:
+    #> Key name (for logging and debugging)
+    apiKeyName: '***'
+    #> API key for LLM provider (OpenAI and compatible)
+    apiKey: '***'
+    #> Override base URL for OpenAI-compatible providers (Azure, local LLMs, proxies)
+    baseURL: ''
+    #> -------------------------------------------------------------------------
+    #> When true, baseURL and apiKey are sent to the Agent Tester UI as defaults
+    #> and auto-saved into the browser's localStorage on first open. The UI shows
+    #> them in the LLM Settings dialog. Enable only if the tester is protected by
+    #> useAuth=true OR deployed in a trusted network — otherwise anyone who opens
+    #> /agent-tester can read the key. Default: false (safe).
+    #> -------------------------------------------------------------------------
+    exposeToClient: false
+
+  #> Key-value pairs for HTTP requests that should be auto-populated in agentTester. Example: X-User-Id: 12345
+  httpHeaders:
+
+#> --------------------------------------------------
+#> CACHING Reduces API calls by caching responses
+#> --------------------------------------------------
+cache:
+  #> Time in seconds to check all data and delete expired keys
+  checkPeriod: 1200
+  #> Default maximum number of cached items
+  maxItems: 1000
+  #> Default Cache TTL in seconds
+  ttlSeconds: 300
+
+
+#> Consul service discovery and registration settings
+consul:
+  #> Health check parameters reported to Consul for this service
+  check:
+    #> How often Consul invokes the health check
+    interval: '10s'
+    #> Per-attempt timeout for the health check
+    timeout: '5s'
+    #> Auto-deregister the service after it has been critical for this duration
+    deregistercriticalserviceafter: '3m'
+  agent:
+    #> Credentials for getting information about services in the DEV DC
+    dev:
+      #> DEV datacenter name
+      dc: ''
+      #> DEV consul agent host
+      host: 'consul.my.ui'
+      #> DEV consul agent port
+      port: 443
+      #> Use HTTPS for the DEV consul agent
+      secure: true
+      #> Token for getting information about DEV services
+      token: '***'
+    #> Credentials for getting information about services in the PROD DC
+    prd:
+      #> PROD datacenter name
+      dc: ''
+      #> PROD consul agent host
+      host: 'consul.my.ui'
+      #> PROD consul agent port
+      port: 443
+      #> Use HTTPS for the PROD consul agent
+      secure: true
+      #> Token for obtaining information about PROD services
+      token: '***'
+    #> Credentials for registering the service with Consul
+    reg:
+      #> The host of the consul agent where the service will be registered.
+      #> If not specified, the server on which the service is running is used
+      host: ''
+      #> Consul agent port for registration
+      port: 8500
+      #> Use HTTPS when calling the registration agent
+      secure: false
+      #> Token for registering the service in the consul agent
+      token: '***'
+  service:
+    #> true — Allows registration of the service with the consul
+    enable: false
+    #> Here you can specify an alternative name for the service.
+    #> String "<name>" will be replaced by env SERVICE_NAME | <package.json>.name at initialization
+    name: <name>
+    #> This value will be specified as a suffix in the id of the service
+    instance: ''
+    #> String "<version>" will be replaced by <package.json>.version at initialization
+    version: <version>
+    #> Here you can specify an alternative name description.
+    #> String "<description>" will be replaced by <package.json>.description at initialization
+    description: <description>
+    #> If null or empty array — Will be pulled up from package.keywords at initialization
+    tags: [ ]
+    #> Arbitrary metadata published with the service registration
+    meta:
+      #> "Home" page link template
+      who: 'http://{address}:{port}/'
+  #> Used to generate the service ID
+  envCode:
+    #> Production environment code
+    prod: '<envCode.prod>'
+    #> Development environment code
+    dev: '<envCode.dev>'
+
+#> Database connections used by the service
+db:
+  #> PostgreSQL connection pool definitions
+  postgres:
+    #> Map of named PostgreSQL databases (key is a logical alias used in code)
+    dbs:
+      main:
+        #> Human-readable label shown in diagnostics and admin pages
+        label: 'Your Database Label'
+        #> To exclude the use of the database, you need to set host = ''
+        host: ''
+        #> PostgreSQL server port
+        port: 5432
+        #> Database name
+        database: your_database
+        #> Database user
+        user: your_user
+        #> Database password
+        password: your_password
+        #> List of PostgreSQL extensions required by the service (e.g., 'pgvector', 'uuid-ossp')
+        usedExtensions: []
+        #  - pgvector
+
+#> Service home page (`/`) customization
+homePage:
+  #> Optional help link rendered in the home page footer
+  helpLink:
+    #> If empty — help link is not shown in footer
+    href: ''
+    #> Link text (default: "Help")
+    text: 'Help'
+  #> Optional Support link rendered in the home page footer
+  maintainer:
+    #> If empty — help link is not shown in footer
+    href: ''
+    #> Link text (default: "Support")
+    text: 'Support'
+
+#> Logging configuration (tslog-based)
+logger:
+  #> Minimum log level: silly | trace | debug | info | warn | error | fatal
+  level: info
+  #> To use or not to use logging to a file
+  useFileLogger: 
+  #> Absolute path to the folder where logs will be written. Default <proj_root>/../logs
+  dir: ''
+  #> Disable built-in secret/email/URL masking (maskValuesRegEx becomes []). Default: false.
+  disableMasking: false
+
+#> MCP (Model Context Protocol) server settings
+mcp:
+  #> Transport for the MCP server: stdio | http
+  transportType: http
+  #> Per-client request rate limiting for the MCP endpoint
+  rateLimit:
+    #> Maximum number of requests allowed within windowMs
+    maxRequests: 100
+    #> Rate limit window length in milliseconds (1 minute)
+    windowMs: 60000
+    #> Standard §14 — 'subject' counts requests per JWT `sub` (fallback to IP when no JWT).
+    #> 'ip' = legacy behavior. Default: 'subject'.
+    scope: subject
+    #> Max simultaneous in-flight tools/call requests per subject. Excess → -32003 / 429 + Retry-After.
+    maxConcurrentPerSubject: 16
+  #> Hard ceilings enforced by the HTTP transport (standard §14).
+  #> Concrete servers MAY raise or lower these values without patching SDK code.
+  limits:
+    #> Max accepted JSON / urlencoded request body, bytes. Default 1 MiB.
+    #> Bodies above this limit are rejected with JSON-RPC code -32005 / HTTP 413.
+    maxPayloadBytes: 1048576
+    #> Max serialized tool result, bytes. Default 10 MiB.
+    #> Responses above this limit are truncated with an explicit `truncated: true` marker.
+    maxToolResultBytes: 10485760
+    #> Per-tool execution timeout, milliseconds. Default 30 s.
+    #> Exceeded calls return JSON-RPC code -32004 / HTTP 504.
+    toolTimeoutMs: 30000
+  #> Tool listing and response behavior
+  tools:
+    #> Response format configuration.
+    #> - structuredContent — default — the response in result.structuredContent returns JSON
+    #> - text — in the response, serialized JSON is returned in result.content[0].text
+    answerAs: text
+    #> When true, strips `annotations` from tool listings returned to clients
+    #> (hides hints like readOnlyHint / destructiveHint). Default: false.
+    hideAnnotations: false
+    #> Standard §8.3 — validate tools/call arguments against each tool's inputSchema before dispatch.
+    #> On invalid input the call is rejected with JSON-RPC code -32602 (Invalid params) and an
+    #> `error.data` payload listing the offending fields. Set false to skip input validation (tools
+    #> validate their own args, or trusted internal deployment). Does not affect outputSchema checks.
+    validateInput: true
+  #> Debug & diagnostics. All keys optional. The stderr `DEBUG=mcp:*` stream
+  #> is independent of this section — these flags only add file logging and
+  #> built-in helper tools.
+  debug:
+    #> Absolute path to a JSON-lines file that mirrors mcp:tool / mcp:resource /
+    #> mcp:prompt events for post-mortem analysis (jq, p95 latency, error mining).
+    #> Empty = file logging disabled (only stderr DEBUG output is produced).
+    #> Example: /var/log/mcp/server-debug.jsonl
+    logFile: ''
+    #> When true, registers SDK-provided MCP tools for widgets and integration
+    #> tests: mcp-debug-log, mcp-debug-refresh, debug-tool. All are marked
+    #> _meta.ui.visibility: ['app'] and stay hidden from the LLM — they are
+    #> only callable from MCP App widgets (app.callServerTool(...)) or test
+    #> clients. Default: false.
+    builtinTools: false
+  #> Standard §8.4 — server-side pagination for tools/list, prompts/list, resources/list.
+  pagination:
+    #> Items per page. Default 100.
+    pageSize: 100
+  #> Standard §11.5 — optional MAY resource capabilities. Off by default.
+  resources:
+    #> Enable resources/subscribe + notifications/resources/updated. Only turn on
+    #> when the project has dynamic resources; static resource sets do not benefit.
+    subscribeEnabled: false
+    #> Enable resources/templates/list (returns empty array if no templates configured).
+    templatesEnabled: false
+  #> Standard §15.2 + §8.2 — MCP `logging` capability. When enabled (default), the server
+  #> advertises `logging: {}` on initialize and accepts `logging/setLevel` to throttle
+  #> notifications/message emissions.
+  logging:
+    #> Set false to suppress the capability (compat tests against older clients).
+    enabled: true
+    #> Initial severity threshold (Syslog ladder). Levels: debug | info | notice | warning |
+    #> error | critical | alert | emergency. Default: info.
+    defaultLevel: info
+    #> Max serialized `data` payload in bytes. Anything longer is truncated. Default: 4096.
+    maxBodyBytes: 4096
+  #> Standard §8.6 — `notifications/progress` throttling. Minimum gap between successive
+  #> emissions for a single progressToken. Default 100 ms (10 events/s).
+  progress:
+    throttleMs: 100
+  #> Standard §8.2 (MAY) — `completion/complete` capability (argument autocompletion).
+  #> Off by default. Even when enabled, the capability is advertised only if the project also
+  #> supplies a `completionProvider` in McpServerData — otherwise there is nothing to serve.
+  completions:
+    #> Set true (and provide completionProvider) to advertise `completions: {}` and accept
+    #> completion/complete requests. Default: false.
+    enabled: false
+  #> Standard §8.7 (MAY) — task-augmented execution (long-running / pollable tool calls). Off by
+  #> default. When enabled, the server advertises the `tasks` capability and accepts tasks/list,
+  #> tasks/get, tasks/result, tasks/cancel. Long-running tools opt in per-tool via
+  #> `execution.taskSupport` in their declaration. The default store keeps tasks in process memory
+  #> only and does not survive a restart.
+  tasks:
+    #> Set true to advertise `tasks` capability and accept the task lifecycle methods. Default false.
+    enabled: false
+    #> Default retention of a finished task, milliseconds, from creation. A client-requested ttl is
+    #> clamped to [minTtlMs, maxTtlMs]. Default 3600000 (1 hour).
+    defaultTtlMs: 3600000
+    #> Lower bound a client-requested ttl is clamped to, milliseconds. Default 0 (no floor).
+    minTtlMs: 0
+    #> Hard upper bound on retention, milliseconds. Default 86400000 (24 hours).
+    maxTtlMs: 86400000
+    #> Recommended poll interval suggested to the client in every task object, milliseconds.
+    #> Default 1000.
+    pollIntervalMs: 1000
+    #> Max number of simultaneously retained tasks across all subjects. Oldest finished tasks are
+    #> evicted first when the cap is reached. Default 1000.
+    maxTasks: 1000
+  #> Standard §6 (MAY) — Streamable HTTP SSE stream resumability via the `Last-Event-ID` header.
+  #> Off by default. When enabled, the server keeps recent SSE events in process memory so a
+  #> reconnecting client can replay missed messages. The buffer is in-memory only: it is lost on
+  #> restart and does not span multiple server instances.
+  sse:
+    #> Set true to attach the in-memory EventStore to the Streamable HTTP transport. Default false.
+    resumability: false
+    #> Max number of events retained per process for replay. Default 1000.
+    maxStoredEvents: 1000
+
+#> Swagger / OpenAPI documentation settings
+swagger:
+  #> An array of servers that will be added to swagger docs
+  servers:
+    # - url: http://localhost:9049
+    #   description: "Development server (localhost)"
+    # - url: http://0.0.0.0:9049
+    #   description: "Development server (all interfaces)"
+    # - url: http://<prod_server_host_or_ip>:9049
+    #   description: "PROD server"
+    - url: http://localhost:9049
+      description: "Local server"
+
+#> UI theme overrides for built-in pages (home, admin, agent-tester)
+uiColor:
+  #> Font color of the header and a number of interface elements on the HOME page
+  primary: '#0f65dc'
+
+#> HTTP server hosting MCP, admin panel, agent tester, swagger and health endpoints
+webServer:
+  #> Bind address for the HTTP server.
+  #> Default: '127.0.0.1' — loopback only (safer default, standard §6).
+  #> Set to '0.0.0.0' explicitly to listen on every interface (containers, public-facing deployments).
+  host: '127.0.0.1'
+  #> TCP port for the HTTP server
+  port: 9049
+  #> Array of hosts that CORS skips
+  originHosts: [ 'localhost', '0.0.0.0' ]
+  #> ========================================================================
+  #> Authentication is configured here only when accessing the MCP server.
+  #> Authentication in services that enable tools, resources, and prompts
+  #> is implemented more deeply. To do this, you need to use the information passed in HTTP headers.
+  #> You can also use a custom authorization function.
+  #> ========================================================================
+  auth:
+    #> Enables/disables authorization
+    enabled: false
+    #> ========================================================================
+    #> PERMANENT SERVER TOKENS
+    #> Static tokens for server-to-server communication
+    #> CPU cost: O(1) — fastest authentication method
+    #>
+    #> To enable this authentication, you need to set auth.enabled = true
+    #> and set one token of at least 20 characters in length
+    #> ========================================================================
+    #> Add your server tokens here: ['token1', 'token2']
+    permanentServerTokens: [ 'token' ]
+
+    #> ========================================================================
+    #> JWT TOKEN
+    #> Four operating modes:
+    #>   legacyAesCtr (default) — HS256 issue + legacy AES-CTR read. Uses `encryptKey`
+    #>                            below. Backward-compatible behavior — no migration needed.
+    #>   embedded               — ES256/RS256 with built-in IdP. Server auto-generates a
+    #>                            keypair into `keyStoragePath` on first start, publishes
+    #>                            JWKS at /.well-known/jwks.json, and exposes
+    #>                            POST /oauth/token (grant_type=password). For dev / demo.
+    #>   localKey               — ES256/RS256 verify against a public key on disk
+    #>                            (`publicKeyPath`). Issuance requires `privateKeyPath`.
+    #>   remoteJwks             — Production: verify against a remote IdP's JWKS endpoint
+    #>                            (`jwksUri`). This server does NOT issue tokens —
+    #>                            obtain them from the IdP.
+    #> CPU cost: Medium — signature verification + JSON parsing
+    #> ========================================================================
+    jwtToken:
+      #> Operating mode (see above). Default: legacyAesCtr (preserves existing behavior).
+      mode: legacyAesCtr
+      #> HS256 signing secret — used ONLY by legacyAesCtr mode (minimum 8 chars).
+      encryptKey: ***
+      #> If webServer.auth.enabled and the parameter true, the service name and the service specified in the token will be checked
+      checkMCPName: false
+      #> If true and JWT token contains non-empty 'ip' field,
+      #> the client IP will be checked against the allowed list in the token
+      isCheckIP: false
+      #> Optional JWT `iss` claim. When non-empty, the generator stamps it and the verifier requires it.
+      #> Leave empty to skip issuer enforcement. Used by legacyAesCtr mode.
+      issuer: ''
+
+      #> -------- Settings below apply ONLY to modes embedded / localKey / remoteJwks --------
+
+      #> Asymmetric signing algorithm. ES256 (ECDSA P-256) recommended — smaller tokens, faster.
+      algorithm: ES256
+      #> Directory for embedded keypair (private.pem + public.pem). Auto-generated on first run.
+      #> Used only in mode=embedded. Default: ./keys
+      keyStoragePath: './keys'
+      #> Path to public key PEM. Used only in mode=localKey.
+      publicKeyPath: ''
+      #> Path to private key PEM. Optional — when set, allows local issuance via
+      #> generate-jwt.js and POST /gen-jwt. Used in mode=localKey.
+      privateKeyPath: ''
+      #> Remote JWKS endpoint URL. Used only in mode=remoteJwks.
+      #> Example: https://idp.example.com/.well-known/jwks.json
+      jwksUri: ''
+      #> Expected `iss` claim. Required match in modes embedded/localKey/remoteJwks.
+      #> In embedded mode auto-derived from request origin if empty.
+      expectedIssuer: ''
+      #> Expected `aud` claim. Defaults to appConfig.name when empty.
+      expectedAudience: ''
+      #> JWKS in-memory cache TTL (seconds). Default: 600 (10 min).
+      jwksCacheTtl: 600
+      #> Minimum interval between repeat JWKS fetches when kid is missing (seconds). Default: 30.
+      jwksCooldown: 30
+      #> Allowed clock skew for exp/nbf checks (seconds). Default: 30. Max enforced: 60 (standard Прил. A.1).
+      clockSkew: 30
+      #> Default TTL (seconds) for tokens issued by embedded /oauth/token endpoint. Default: 1800 (30 min).
+      defaultTtl: 1800
+
+    #> ========================================================================
+    #> Basic Authentication — Base64 encoded username:password
+    #> CPU cost: Medium — Base64 decoding + string comparison
+    #> To enable this authentication, you need to set auth.enabled = true
+    #> and set username and password to valid values
+    #> ========================================================================
+    basic:
+      #> Username for HTTP Basic auth
+      username: ''
+      #> Password for HTTP Basic auth
+      password: '***'
+
+    #> ========================================================================
+    #> REVOCATION LISTS
+    #> Revoked JWT tokens and usernames are rejected everywhere:
+    #> MCP endpoints, Admin panel, and Agent Tester.
+    #> ========================================================================
+    revoked:
+      #> Revoked JWT entries. Each entry: { token: '<value>', note?: '<reason>' }.
+      #> `token` may be:
+      #>   - a full token string (legacy `<expire>.<hex>` or exact standard JWT `a.b.c`)
+      #>   - a standard JWT ID (`jti`) — preferred for revoking standard JWTs
+      jwtTokens: [ ]
+      #> Revoked usernames matched against JWT payload.user (case-insensitive)
+      users: [ ]
+
+  #> ========================================================================
+  #> JWT TOKEN GENERATION API
+  #> POST /gen-jwt — generates a JWT token programmatically.
+  #> Requires valid Authorization header (any method configured in webServer.auth).
+  #> ========================================================================
+  genJwtApiEnable: false
+
+  #> ========================================================================
+  #> TOKEN CHECK ENDPOINT (/ct)
+  #> Standard §7.1 forbids passing secrets in URL query strings (logs / referrers).
+  #> By default only POST /ct with JSON body { "t": "<token>" } is accepted.
+  #> GET /ct?t=<token> is disabled and returns HTTP 405.
+  #> ========================================================================
+  tokenCheck:
+    #> Allow legacy GET /ct?t=<token> form. Ignored when NODE_ENV=production.
+    #> Default: false (compliant with standard §7.1).
+    allowQueryToken: false
+
+  #> ========================================================================
+  #> Trust proxy (used by /.well-known/openid-configuration etc. to derive issuer
+  #> from X-Forwarded-Proto / X-Forwarded-Host). Set true behind HTTPS reverse proxy.
+  #> ========================================================================
+  trustProxy: false
+
+  #> ========================================================================
+  #> Standard §15.3 — Prometheus metrics endpoint.
+  #> Opt-in. Endpoint is PUBLIC (no auth) — protect via network policy / reverse proxy
+  #> when the server is reachable from the network.
+  #> Metrics exposed: mcp_tool_calls_total, mcp_tool_duration_seconds,
+  #> mcp_auth_failures_total, mcp_rate_limit_hits_total, mcp_http_requests_total,
+  #> mcp_concurrent_calls, mcp_payload_bytes, mcp_result_bytes + Node.js process metrics.
+  #> ========================================================================
+  metrics:
+    #> Set true to mount the metrics endpoint. Default: false.
+    enabled: false
+    #> URL path. Default: /metrics.
+    path: '/metrics'
+    #> Include Node.js process metrics (GC, heap, uptime). Default: true. Disable to shed
+    #> ~30 default series when scraping many SDK instances.
+    includeProcessMetrics: true

@@ -1,0 +1,180 @@
+adminPanel:
+  enabled: ADMIN_PANEL_ENABLED
+  authType: ADMIN_PANEL_AUTH_TYPE  # permanentServerTokens | basic | jwtToken | ntlm | none
+
+agentTester:
+  enabled: AGENT_TESTER_ENABLED
+  useAuth: AGENT_TESTER_USE_AUTH
+  sessionTtlMs:
+    __name: AGENT_TESTER_SESSION_TTL_MS
+    __format: number
+  tokenTTLSec:
+    __name: AGENT_TESTER_TOKEN_TTL_SEC
+    __format: number
+  toolCallTimeoutMs:
+    __name: AGENT_TESTER_TOOL_CALL_TIMEOUT_MS
+    __format: number
+  openAi:
+    apiKey: AGENT_TESTER_OPENAI_API_KEY
+    baseURL: AGENT_TESTER_OPENAI_BASE_URL
+
+cache:
+  ttlSeconds: CACHE_TTL_SECONDS
+  maxItems: CACHE_MAX_ITEMS
+  checkPeriod: CACHE_CHECK_PERIOD
+
+db:
+  postgres:
+    dbs:
+      main:
+        database: DB_NAME
+        host: DB_HOST
+        port: DB_PORT
+        user: DB_USER
+        password: DB_PASSWORD
+
+logger:
+  level: LOGGER_LEVEL
+  useFileLogger: LOGGER_USE_FILE_LOGGER
+  dir: LOGGER_DIR
+  disableMasking:
+    __name: LOGGER_NO_MASK_VALUES
+    __format: boolean
+
+mcp:
+  transportType: MCP_TRANSPORT_TYPE
+  rateLimit:
+    maxRequests: MCP_RATE_LIMIT_MAX_REQUESTS
+    windowMs: MCP_RATE_LIMIT_WINDOW_MS
+    scope: MCP_RATE_LIMIT_SCOPE
+    maxConcurrentPerSubject:
+      __name: MCP_RATE_LIMIT_MAX_CONCURRENT_PER_SUBJECT
+      __format: number
+  limits:
+    maxPayloadBytes:
+      __name: MCP_LIMITS_MAX_PAYLOAD_BYTES
+      __format: number
+    maxToolResultBytes:
+      __name: MCP_LIMITS_MAX_TOOL_RESULT_BYTES
+      __format: number
+    toolTimeoutMs:
+      __name: MCP_LIMITS_TOOL_TIMEOUT_MS
+      __format: number
+  tools:
+    answerAs: MCP_TOOLS_ANSWER_AS
+    hideAnnotations: MCP_TOOLS_HIDE_ANNOTATIONS
+    validateInput:
+      __name: MCP_TOOLS_VALIDATE_INPUT
+      __format: boolean
+  debug:
+    logFile: MCP_DEBUG_LOG_FILE
+    builtinTools:
+      __name: MCP_DEBUG_BUILTIN_TOOLS
+      __format: boolean
+  pagination:
+    pageSize:
+      __name: MCP_PAGINATION_PAGE_SIZE
+      __format: number
+  resources:
+    subscribeEnabled:
+      __name: MCP_RESOURCES_SUBSCRIBE_ENABLED
+      __format: boolean
+    templatesEnabled:
+      __name: MCP_RESOURCES_TEMPLATES_ENABLED
+      __format: boolean
+  logging:
+    enabled:
+      __name: MCP_LOGGING_ENABLED
+      __format: boolean
+    defaultLevel: MCP_LOGGING_DEFAULT_LEVEL
+    maxBodyBytes:
+      __name: MCP_LOGGING_MAX_BODY_BYTES
+      __format: number
+  progress:
+    throttleMs:
+      __name: MCP_PROGRESS_THROTTLE_MS
+      __format: number
+  completions:
+    enabled:
+      __name: MCP_COMPLETIONS_ENABLED
+      __format: boolean
+  tasks:
+    enabled:
+      __name: MCP_TASKS_ENABLED
+      __format: boolean
+    defaultTtlMs:
+      __name: MCP_TASKS_DEFAULT_TTL_MS
+      __format: number
+    minTtlMs:
+      __name: MCP_TASKS_MIN_TTL_MS
+      __format: number
+    maxTtlMs:
+      __name: MCP_TASKS_MAX_TTL_MS
+      __format: number
+    pollIntervalMs:
+      __name: MCP_TASKS_POLL_INTERVAL_MS
+      __format: number
+    maxTasks:
+      __name: MCP_TASKS_MAX_TASKS
+      __format: number
+  sse:
+    resumability:
+      __name: MCP_SSE_RESUMABILITY
+      __format: boolean
+    maxStoredEvents:
+      __name: MCP_SSE_MAX_STORED_EVENTS
+      __format: number
+
+uiColor:
+  primary: UI_COLOR_PRIMARY
+
+webServer:
+  host: WS_HOST
+  port: WS_PORT
+  auth:
+    enabled: WS_AUTH_ENABLED
+    permanentServerTokens: WS_SERVER_TOKENS # comma separated list
+    jwtToken:
+      mode: WS_JWT_MODE                      # legacyAesCtr | embedded | localKey | remoteJwks
+      encryptKey: WS_TOKEN_ENCRYPT_KEY
+      checkMCPName: WS_CHECK_MC_NAME
+      isCheckIP: WS_JWT_CHECK_IP
+      issuer: WS_JWT_ISSUER
+      algorithm: WS_JWT_ALGORITHM            # ES256 | RS256
+      keyStoragePath: WS_JWT_KEY_STORAGE_PATH
+      publicKeyPath: WS_JWT_PUBLIC_KEY_PATH
+      privateKeyPath: WS_JWT_PRIVATE_KEY_PATH
+      jwksUri: WS_JWT_JWKS_URI
+      expectedIssuer: WS_JWT_EXPECTED_ISSUER
+      expectedAudience: WS_JWT_EXPECTED_AUDIENCE
+      jwksCacheTtl:
+        __name: WS_JWT_JWKS_CACHE_TTL
+        __format: number
+      jwksCooldown:
+        __name: WS_JWT_JWKS_COOLDOWN
+        __format: number
+      clockSkew:
+        __name: WS_JWT_CLOCK_SKEW
+        __format: number
+      defaultTtl:
+        __name: WS_JWT_DEFAULT_TTL
+        __format: number
+    basic:
+      username: WS_AUTH_BASIC_USERNAME
+      password: WS_AUTH_BASIC_PASSWORD
+  genJwtApiEnable: WS_GEN_JWT_API_ENABLE
+  tokenCheck:
+    allowQueryToken:
+      __name: WS_TOKEN_CHECK_ALLOW_QUERY
+      __format: boolean
+  trustProxy:
+    __name: WS_TRUST_PROXY
+    __format: boolean
+  metrics:
+    enabled:
+      __name: WS_METRICS_ENABLED
+      __format: boolean
+    path: WS_METRICS_PATH
+    includeProcessMetrics:
+      __name: WS_METRICS_INCLUDE_PROCESS
+      __format: boolean

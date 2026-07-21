@@ -1,0 +1,16 @@
+node_modules
+dist
+.vscode
+.git
+.claude
+.junie
+.run
+deploy
+tests
+coverage
+_logs
+_api_responses
+*.md
+!README.md
+.env*
+!.env.example

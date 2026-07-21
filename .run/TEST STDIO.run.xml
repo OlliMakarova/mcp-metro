@@ -1,0 +1,5 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="TEST STDIO" type="NodeJSConfigurationType" path-to-js-file="tests/mcp/test-stdio.js" working-dir="$PROJECT_DIR$">
+    <method v="2" />
+  </configuration>
+</component>

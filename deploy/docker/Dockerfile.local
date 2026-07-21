@@ -1,0 +1,29 @@
+# ── Local development: no in-container build ─────────────────────────────────
+# Assumes dist/ already exists on host (yarn build / yarn cb).
+# Usage: docker compose -f docker-compose.local.yml up -d --build
+FROM node:22-alpine
+
+WORKDIR /app
+
+ENV NODE_TLS_REJECT_UNAUTHORIZED=0
+ENV NODE_ENV=${NODE_ENV}
+
+# Production dependencies only
+COPY package.json yarn.lock ./
+RUN printf "strict-ssl false" > .yarnrc
+RUN yarn install --production=true && yarn cache clean
+
+# Pre-built backend (dist/ must exist on host)
+COPY dist/ ./dist/
+
+# Configs (default.yaml, production.yaml, custom-environment-variables.yaml, etc.)
+COPY config/ ./config/
+
+# External configs (local.yaml) are mounted via volumes in docker-compose.yml.
+
+EXPOSE 9049
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
+  CMD wget --spider -q http://localhost:9049/health || exit 1
+
+ENTRYPOINT ["node", "dist/src/start.js"]

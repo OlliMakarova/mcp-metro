@@ -1,0 +1,31 @@
+name: mcp-metro
+
+services:
+  app:
+    container_name: mcp-metro
+    build:
+      context: ..
+      dockerfile: deploy/docker/Dockerfile
+    image: ${IMAGE_TAG:-mcp-metro:latest}
+    restart: unless-stopped
+    ports:
+      - "${HOST_PORT:-9049}:9049"
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+      - SERVICE_NAME=${SERVICE_NAME:-mcp-metro}
+      - SERVICE_INSTANCE=${SERVICE_INSTANCE:-prod}
+      - WS_PORT=9049
+    volumes:
+      - ./config/local.yaml:/app/config/local.yaml:ro
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:9049/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+    mem_limit: 2g
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "5"

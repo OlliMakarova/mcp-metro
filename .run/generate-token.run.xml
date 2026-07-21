@@ -1,0 +1,14 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="generate-token" type="js.build_tools.npm" nameIsGenerated="true">
+    <package-json value="$PROJECT_DIR$/package.json" />
+    <command value="run" />
+    <scripts>
+      <script value="generate-token" />
+    </scripts>
+    <node-interpreter value="project" />
+    <envs>
+      <env name="DEBUG" value="ntlm:auth-flow,ntlm:ldap-proxy,ntlm:ldap-proxy-id" />
+    </envs>
+    <method v="2" />
+  </configuration>
+</component>

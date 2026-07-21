@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>get-time widget</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: transparent;
+      font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+      color: #1f2937;
+    }
+    .card {
+      box-sizing: border-box;
+      padding: 16px 20px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #eef2ff 0%, #e0f2fe 100%);
+      border: 1px solid #cbd5e1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .label {
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #475569;
+    }
+    .value {
+      font-family: ui-monospace, "SF Mono", Menlo, monospace;
+      font-size: 18px;
+      font-weight: 600;
+    }
+    .row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    button {
+      appearance: none;
+      border: 1px solid #6366f1;
+      background: #6366f1;
+      color: white;
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    button:hover { background: #4f46e5; }
+    button:disabled { opacity: 0.6; cursor: progress; }
+    .hint { color: #64748b; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="label">Server time</div>
+    <div class="row">
+      <div class="value" id="ts">—</div>
+      <button id="refresh" type="button">Refresh</button>
+    </div>
+    <div class="hint" id="hint">Waiting for tool-result…</div>
+  </div>
+
+  <script>
+    // Minimal MCP Apps View: postMessage-based JSON-RPC with the host.
+    // Spec: https://modelcontextprotocol.io — see "MCP Apps" / SEP-1865.
+    //
+    // Lifecycle implemented here:
+    //   1. send ui/initialize  (request)
+    //   2. send ui/notifications/initialized  (notification)
+    //   3. receive ui/notifications/tool-result  → render result
+    //   4. on button click → call server tool via tools/call  → render result
+    const host = window.parent;
+    let nextId = 1;
+    const pending = new Map();
+    const tsEl = document.getElementById('ts');
+    const hintEl = document.getElementById('hint');
+    const refreshBtn = document.getElementById('refresh');
+
+    function rpcRequest(method, params) {
+      const id = nextId++;
+      const message = { jsonrpc: '2.0', id, method, params };
+      const promise = new Promise((resolve, reject) => {
+        pending.set(id, { resolve, reject });
+      });
+      host.postMessage(message, '*');
+      return promise;
+    }
+
+    function rpcNotification(method, params) {
+      host.postMessage({ jsonrpc: '2.0', method, params }, '*');
+    }
+
+    function renderResult(result) {
+      const text = result?.structuredContent?.timestamp
+        || result?.content?.find((b) => b?.type === 'text')?.text
+        || '(no timestamp)';
+      tsEl.textContent = text;
+      hintEl.textContent = 'Updated ' + new Date().toLocaleTimeString();
+      refreshBtn.disabled = false;
+    }
+
+    window.addEventListener('message', (ev) => {
+      const m = ev.data;
+      if (!m || typeof m !== 'object') return;
+
+      // Response to one of our requests
+      if (m.id != null && pending.has(m.id)) {
+        const { resolve, reject } = pending.get(m.id);
+        pending.delete(m.id);
+        m.error ? reject(m.error) : resolve(m.result);
+        return;
+      }
+
+      // Notifications from host
+      if (m.method === 'ui/notifications/tool-result') {
+        renderResult(m.params?.result);
+      }
+    });
+
+    // 1. Handshake
+    rpcRequest('ui/initialize', {
+      protocolVersion: '2026-01-26',
+      appInfo: { name: 'canonical-get-time', version: '1.0.0' },
+      appCapabilities: {},
+    }).then(() => {
+      // 2. Tell host we're ready for tool input/result
+      rpcNotification('ui/notifications/initialized', {});
+    }).catch((err) => {
+      hintEl.textContent = 'ui/initialize failed: ' + (err?.message || err);
+    });
+
+    // 4. User-triggered server call
+    refreshBtn.addEventListener('click', () => {
+      refreshBtn.disabled = true;
+      hintEl.textContent = 'Calling get-time…';
+      rpcRequest('tools/call', { name: 'get-time', arguments: {} })
+        .then(renderResult)
+        .catch((err) => {
+          hintEl.textContent = 'tools/call failed: ' + (err?.message || err);
+          refreshBtn.disabled = false;
+        });
+    });
+  </script>
+</body>
+</html>

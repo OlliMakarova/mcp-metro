@@ -1,0 +1,5 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="update-sdk.js" type="NodeJSConfigurationType" nameIsGenerated="true" path-to-js-file="scripts/update-sdk.js" working-dir="$PROJECT_DIR$">
+    <method v="2" />
+  </configuration>
+</component>
