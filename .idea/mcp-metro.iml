@@ -5,7 +5,9 @@
       <sourceFolder url="file://$MODULE_DIR$/tests" isTestSource="true" />
       <excludeFolder url="file://$MODULE_DIR$/claudedocs" />
       <excludeFolder url="file://$MODULE_DIR$/data-cache" />
+      <excludeFolder url="file://$MODULE_DIR$/.agents" />
       <excludeFolder url="file://$MODULE_DIR$/.idea" />
+      <excludeFolder url="file://$MODULE_DIR$/.qwen" />
       <excludeFolder url="file://$MODULE_DIR$/_tmp" />
     </content>
     <orderEntry type="inheritedJdk" />
