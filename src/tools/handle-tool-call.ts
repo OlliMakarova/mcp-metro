@@ -9,13 +9,11 @@ import {
   TToolHandlerResponse,
 } from 'fa-mcp-sdk';
 
-import {
-  buildStationInfo,
-  findBestRoutes,
-  getMetroDatasetOrNull,
-  hideSourceNames,
-  resolveStation,
-} from '../lib/index.js';
+import { getMetroDatasetOrNull } from '../lib/metro-data/cache.js';
+import { hideSourceNames } from '../lib/metro-data/public-source.js';
+import { findBestRoutes } from '../lib/routing/find-routes.js';
+import { resolveStation } from '../lib/station-search/resolve-station.js';
+import { buildStationInfo } from '../lib/station-info.js';
 import { renderResolutionAsk, renderRoutes, renderStationInfo } from './metro/render.js';
 
 const logger = lgr.getSubLogger({ name: chalk.bgGrey('tools') });

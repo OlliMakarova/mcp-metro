@@ -1,6 +1,7 @@
 import { IResourceData } from 'fa-mcp-sdk';
 
-import { getMetroDatasetOrNull, toPublicSource } from './lib/index.js';
+import { getMetroDatasetOrNull } from './lib/metro-data/cache.js';
+import { toPublicSource } from './lib/metro-data/public-source.js';
 
 /**
  * Ресурсы MCP-сервера метро. Содержимое формируется динамически из активного набора данных,

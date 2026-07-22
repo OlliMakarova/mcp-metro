@@ -4,20 +4,16 @@
 // сведения о станции — таблицами и нумерованными списками, просьбы об уточнении — списком
 // вариантов. Структурные данные приходят из слоя библиотеки (src/lib) уже готовыми.
 
+import { IStationWorkTimeDay, IWagonHint } from '../../lib/metro-data/types.js';
 import {
   IFindRoutesResult,
   ILineInfo,
-  IResolveLineRef,
   IRouteEndpoint,
   IRouteVariant,
-  IStationInfo,
-  IStationLineRef,
-  IStationOption,
-  IStationWorkTimeDay,
-  IWagonHint,
-  TStationResolution,
   TRouteLeg,
-} from '../../lib/index.js';
+} from '../../lib/routing/find-routes.js';
+import { IResolveLineRef, IStationOption, TStationResolution } from '../../lib/station-search/resolve-station.js';
+import { IStationInfo, IStationLineRef } from '../../lib/station-info.js';
 
 // ─── Мелкие форматтеры ───────────────────────────────────────────────────────
 

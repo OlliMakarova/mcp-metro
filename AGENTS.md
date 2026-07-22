@@ -377,6 +377,11 @@ The script never deletes `mcp-ext-apps/`. The two skills above call it before re
 the cloned tree, so make sure it has run successfully before troubleshooting their behavior.
 
 
+## Imports (JS/TS)
+
+Do NOT add a barrel `index.js` — consumers import directly from the module's files.
+
+
 ## Formatting
 
 MD lines ≤120 chars. Break at 120. Target 100-120. No short lines (60-80). Fill to ~120.

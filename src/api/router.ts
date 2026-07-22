@@ -16,15 +16,13 @@ import { RateLimiterMemory } from 'rate-limiter-flexible';
 import { appConfig, createAuthMW, logger } from 'fa-mcp-sdk';
 
 import { CustomAppConfig } from '../_types_/custom-config.js';
-import {
-  buildStationInfo,
-  findBestRoutes,
-  fuzzySearchStations,
-  getMetroDatasetOrNull,
-  getStationClusters,
-  hideSourceNames,
-  resolveStation,
-} from '../lib/index.js';
+import { getMetroDatasetOrNull } from '../lib/metro-data/cache.js';
+import { hideSourceNames } from '../lib/metro-data/public-source.js';
+import { findBestRoutes } from '../lib/routing/find-routes.js';
+import { resolveStation } from '../lib/station-search/resolve-station.js';
+import { fuzzySearchStations } from '../lib/station-search/search-stations.js';
+import { getStationClusters } from '../lib/station-search/station-clusters.js';
+import { buildStationInfo } from '../lib/station-info.js';
 
 // Реальные имена источников засекречены: тексты внутренних ошибок перед отправкой
 // клиенту вычищаются от них (в лог выше уходит оригинал)
