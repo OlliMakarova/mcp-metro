@@ -61,3 +61,18 @@ export { buildSearchIndex, getSearchIndex } from './station-search/search-index.
 export { detectLang, normalizeArabic, normalizeForSearch } from './station-search/normalize-lang.js';
 export { phraseSimilarity } from './station-search/string-similarity.js';
 export { enToRuVariants, transliterate, transliterateRU } from './station-search/transliterate.js';
+export { getStationClusters } from './station-search/station-clusters.js';
+export type { IStationClusters } from './station-search/station-clusters.js';
+export { resolveStation } from './station-search/resolve-station.js';
+export type { IResolveLineRef, IStationOption, TStationResolution } from './station-search/resolve-station.js';
+
+// Сведения о станции
+export { buildStationInfo } from './station-info.js';
+export type {
+  IStationGroundTransport,
+  IStationInfo,
+  IStationLineRef,
+  IStationPlatform,
+  IStationScheduleDir,
+  IStationWarningInfo,
+} from './station-info.js';

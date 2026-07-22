@@ -1,27 +1,28 @@
 import { TPromptContentFunction } from 'fa-mcp-sdk';
 
 /**
- * Tool-specific prompts served by the built-in `tool_prompt` prompt.
+ * Подсказки по конкретным инструментам, отдаваемые встроенным промптом `tool_prompt`.
  *
- * The `tool_prompt` prompt is always advertised over MCP, but it returns a non-empty string only
- * for the tools listed here. Clients pass the tool name in the required `tool` argument; the home
- * page catalog viewer additionally shows a dropdown of the tools that have a non-empty prompt.
- *
- * Add an entry keyed by the MCP tool name to attach usage instructions to that tool.
+ * Промпт `tool_prompt` всегда объявлен в MCP, но непустую строку возвращает только для
+ * инструментов, перечисленных здесь. Клиент передаёт имя инструмента в обязательном
+ * аргументе `tool`.
  */
 const TOOL_PROMPTS: Record<string, string> = {
-  example_tool: `You are using the "example_tool" tool, which processes a text input and returns the result.
+  mos_metro_info: `Инструмент "mos_metro_info" отвечает на два вида запросов по Московскому метро (метро, МЦК, МЦД).
 
-- Pass the text to process in the required "query" field.
-- Keep the input concise; send one logical request at a time.
-- Use the returned text as the processed output — do not re-process it again unless the user asks.`,
+Параметры:
+- first_metro_station (обязательный) — станция отправления или станция, о которой нужны сведения.
+- second_metro_station — станция прибытия; указывай только для action="search_route".
+- action (обязательный) — "search_route" для маршрута, "get_station_info" для сведений о станции.
 
-  example_search: `You are using the "example_search" tool, which performs a search with pagination and filtering.
-
-- Put the search text in the required "query" field.
-- Use "limit" (1-100, default 20) to cap the number of results; request only as many as you need.
-- Use "threshold" (0-1) to drop low-similarity matches when precision matters more than recall.
-- Read results from the "results" array; "total" reports how many matches exist overall.`,
+Как пользоваться:
+- Для маршрута задай action="search_route" и обе станции. В ответе придёт от 1 до 4 вариантов с полным
+  временем в пути, станциями, пересадками, рекомендациями по вагонам, наземным транспортом на конечных
+  станциях и действующими ограничениями (ремонты, закрытия).
+- Для сведений о станции задай action="get_station_info" и укажи станцию в first_metro_station.
+- Названия передавай как есть (любой из четырёх языков, опечатки допустимы) — поиск неточный.
+- Если в ответе просьба уточнить станцию со списком вариантов, покажи список пользователю и вызови
+  инструмент снова с выбранным названием. Ответ всегда в формате markdown — сохраняй его структуру.`,
 };
 
 export const toolPrompt: TPromptContentFunction = (_request, args) => {

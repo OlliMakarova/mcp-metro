@@ -1,60 +1,43 @@
 import chalk from 'chalk';
 
 import {
-  debugMcpTool,
-  formatToolResult,
+  asTextContent,
+  asTextError,
+  IToolHandlerParams,
   logger as lgr,
-  maskSensitive,
   ToolExecutionError,
   TToolHandlerResponse,
 } from 'fa-mcp-sdk';
 
+import { buildStationInfo, findBestRoutes, getMetroDatasetOrNull, resolveStation } from '../lib/index.js';
+import { renderResolutionAsk, renderRoutes, renderStationInfo } from './metro/render.js';
+
 const logger = lgr.getSubLogger({ name: chalk.bgGrey('tools') });
 
-/**
- * Template tool handler - customize this for your specific tools
- * This handles MCP tool execution requests
- *
- * Debug output for tool requests/responses is wired up centrally by the SDK
- * (see `init-mcp-server.ts`) and activated with `DEBUG=mcp:tool`. Other MCP
- * channels have their own switches: `DEBUG=mcp:resource`, `DEBUG=mcp:prompt`,
- * `DEBUG=mcp:notification`. Use `DEBUG=mcp:*` to enable them all at once.
- */
-export const handleToolCall = async (params: {
-  name: string;
-  arguments?: any;
-  signal?: AbortSignal;
-  sendProgress?: (progress: number, total?: number, message?: string) => void;
-}): Promise<any> => {
-  const { name, arguments: args, signal, sendProgress } = params;
+/** Сколько вариантов маршрута запрашивать (постановка задачи: от 1 до 4) */
+const ROUTE_COUNT = 4;
 
+/** Единый текст ошибки «данные метро недоступны» в markdown */
+const DATA_UNAVAILABLE_MD =
+  '## Данные метро временно недоступны\n' +
+  'Не удалось получить данные о Московском метро: основной источник (mosmetro.ru) и резервный ' +
+  '(metrobook.ru) сейчас недоступны, а локальной копии на диске нет. Попробуйте повторить запрос позже.';
+
+/**
+ * Обработчик вызовов инструментов MCP-сервера метро.
+ *
+ * Отладочный вывод запросов/ответов инструментов подключён централизованно в SDK
+ * (см. init-mcp-server.ts) и включается переменной окружения DEBUG=mcp:tool.
+ */
+export const handleToolCall = async (params: IToolHandlerParams): Promise<TToolHandlerResponse> => {
+  const { name, arguments: args } = params;
   logger.info(`Tool called: ${name}`);
 
   try {
-    let result: TToolHandlerResponse;
-    // TODO: Implement your tool routing logic here
-    switch (name) {
-      case 'example_tool':
-        result = await handleExampleTool(args);
-        break;
-
-      case 'example_long_task':
-        result = await handleExampleLongTask(args, { signal, sendProgress });
-        break;
-
-      default:
-        throw new ToolExecutionError(name, `Unknown tool: ${name}`);
+    if (name === 'mos_metro_info') {
+      return await handleMosMetroInfo(args);
     }
-
-    // Optional: per-handler debug hook, in addition to the SDK-level wrapper.
-    // Useful if you want to inspect intermediate (pre-format) values inside a
-    // specific tool — define a new Debug category in `src/lib/debug.ts` and
-    // call it here. The example below piggybacks on the built-in switch.
-    if (debugMcpTool.enabled) {
-      debugMcpTool(`handler[${name}] returned\n${JSON.stringify(result, null, 2)}`);
-    }
-
-    return result;
+    throw new ToolExecutionError(name, `Unknown tool: ${name}`);
   } catch (error: Error | any) {
     logger.error(`Tool execution failed for ${name}:`, error);
     error.printed = true;
@@ -63,74 +46,74 @@ export const handleToolCall = async (params: {
 };
 
 /**
- * Example tool implementation
- * Replace this with your actual tool logic
+ * Универсальный инструмент: сведения о станции или кратчайшие маршруты между двумя станциями.
+ * Все ответы возвращаются готовым markdown-текстом (списки и таблицы).
  */
-async function handleExampleTool(args: any): Promise<TToolHandlerResponse> {
-  const { query } = args || {};
+const handleMosMetroInfo = async (args: any): Promise<TToolHandlerResponse> => {
+  const first = String(args?.first_metro_station ?? '').trim();
+  const second = String(args?.second_metro_station ?? '').trim();
+  const action = args?.action;
 
-  if (!query) {
-    throw new ToolExecutionError('example_tool', 'Query parameter is required');
+  if (!first) {
+    return asTextError('Не указана станция first_metro_station.');
+  }
+  if (action !== 'search_route' && action !== 'get_station_info') {
+    return asTextError('Параметр action должен быть "search_route" или "get_station_info".');
   }
 
-  // Simulate some work
-  await new Promise((resolve) => setTimeout(resolve, 100));
+  const dataset = getMetroDatasetOrNull();
+  if (!dataset) {
+    return asTextError(DATA_UNAVAILABLE_MD);
+  }
 
-  const result = {
-    message: `Processed query: ${query}`,
-    timestamp: new Date().toISOString(),
-  };
-
-  // Standard §12.2 — masking personal / sensitive data is the server's responsibility. For domains
-  // with such data, run the result through `maskSensitive` before returning. It is opt-in: the SDK
-  // never masks automatically. Rules are explicit (field names + regex), nothing is guessed.
-  // Example (no-op here, since the sample result has no sensitive fields):
-  const safeResult = maskSensitive(result, {
-    fieldNames: ['password', 'token', 'ssn'],
-    patterns: [/\b\d{13,19}\b/g], // card-like number sequences
-    replacement: '***',
-  });
-
-  return formatToolResult(safeResult);
-}
-
-/**
- * Example long-running tool (standard §8.7). Processes a number of steps with an artificial delay,
- * emitting `sendProgress` after each step and aborting early when the client cancels.
- *
- * The same handler runs whether the tool is called synchronously or as a task — the SDK supplies
- * `signal` and `sendProgress` in both cases. As a task, `signal` is flipped by `tasks/cancel` and
- * progress is delivered via `notifications/progress`; synchronously, the 30s tool timeout applies,
- * which is exactly why long work should be invoked as a task.
- */
-async function handleExampleLongTask(
-  args: any,
-  {
-    signal,
-    sendProgress,
-  }: {
-    signal?: AbortSignal | undefined;
-    sendProgress?: ((p: number, total?: number, m?: string) => void) | undefined;
-  },
-): Promise<TToolHandlerResponse> {
-  const steps = Math.min(20, Math.max(1, Number(args?.steps) || 5));
-
-  for (let i = 1; i <= steps; i++) {
-    if (signal?.aborted) {
-      throw new ToolExecutionError('example_long_task', 'Cancelled by client');
+  // ── Сведения о станции ──────────────────────────────────────────────────────
+  if (action === 'get_station_info') {
+    const resolution = resolveStation(dataset, first);
+    if (resolution.kind !== 'resolved') {
+      return asTextContent(renderResolutionAsk('станцию', first, resolution));
     }
-    await new Promise((resolve) => setTimeout(resolve, 200));
-    sendProgress?.(i, steps, `Completed step ${i} of ${steps}`);
+    const info = buildStationInfo(dataset, resolution.option.ids);
+    return asTextContent(renderStationInfo(info));
   }
 
-  return formatToolResult({
-    message: `Completed ${steps} steps`,
-    steps,
-    finishedAt: new Date().toISOString(),
-  });
-}
+  // ── Поиск маршрута ──────────────────────────────────────────────────────────
+  if (!second) {
+    return asTextError('Для построения маршрута укажите станцию прибытия second_metro_station.');
+  }
 
-// TODO: Add more tool handlers here
-// async function handleAnotherTool(args: any): Promise<string> {
-//   // Your implementation
-// }
+  const r1 = resolveStation(dataset, first);
+  const r2 = resolveStation(dataset, second);
+  const need1 = r1.kind !== 'resolved';
+  const need2 = r2.kind !== 'resolved';
+
+  // Если хотя бы одна станция требует уточнения — просим уточнить сразу все такие станции
+  if (need1 || need2) {
+    const blocks: string[] = [];
+    if (need1) {
+      blocks.push(renderResolutionAsk('станцию отправления', first, r1));
+    }
+    if (need2) {
+      blocks.push(renderResolutionAsk('станцию прибытия', second, r2));
+    }
+    return asTextContent(`# Нужно уточнить станции\n\n${blocks.join('\n\n')}`);
+  }
+
+  // Обе станции определены
+  const fromOpt = (r1 as Extract<typeof r1, { kind: 'resolved' }>).option;
+  const toOpt = (r2 as Extract<typeof r2, { kind: 'resolved' }>).option;
+
+  if (fromOpt.clusterId === toOpt.clusterId) {
+    return asTextContent(
+      `# Маршрут не требуется\n\nСтанции отправления и прибытия совпадают: **${fromOpt.name}**. ` +
+        'Это один и тот же пересадочный узел.',
+    );
+  }
+
+  try {
+    const result = findBestRoutes(dataset, fromOpt.ids, toOpt.ids, { k: ROUTE_COUNT });
+    return asTextContent(renderRoutes(result, fromOpt.name, toOpt.name));
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    return asTextError(`Не удалось построить маршрут ${fromOpt.name} → ${toOpt.name}: ${msg}`);
+  }
+};

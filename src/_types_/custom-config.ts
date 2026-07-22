@@ -65,9 +65,27 @@ export interface ITelegramSectionConfig {
 }
 
 /**
+ * Ограничение частоты запросов к REST API метро (секция `restApi` в config/*.yaml).
+ * Ограничение применяется к каждому маршруту REST по IP-адресу клиента. Все поля
+ * необязательны — при отсутствии секции действуют значения по умолчанию
+ * (60 запросов за 60 секунд), заданные в src/api/router.ts.
+ */
+export interface IRestApiSectionConfig {
+  restApi?: {
+    rateLimit?: {
+      /** Максимум запросов в окне (по умолчанию 60) */
+      maxRequests?: number;
+      /** Длина окна ограничения, секунды (по умолчанию 60) */
+      windowSec?: number;
+    };
+  };
+}
+
+/**
  * Extended app config with group checking settings
  */
-export interface CustomAppConfig extends AppConfig, IGroupAccessConfig, IMetroSectionConfig, ITelegramSectionConfig {}
+export interface CustomAppConfig
+  extends AppConfig, IGroupAccessConfig, IMetroSectionConfig, ITelegramSectionConfig, IRestApiSectionConfig {}
 
 // ========================================================================
 // YAML CONFIGURATION EXAMPLE (config/default.yaml)

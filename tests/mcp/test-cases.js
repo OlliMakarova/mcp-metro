@@ -1,70 +1,72 @@
 #!/usr/bin/env node
 
 /**
- * Shared test cases for the template MCP server (src/template)
- * Covers: prompts, resources, tools
+ * Общие тест-кейсы MCP-сервера метро (проверяются на транспортах STDIO, HTTP и SSE).
+ * Покрывают промпты, ресурсы и инструмент mos_metro_info.
  *
- * Each test case is a function(client) -> Promise<{ name, passed, details? }>
- * where client provides methods:
- *   - listPrompts(), getPrompt(name, args?)
- *   - listResources(), readResource(uri)
- *   - listTools(), callTool(name, args?)
+ * Каждый тест — это функция(client) -> Promise<{ name, passed, details? }>, где client
+ * предоставляет методы: listPrompts(), getPrompt(name, args?), listResources(),
+ * readResource(uri), listTools(), callTool(name, args?).
+ *
+ * Тесты рассчитаны на то, что при старте сервер загрузил данные метро из дисковой копии
+ * (папка data-cache/). Станции «Пушкинская», «Университет», «Комсомольская», «Смоленская»
+ * используются как устойчивые ориентиры реального набора данных.
  */
 
 const ok = (name, details) => ({ name, passed: true, details });
 const fail = (name, details) => ({ name, passed: false, details });
 
-// Utility: extract system text from prompts/get response
+/** Извлечь текст системного сообщения из ответа prompts/get */
 const extractPromptText = (resp) => {
-  // resp may be raw result or wrapped; support both shapes used by clients
   const r = resp?.result || resp;
   const msg = r?.messages?.[0];
   const text = msg?.content?.text || msg?.content?.[0]?.text || r?.messages?.[0]?.content?.[0]?.text;
   return typeof text === 'string' ? text : undefined;
 };
 
-export const TEMPLATE_TESTS = {
+/** Извлечь текст результата вызова инструмента (текстовый ответ или структурный JSON) */
+const extractToolText = (resp) => {
+  const r = resp?.result || resp;
+  const text = r?.content?.[0]?.text;
+  if (typeof text === 'string') {
+    return text;
+  }
+  if (r?.structuredContent) {
+    return JSON.stringify(r.structuredContent);
+  }
+  return undefined;
+};
+
+export const METRO_TESTS = {
   prompts: [
     async (client) => {
-      const name = 'List prompts contains agent_brief and agent_prompt';
+      const name = 'Список промптов содержит agent_brief и agent_prompt';
       try {
         const list = await client.listPrompts();
         const prompts = list?.prompts || list;
         const names = Array.isArray(prompts) ? prompts.map((p) => p.name) : [];
-        const okBrief = names.includes('agent_brief');
-        const okPrompt = names.includes('agent_prompt');
-        return okBrief && okPrompt ? ok(name, { names }) : fail(name, { names });
+        const good = names.includes('agent_brief') && names.includes('agent_prompt');
+        return good ? ok(name, { names }) : fail(name, { names });
       } catch (e) {
         return fail(name, { error: e?.message });
       }
     },
     async (client) => {
-      const name = 'Get agent_brief returns text';
+      const name = 'agent_brief упоминает метро';
       try {
-        const resp = await client.getPrompt('agent_brief');
-        const text = extractPromptText(resp);
-        return text ? ok(name, { text }) : fail(name, { text });
+        const text = extractPromptText(await client.getPrompt('agent_brief'));
+        const good = typeof text === 'string' && /метро/i.test(text);
+        return good ? ok(name, { text }) : fail(name, { text });
       } catch (e) {
         return fail(name, { error: e?.message });
       }
     },
     async (client) => {
-      const name = 'Get agent_prompt returns text';
+      const name = 'tool_prompt для mos_metro_info возвращает подсказку';
       try {
-        const resp = await client.getPrompt('agent_prompt');
-        const text = extractPromptText(resp);
-        return text ? ok(name, { text }) : fail(name, { text });
-      } catch (e) {
-        return fail(name, { error: e?.message });
-      }
-    },
-    async (client) => {
-      const name = 'Get custom_prompt returns dynamic text';
-      try {
-        const resp = await client.getPrompt('custom_prompt', { sample: '1' });
-        const text = extractPromptText(resp);
-        const hasWord = typeof text === 'string' && text.includes('Custom prompt content');
-        return hasWord ? ok(name, { text }) : fail(name, { text });
+        const text = extractPromptText(await client.getPrompt('tool_prompt', { tool: 'mos_metro_info' }));
+        const good = typeof text === 'string' && text.includes('mos_metro_info');
+        return good ? ok(name, { text }) : fail(name, { text });
       } catch (e) {
         return fail(name, { error: e?.message });
       }
@@ -73,26 +75,25 @@ export const TEMPLATE_TESTS = {
 
   resources: [
     async (client) => {
-      const name = 'List resources contains custom-resource://resource1';
+      const name = 'Список ресурсов содержит metro://lines и metro://status';
       try {
         const list = await client.listResources();
         const resources = list?.resources || list;
         const uris = Array.isArray(resources) ? resources.map((r) => r.uri) : [];
-        const found = uris.includes('custom-resource://resource1');
-        return found ? ok(name, { uris }) : fail(name, { uris });
+        const good = uris.includes('metro://lines') && uris.includes('metro://status');
+        return good ? ok(name, { uris }) : fail(name, { uris });
       } catch (e) {
         return fail(name, { error: e?.message });
       }
     },
     async (client) => {
-      const name = 'Read resource custom-resource://resource1 returns content';
+      const name = 'Чтение metro://lines возвращает список линий';
       try {
-        const resp = await client.readResource('custom-resource://resource1');
-        // Different clients return differently; normalize
+        const resp = await client.readResource('metro://lines');
         const r = resp?.result || resp;
-        const text = r?.resource?.text || r?.contents?.[0]?.text || r?.text || r?.resource?.content;
-        const okText = typeof text === 'string' && text.length > 0;
-        return okText ? ok(name, { text }) : fail(name, { response: r });
+        const text = r?.contents?.[0]?.text || r?.resource?.text || r?.text;
+        const good = typeof text === 'string' && /Линии Московского метро/.test(text);
+        return good ? ok(name, { sample: String(text).slice(0, 120) }) : fail(name, { response: r });
       } catch (e) {
         return fail(name, { error: e?.message });
       }
@@ -101,44 +102,115 @@ export const TEMPLATE_TESTS = {
 
   tools: [
     async (client) => {
-      const name = 'List tools contains example_tool and example_search';
+      const name = 'Список инструментов содержит mos_metro_info';
       try {
         const list = await client.listTools();
         const tools = list?.tools || list;
         const names = Array.isArray(tools) ? tools.map((t) => t.name) : [];
-        const ok1 = names.includes('example_tool');
-        const ok2 = names.includes('example_search');
-        return ok1 && ok2 ? ok(name, { names }) : fail(name, { names });
+        return names.includes('mos_metro_info') ? ok(name, { names }) : fail(name, { names });
       } catch (e) {
         return fail(name, { error: e?.message });
       }
     },
     async (client) => {
-      const name = 'Call example_tool returns formatted result';
+      const name = 'get_station_info по «Пушкинская» возвращает сведения о станции';
       try {
-        const resp = await client.callTool('example_tool', { query: 'ping' });
-        const r = resp?.result || resp;
-        // Both structuredContent and text are acceptable; check message echo
-        const structured = r?.structuredContent;
-        const text = r?.content?.[0]?.text;
-        const hasProcessed =
-          (structured && structured.message?.includes('Processed query')) ||
-          (typeof text === 'string' && text.includes('Processed query'));
-        return hasProcessed ? ok(name, { response: r }) : fail(name, { response: r });
+        const text = extractToolText(
+          await client.callTool('mos_metro_info', { first_metro_station: 'Пушкинская', action: 'get_station_info' }),
+        );
+        const good = typeof text === 'string' && text.includes('# Станция') && text.includes('Пушкинская');
+        return good ? ok(name, { sample: String(text).slice(0, 160) }) : fail(name, { text });
       } catch (e) {
         return fail(name, { error: e?.message });
       }
     },
     async (client) => {
-      const name = 'Call example_tool without query should fail';
+      const name = 'get_station_info по опечатке «Универсиет» распознаёт «Университет»';
       try {
-        await client.callTool('example_tool', {});
-        return fail(name, { error: 'Expected failure, got success' });
+        const text = extractToolText(
+          await client.callTool('mos_metro_info', { first_metro_station: 'Универсиет', action: 'get_station_info' }),
+        );
+        const good = typeof text === 'string' && text.includes('Университет');
+        return good ? ok(name, { sample: String(text).slice(0, 160) }) : fail(name, { text });
       } catch (e) {
-        return ok(name, { error: e?.message });
+        return fail(name, { error: e?.message });
+      }
+    },
+    async (client) => {
+      const name = 'get_station_info по «Смоленская» просит уточнить (две линии)';
+      try {
+        const text = extractToolText(
+          await client.callTool('mos_metro_info', { first_metro_station: 'Смоленская', action: 'get_station_info' }),
+        );
+        const good = typeof text === 'string' && /Уточните/i.test(text) && text.includes('Смоленская');
+        return good ? ok(name, { sample: String(text).slice(0, 200) }) : fail(name, { text });
+      } catch (e) {
+        return fail(name, { error: e?.message });
+      }
+    },
+    async (client) => {
+      const name = 'get_station_info по бессмысленному вводу просит уточнить название';
+      try {
+        const text = extractToolText(
+          await client.callTool('mos_metro_info', { first_metro_station: 'ыфваплджэ123', action: 'get_station_info' }),
+        );
+        const good = typeof text === 'string' && /распознать/i.test(text);
+        return good ? ok(name, { sample: String(text).slice(0, 160) }) : fail(name, { text });
+      } catch (e) {
+        return fail(name, { error: e?.message });
+      }
+    },
+    async (client) => {
+      const name = 'search_route «Университет» → «Комсомольская» строит маршруты';
+      try {
+        const text = extractToolText(
+          await client.callTool('mos_metro_info', {
+            first_metro_station: 'Университет',
+            second_metro_station: 'Комсомольская',
+            action: 'search_route',
+          }),
+        );
+        const good =
+          typeof text === 'string' && text.includes('# Маршруты') && /Вариант 1/.test(text) && /мин/.test(text);
+        return good ? ok(name, { sample: String(text).slice(0, 200) }) : fail(name, { text });
+      } catch (e) {
+        return fail(name, { error: e?.message });
+      }
+    },
+    async (client) => {
+      const name = 'search_route без станции прибытия сообщает об ошибке';
+      try {
+        const text = extractToolText(
+          await client.callTool('mos_metro_info', { first_metro_station: 'Университет', action: 'search_route' }),
+        );
+        const good = typeof text === 'string' && /прибытия/i.test(text);
+        return good ? ok(name, { sample: String(text).slice(0, 160) }) : fail(name, { text });
+      } catch (e) {
+        return fail(name, { error: e?.message });
+      }
+    },
+    async (client) => {
+      const name = 'search_route с двумя неоднозначными станциями просит уточнить обе';
+      try {
+        const text = extractToolText(
+          await client.callTool('mos_metro_info', {
+            first_metro_station: 'Смоленская',
+            second_metro_station: 'Арбатская',
+            action: 'search_route',
+          }),
+        );
+        const good =
+          typeof text === 'string' &&
+          /отправления/i.test(text) &&
+          /прибытия/i.test(text) &&
+          text.includes('Смоленская') &&
+          text.includes('Арбатская');
+        return good ? ok(name, { sample: String(text).slice(0, 240) }) : fail(name, { text });
+      } catch (e) {
+        return fail(name, { error: e?.message });
       }
     },
   ],
 };
 
-export default TEMPLATE_TESTS;
+export default METRO_TESTS;

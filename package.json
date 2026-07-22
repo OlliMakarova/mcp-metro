@@ -57,7 +57,8 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
     "dotenv": "^17.4.1",
-    "fa-mcp-sdk": "^0.12.19"
+    "fa-mcp-sdk": "^0.12.19",
+    "rate-limiter-flexible": "^11.2.0"
   },
   "devDependencies": {
     "@types/express": "^5.0.6",

@@ -1,80 +1,110 @@
-# MCP METRO
+# MCP METRO — Moscow metro routes & station info
 
-MCP server to search for routes in the Moscow metro and calculate the duration of the trip
+MCP server for the **Moscow Metro** (including the Moscow Central Circle **MCC / МЦК** and the Moscow Central
+Diameters **MCD / МЦД**). It builds the shortest routes between two stations and returns exhaustive information
+about any station. Station names are matched fuzzily in **four languages** — Russian, English, Arabic and
+Chinese — tolerating typos and transliteration. All tool answers are formatted as **Markdown** (lists and tables).
 
-## Install & Run
+Built on the `fa-mcp-sdk` framework. Exposes one MCP tool, two MCP resources, the built-in agent prompts, and a
+rate-limited REST API. Works over STDIO (Claude Desktop) or HTTP/SSE.
 
-### Quick Start
-```bash
-# Install
-npm install
+## What it can do
 
-# Configure (copy config/local.yaml from config/_local.yaml)
-# Add database credentials
+- **Route search** — from 1 to 4 shortest route variants between two stations, each with:
+  - total travel time (including transfer walking time) plus a door-to-door estimate with street-to-platform
+    enter/exit time;
+  - the full station sequence of every ride leg;
+  - transfers, with a recommendation of which train car to board for a faster interchange;
+  - which legs run on МЦД / МЦК lines;
+  - ground transport (buses, trolleybuses, trams) at the departure and arrival stations;
+  - active advisories along the route: escalator/elevator repairs, closed exits, station closures.
+- **Station info** — lines at the station, city exits with nearby ground transport, on-station services,
+  first/last train times per direction, available interchanges, and current advisories.
+- **Fuzzy station resolution** — recognizes a name across four languages with typos. When a single physical
+  station (interchange hub) is matched, it is used directly. When several different stations match, the tool
+  asks the user to choose from a list; if nothing matches, it asks to refine the name. For a route request where
+  both stations are ambiguous, it asks about both at once.
 
-# Build
-npm run build
+## Data sources
 
-# Run (STDIO mode for Claude Desktop)
-npm start
-```
+Metro data is refreshed daily from the primary source **mosmetro.ru** (full dataset: exits, services, schedule,
+advisories, car hints), with a fallback to **metrobook.ru** (graph core only) and a local disk cache in
+`data-cache/`. If both sources are unreachable and no disk copy exists, the tool reports that data is temporarily
+unavailable. Optional Telegram notifications report source state changes. See `config/default.yaml` → `metro`
+and `telegram`.
 
-### Test Run
-```bash
-# Unit tests
-npm test
+## MCP Tool
 
-# MCP protocol tests
-npm run test:mcp        # STDIO mode
-npm run test:mcp-http   # HTTP mode
-npm run test:mcp-simple # Simple test
-```
+### `mos_metro_info`
 
-### Dual Transport System
+Universal tool. The identifier is lowercase snake_case, as required by the MCP tool-naming standard.
 
-**STDIO Mode** (default for Claude Desktop):
-- Direct stdin/stdout communication
-- Optimal for Claude Desktop integration
-- No network ports required
+| Parameter | Required | Description |
+|-----------|----------|-------------|
+| `first_metro_station` | yes | Departure station (for a route) or the station to describe. Any of the four languages, typos allowed — resolved by fuzzy search. |
+| `second_metro_station` | for routes | Arrival station. Required for `action=search_route`, unused for `get_station_info`. |
+| `action` | yes | `search_route` — build routes between two stations; `get_station_info` — describe `first_metro_station`. |
 
-**HTTP Mode** (web integration):
-- HTTP server with Server-Sent Events (SSE)
-- Home page with server status at `http://localhost:9049/`
-- Health check endpoint at `/health`
-- Direct JSON-RPC 2.0 endpoint at `/mcp`
+The response is Markdown. On ambiguity it contains a numbered list (or two lists, one per station) to choose from.
 
+## REST API
 
-## Features
+Three read-only endpoints under `/api`, each protected by per-client (by IP) rate limiting. On exceeding the
+limit the server replies `HTTP 429` with a `Retry-After` header. Limits are configured in `config/default.yaml`
+→ `restApi.rateLimit` (default 60 requests / 60 seconds). Cyrillic query values must be URL-encoded.
 
+| Method & path | Description |
+|---------------|-------------|
+| `GET /api/stations/search?q=<name>&limit=<1..50>` | Fuzzy station search. Returns matches with id, name, line, cluster id and similarity score. |
+| `GET /api/stations/info?q=<name>` | Station info. `200` when resolved; `300` with `options` when ambiguous; `404` when not found. |
+| `GET /api/routes?from=<name>&to=<name>&k=<1..4>` | Up to `k` route variants with full details. `300` when a station needs clarification. |
 
-
-## MCP Tools
-
-
-
-## MCP Prompts
-
-### `agent_brief`
-Brief description of agent capabilities for agent selection.
-
-### `agent_prompt`
-Complete prompt with instructions.
+OpenAPI/Swagger UI is served at `/docs`; the raw spec at `/api/openapi.json`.
 
 ## MCP Resources
 
-### `staff://agent/brief`
-Same as `agent_brief` prompt. **MIME:** text/plain
+| URI | MIME | Description |
+|-----|------|-------------|
+| `metro://lines` | text/markdown | All metro / МЦК / МЦД lines with name, type and color. |
+| `metro://status` | text/markdown | Data source and freshness: schema date, station/line counts, active advisory count. |
 
-### `staff://agent/prompt`
-Same as `agent_prompt` prompt. **MIME:** text/plain
+## MCP Prompts
 
+| Name | Description |
+|------|-------------|
+| `agent_brief` | Short agent description used for agent selection. |
+| `agent_prompt` | Full system prompt instructing the LLM how to use the tool. |
+| `tool_prompt` (arg `tool=mos_metro_info`) | Usage notes for the tool. |
 
-## 2. Configuration
+## Install & Run
 
-**Option A: Configuration File**
+```bash
+npm install
+npm run build
 
-**Option B: Environment Variables**
+# HTTP mode (default), server on config webServer.port (9049 by default)
+npm start
 
+# STDIO mode (Claude Desktop)
+node dist/src/start.js stdio
+```
+
+### Tests
+
+```bash
+npm test               # unit tests (jest): data layer, routing, search
+npm run test:mcp       # MCP protocol tests over STDIO (spawns the server)
+npm run test:mcp-http  # MCP protocol tests over HTTP  (needs a running server)
+npm run test:mcp-sse   # MCP protocol tests over SSE   (needs a running server)
+```
+
+The HTTP and SSE test runners connect to an already-running server (`npm start` first).
+
+## Transports
+
+- **STDIO** — direct stdin/stdout, no network port; ideal for Claude Desktop.
+- **HTTP / SSE** — home page at `http://localhost:9049/`, health at `/health`, JSON-RPC MCP endpoint at `/mcp`,
+  SSE at `/sse`, Agent Tester at `/agent-tester`, Swagger at `/docs`.
 
 ## Usage with AI CLIs
 
@@ -84,7 +114,7 @@ JWT Bearer token generated by the `/gen-jwt` skill or by `node scripts/generate-
 
 ### With Claude Code
 
-Add to `~\.claude.json`:
+Add to `~/.claude.json`:
 
 ```json
 {
@@ -92,9 +122,7 @@ Add to `~\.claude.json`:
     "mcp-metro": {
       "type": "http",
       "url": "http[s]://<host[:port]>/mcp",
-      "headers": {
-        "Authorization": "Bearer <jwt-token>"
-      }
+      "headers": { "Authorization": "Bearer <jwt-token>" }
     }
   }
 }
@@ -102,107 +130,39 @@ Add to `~\.claude.json`:
 
 ### With Claude Desktop
 
-Add to your Claude Desktop configuration (`claude_desktop_config.json`):
-
 ```json
 {
   "mcpServers": {
     "mcp-metro": {
       "command": "npx",
       "args": [
-        "-y",
-        "mcp-remote@latest",
-        "http[s]://<host[:port]>/mcp",
-        "--header",
-        "Authorization: Bearer <jwt-token>",
-        "--allow-http",
-        "--transport",
-        "http-only"
+        "-y", "mcp-remote@latest", "http[s]://<host[:port]>/mcp",
+        "--header", "Authorization: Bearer <jwt-token>",
+        "--allow-http", "--transport", "http-only"
       ]
     }
   }
 }
 ```
 
-### With Qwen Code
+> For local STDIO integration without an HTTP server, run `node <path-to-project>/dist/src/start.js stdio`.
 
-Add to `~\.qwen\settings.json`:
+## Configuration
 
-```json
-{
-  "mcpServers": {
-    "mcp-metro": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "mcp-remote@latest",
-        "http[s]://<host[:port]>/mcp",
-        "--header",
-        "Authorization: Bearer <jwt-token>",
-        "--allow-http",
-        "--transport",
-        "http-only"
-      ]
-    }
-  }
-}
-```
+Priority: environment variables > `local.yaml` > `{NODE_ENV}.yaml` > `default.yaml`. Key project sections in
+`config/default.yaml`:
 
-> For STDIO transport (local Claude Desktop integration without an HTTP server), run
-> `node <path-to-project>/dist/src/start.js stdio` — see `CLAUDE.md` for details.
-
-## HTTP Mode Endpoints
-
-- **/** - Home page
-- **/health** - Health check
-- **/sse** - Server-Sent Events
-- **/mcp** - JSON-RPC 2.0
-
-## Claude Code Skills
-
-The project ships with custom skills in `.claude/skills/`:
-
-| Command                     | Description                                                                  |
-|-----------------------------|------------------------------------------------------------------------------|
-| `/gen-jwt`                  | Generate JWT tokens for MCP server authentication                            |
-| `/upgrade-guide`            | Generate migration guide for `fa-mcp-sdk` upgrades                           |
-| `/feature-prompt-generator` | Turn a feature description into a self-sufficient prompt for an AI CLI       |
-| `/readme-generator`         | Generate structured README.md + satellite `readme-docs/*.md`                 |
-| `/mcp-app-create`           | Scaffold a new MCP App (interactive UI: tool + HTML resource via ext-apps)   |
-| `/mcp-app-add-to-server`    | Enrich existing MCP server tools with interactive UIs (MCP Apps SDK)         |
-
-Details, launch modes, and examples: [SKILLS](readme-docs/SKILLS.md)
-
-### Sharing Skills with OpenAI Codex
-
-The skills in `.claude/skills/` can also be used from [OpenAI Codex](https://developers.openai.com/codex/) —
-Codex officially reads project Skills from `.agents/skills/` and supports symlinked skill folders. Run the
-bundled helper once to create the link (junction on Windows, relative symlink on macOS/Linux):
-
-```bash
-npm run agents:link          # create .agents/skills -> .claude/skills
-npm run agents:link:status   # inspect current link state
-npm run agents:link:remove   # remove the link
-```
-
-Only skills are linked. Other Claude Code entities (`.claude/agents/`, `.claude/commands/`, hooks, MCP config)
-use formats incompatible with Codex (TOML agents in `.codex/agents/`, MCP servers in `.codex/config.toml`) and
-must be configured separately. For project guidance, this template already keeps a single `AGENTS.md` and
-imports it from `CLAUDE.md` via `@AGENTS.md`, so the same instructions feed both tools.
+- `metro` — daily refresh period, advisory time-to-live, per-request HTTP timeout.
+- `restApi.rateLimit` — REST API rate limit (`maxRequests`, `windowSec`).
+- `telegram` — optional source-state notifications (`enabled`, `botToken`, `chatId`; secrets belong in
+  `config/local.yaml` or ENV).
+- `mcp` — MCP transport, tool result format, MCP endpoint rate limit and limits.
+- `webServer` — bind host/port and authentication.
 
 ## Security
 
-### Admin panel JWT requirement
-
-When `adminPanel.authType` includes `jwtToken`, the admin panel (`/admin`) accepts a JWT
-**only if its payload contains `allow: 'gen-token'`**. JWTs without this claim are
-rejected with `401` — this blocks short-lived tokens issued for other purposes (for
-example, the 5-minute JWT auto-generated by the Agent Tester page and written into its
-`Authorization` header) from being replayed to mint arbitrary long-lived tokens.
-
-`permanentServerTokens` and `basic` admin auth are unaffected by this check.
-
-Generate an admin-capable JWT:
+When `adminPanel.authType` includes `jwtToken`, the admin panel (`/admin`) accepts a JWT **only if its payload
+contains `allow: 'gen-token'`**. Generate an admin-capable JWT:
 
 ```bash
 node scripts/generate-jwt.js -u admin -ttl 30d -p "allow=gen-token"
@@ -210,38 +170,6 @@ node scripts/generate-jwt.js -u admin -ttl 30d -p "allow=gen-token"
 
 ## Public Contract
 
-The runtime contract surfaced by this server (transports, HTTP endpoints, JWT claims, tool /
-prompt / resource shape, error mapping, headers, semver and deprecation policy) is documented
-in [FA-MCP-SDK-DOC/11-public-contract.md](FA-MCP-SDK-DOC/11-public-contract.md).
-
-Tools, prompts and resources exposed by this project are listed in the table below — update
-this section whenever you add, rename, or remove an entry.
-
-### Tools
-
-| Name | Description |
-|------|-------------|
-| `<tool_name>` | Short description |
-
-### Prompts
-
-| Name | Description |
-|------|-------------|
-| `agent_brief` | Short agent description (built-in) |
-| `agent_prompt` | Full system prompt (built-in) |
-
-### Resources
-
-| URI | Description |
-|-----|-------------|
-| `project://version` | SDK / project version (built-in) |
-| `use://auth` | Authentication self-description (built-in) |
-| `<service>://agent/brief` | Mirror of `agent_brief` (built-in) |
-| `<service>://agent/prompt` | Mirror of `agent_prompt` (built-in) |
-
-## Versioning policy
-
-This project follows the semver contract documented in
-[FA-MCP-SDK-DOC/11-public-contract.md](FA-MCP-SDK-DOC/11-public-contract.md#8-versioning-policy-171).
-Mark every `MAJOR` change with `[BREAKING]` in `CHANGELOG.md`.
-
+The runtime contract (transports, HTTP endpoints, JWT claims, tool/prompt/resource shape, error mapping,
+headers, semver and deprecation policy) is documented in
+[FA-MCP-SDK-DOC/11-public-contract.md](FA-MCP-SDK-DOC/11-public-contract.md).

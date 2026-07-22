@@ -273,6 +273,20 @@ metro:
   #> Per-request HTTP timeout, milliseconds
   requestTimeoutMs: 30000
 
+#> ========================================================================
+#> REST API RATE LIMITING
+#> Per-client (by IP) rate limit applied to every REST route under /api
+#> (stations/search, stations/info, routes). On exceed the server replies
+#> HTTP 429 with a Retry-After header. Independent of the MCP endpoint limit
+#> configured under mcp.rateLimit.
+#> ========================================================================
+restApi:
+  rateLimit:
+    #> Maximum number of REST requests allowed within the window
+    maxRequests: 60
+    #> Rate limit window length, seconds
+    windowSec: 60
+
 #> MCP (Model Context Protocol) server settings
 mcp:
   #> Transport for the MCP server: stdio | http
