@@ -22,8 +22,14 @@ import {
   fuzzySearchStations,
   getMetroDatasetOrNull,
   getStationClusters,
+  hideSourceNames,
   resolveStation,
 } from '../lib/index.js';
+
+// Реальные имена источников засекречены: тексты внутренних ошибок перед отправкой
+// клиенту вычищаются от них (в лог выше уходит оригинал)
+const publicErrorText = (error: unknown): string =>
+  error instanceof Error ? hideSourceNames(error.message) : 'Unknown error';
 
 export const apiRouter: Router | null = Router();
 
@@ -110,7 +116,7 @@ apiRouter.get('/stations/search', rateLimitMW, authMW, (req: Request, res: Respo
     res.json({ success: true, query: q, count: matches.length, results: matches });
   } catch (error) {
     logger.error('REST /stations/search error:', error);
-    res.status(500).json({ success: false, error: error instanceof Error ? error.message : 'Unknown error' });
+    res.status(500).json({ success: false, error: publicErrorText(error) });
   }
 });
 
@@ -143,7 +149,7 @@ apiRouter.get('/stations/info', rateLimitMW, authMW, (req: Request, res: Respons
     res.json({ success: true, resolved: true, station: info });
   } catch (error) {
     logger.error('REST /stations/info error:', error);
-    res.status(500).json({ success: false, error: error instanceof Error ? error.message : 'Unknown error' });
+    res.status(500).json({ success: false, error: publicErrorText(error) });
   }
 });
 
@@ -185,6 +191,6 @@ apiRouter.get('/routes', rateLimitMW, authMW, (req: Request, res: Response) => {
     res.json({ success: true, from: r1.option.name, to: r2.option.name, ...result });
   } catch (error) {
     logger.error('REST /routes error:', error);
-    res.status(500).json({ success: false, error: error instanceof Error ? error.message : 'Unknown error' });
+    res.status(500).json({ success: false, error: publicErrorText(error) });
   }
 });

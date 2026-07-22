@@ -9,7 +9,13 @@ import {
   TToolHandlerResponse,
 } from 'fa-mcp-sdk';
 
-import { buildStationInfo, findBestRoutes, getMetroDatasetOrNull, resolveStation } from '../lib/index.js';
+import {
+  buildStationInfo,
+  findBestRoutes,
+  getMetroDatasetOrNull,
+  hideSourceNames,
+  resolveStation,
+} from '../lib/index.js';
 import { renderResolutionAsk, renderRoutes, renderStationInfo } from './metro/render.js';
 
 const logger = lgr.getSubLogger({ name: chalk.bgGrey('tools') });
@@ -17,9 +23,9 @@ const logger = lgr.getSubLogger({ name: chalk.bgGrey('tools') });
 /** Сколько вариантов маршрута запрашивать (постановка задачи: от 1 до 4) */
 const ROUTE_COUNT = 4;
 
-/** Единый текст ошибки «данные метро недоступны» в markdown */
+/** Единый текст ошибки «данные метро недоступны» в markdown (без реальных имён источников) */
 const DATA_UNAVAILABLE_MD = `## Данные метро временно недоступны
-Не удалось получить данные о Московском метро: основной источник (mosmetro.ru) и резервный (metrobook.ru) сейчас недоступны, а локальной копии на диске нет. Попробуйте повторить запрос позже.`;
+Не удалось получить данные о Московском метро: источники данных сейчас недоступны, а локальной копии на диске нет. Попробуйте повторить запрос позже.`;
 
 /**
  * Обработчик вызовов инструментов MCP-сервера метро.
@@ -39,6 +45,11 @@ export const handleToolCall = async (params: IToolHandlerParams): Promise<TToolH
   } catch (error: Error | any) {
     logger.error(`Tool execution failed for ${name}:`, error);
     error.printed = true;
+    // Реальные имена источников засекречены: вычищаем их из текста ошибки,
+    // прежде чем SDK отдаст её клиенту в MCP-ответе (в лог выше ушёл оригинал)
+    if (typeof error?.message === 'string') {
+      error.message = hideSourceNames(error.message);
+    }
     throw error;
   }
 };
@@ -112,7 +123,7 @@ const handleMosMetroInfo = async (args: any): Promise<TToolHandlerResponse> => {
     const result = findBestRoutes(dataset, fromOpt.ids, toOpt.ids, { k: ROUTE_COUNT });
     return asTextContent(renderRoutes(result, fromOpt.name, toOpt.name));
   } catch (e) {
-    const msg = e instanceof Error ? e.message : String(e);
+    const msg = hideSourceNames(e instanceof Error ? e.message : String(e));
     return asTextError(`Не удалось построить маршрут ${fromOpt.name} → ${toOpt.name}: ${msg}`);
   }
 };

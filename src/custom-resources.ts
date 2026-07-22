@@ -1,6 +1,6 @@
 import { IResourceData } from 'fa-mcp-sdk';
 
-import { getMetroDatasetOrNull } from './lib/index.js';
+import { getMetroDatasetOrNull, toPublicSource } from './lib/index.js';
 
 /**
  * Ресурсы MCP-сервера метро. Содержимое формируется динамически из активного набора данных,
@@ -39,8 +39,9 @@ const renderStatus = (): string => {
 
 Данные метро временно недоступны (источники не отвечают, локальной копии нет).`;
   }
+  // Реальные имена источников засекречены — наружу уходит только нейтральное обозначение
   const sourceName =
-    dataset.source === 'mosmetro' ? 'mosmetro.ru (полный набор сведений)' : 'metrobook.ru (базовый набор)';
+    toPublicSource(dataset.source) === 'primary' ? 'основной (полный набор сведений)' : 'резервный (базовый набор)';
   return `# Состояние данных метро
 
 - Источник: ${sourceName}

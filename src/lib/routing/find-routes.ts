@@ -8,9 +8,9 @@ import {
   IStationExit,
   IWagonHint,
   TLineKind,
-  TMetroSource,
   TNotificationStatus,
 } from '../metro-data/types.js';
+import { TPublicDataSource, toPublicSource } from '../metro-data/public-source.js';
 import { IGraphEdge, IRouteGraph, getRouteGraph } from './graph.js';
 import { yenKShortestPaths } from './yen.js';
 
@@ -100,7 +100,8 @@ export interface IRouteVariant {
 }
 
 export interface IFindRoutesResult {
-  source: TMetroSource;
+  /** Источник данных (нейтральное обозначение): primary — полный, backup — резервный сокращённый */
+  source: TPublicDataSource;
   schemaFetchedAt: string;
   /** Учтены ли закрытия и ремонты (true только при свежих уведомлениях mosmetro) */
   closuresApplied: boolean;
@@ -294,7 +295,7 @@ export const findRoutes = (
   });
 
   return {
-    source: dataset.source,
+    source: toPublicSource(dataset.source),
     schemaFetchedAt: dataset.schemaFetchedAt,
     closuresApplied: !!dataset.notifications,
     variants,

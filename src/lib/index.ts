@@ -5,6 +5,8 @@
 
 // Слой данных
 export * from './metro-data/types.js';
+export { hideSourceNames, toPublicSource } from './metro-data/public-source.js';
+export type { TPublicDataSource } from './metro-data/public-source.js';
 export { getMetroDataset, getMetroDatasetOrNull, hasMetroData, setMetroDataset } from './metro-data/cache.js';
 export { initMetroData, refreshMetroDataNow, stopMetroDataScheduler } from './metro-data/init.js';
 export { loadMetroDataFromDisk, refreshMetroData } from './metro-data/refresh.js';

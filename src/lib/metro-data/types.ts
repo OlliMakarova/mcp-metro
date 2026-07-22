@@ -181,13 +181,13 @@ export interface IMetrobookGraphFile {
   transfers: Array<{ from: number; to: number; time: number }>;
 }
 
-/** Ошибка «данные метро недоступны»: оба источника не отвечают и на диске нет копии */
+/**
+ * Ошибка «данные метро недоступны»: оба источника не отвечают и на диске нет копии.
+ * Сообщение показывается пользователю, поэтому реальные имена источников в нём недопустимы.
+ */
 export class MetroDataUnavailableError extends Error {
   constructor(message?: string) {
-    super(
-      message ??
-        'Данные метро недоступны: оба источника (mosmetro.ru, metrobook.ru) не отвечают, локальной копии на диске нет',
-    );
+    super(message ?? 'Данные метро временно недоступны: источники данных не отвечают, локальной копии на диске нет');
     this.name = 'MetroDataUnavailableError';
   }
 }

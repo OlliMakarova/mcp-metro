@@ -23,7 +23,7 @@ describe('Маршрутизация по данным mosmetro', () => {
     expect(toIds).toHaveLength(1);
 
     const res = findBestRoutes(ds, fromIds, toIds, { k: 3, at: AT_FIXTURE_DATE });
-    expect(res.source).toBe('mosmetro');
+    expect(res.source).toBe('primary');
     expect(res.closuresApplied).toBe(true);
     expect(res.variants).toHaveLength(3);
 

@@ -236,10 +236,10 @@ const renderVariant = (v: IRouteVariant, n: number): string => {
 
 /** Полный markdown-ответ по найденным маршрутам */
 export const renderRoutes = (result: IFindRoutesResult, fromName: string, toName: string): string => {
-  const sourceName = result.source === 'mosmetro' ? 'mosmetro.ru' : 'metrobook.ru';
+  const sourceName = result.source === 'primary' ? 'основной' : 'резервный (сокращённый набор сведений)';
   const closures = result.closuresApplied
     ? 'Действующие закрытия и ремонты учтены.'
-    : 'Данных о действующих закрытиях нет (учитываются только при свежих данных mosmetro.ru).';
+    : 'Данных о действующих закрытиях нет (учитываются только при свежих данных основного источника).';
 
   const head = [
     `# Маршруты: ${fromName} → ${toName}`,
@@ -260,7 +260,7 @@ export const renderRoutes = (result: IFindRoutesResult, fromName: string, toName
 
 /** Полный markdown-ответ со сведениями о станции */
 export const renderStationInfo = (info: IStationInfo): string => {
-  const sourceName = info.source === 'mosmetro' ? 'mosmetro.ru' : 'metrobook.ru';
+  const sourceName = info.source === 'primary' ? 'основной' : 'резервный (сокращённый набор сведений)';
   const out: string[] = [];
   out.push(`# Станция: ${info.name.ru}`);
   const otherNames = [info.name.en, info.name.ar, info.name.cn].filter(Boolean);
