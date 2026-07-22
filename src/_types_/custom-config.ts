@@ -34,48 +34,48 @@ export interface IGroupAccessConfig {
 }
 
 /**
- * Настройки слоя данных метро (секция `metro` в config/*.yaml).
- * Все поля необязательны — значения по умолчанию подставляет getMetroConfig()
- * в src/lib/metro-data/metro-config.ts.
+ * Metro data layer settings (`metro` section in config/*.yaml).
+ * All fields are optional — defaults are supplied by getMetroConfig()
+ * in src/lib/metro-data/metro-config.ts.
  */
 export interface IMetroSectionConfig {
   metro?: {
-    /** Период планового обновления данных, часы (по умолчанию 24) */
+    /** Scheduled data refresh interval, hours (default 24) */
     refreshIntervalHours?: number;
-    /** Срок жизни файла уведомлений о закрытиях, часы (по умолчанию 24) */
+    /** Lifetime of the closure notifications file, hours (default 24) */
     notificationsTtlHours?: number;
-    /** Тайм-аут одного HTTP-запроса к источнику, миллисекунды (по умолчанию 30000) */
+    /** Timeout of a single HTTP request to a source, milliseconds (default 30000) */
     requestTimeoutMs?: number;
   };
 }
 
 /**
- * Оповещения в Telegram о смене состояния источников данных метро
- * (секция `telegram` в config/*.yaml; токен — секрет, хранить в local.yaml или ENV).
+ * Telegram notifications about metro data source state changes
+ * (`telegram` section in config/*.yaml; the token is a secret — keep it in local.yaml or ENV).
  */
 export interface ITelegramSectionConfig {
   telegram?: {
-    /** Включить оповещения (по умолчанию false) */
+    /** Enable notifications (default false) */
     enabled?: boolean;
-    /** Токен бота от @BotFather */
+    /** Bot token from @BotFather */
     botToken?: string;
-    /** Идентификатор чата (личный, группа или канал, куда добавлен бот) */
+    /** Chat identifier (private chat, group, or channel the bot was added to) */
     chatId?: string;
   };
 }
 
 /**
- * Ограничение частоты запросов к REST API метро (секция `restApi` в config/*.yaml).
- * Ограничение применяется к каждому маршруту REST по IP-адресу клиента. Все поля
- * необязательны — при отсутствии секции действуют значения по умолчанию
- * (60 запросов за 60 секунд), заданные в src/api/router.ts.
+ * Rate limiting for the metro REST API (`restApi` section in config/*.yaml).
+ * The limit is applied to each REST route per client IP address. All fields are
+ * optional — when the section is absent, the defaults (60 requests per 60 seconds)
+ * defined in src/api/router.ts apply.
  */
 export interface IRestApiSectionConfig {
   restApi?: {
     rateLimit?: {
-      /** Максимум запросов в окне (по умолчанию 60) */
+      /** Maximum requests per window (default 60) */
       maxRequests?: number;
-      /** Длина окна ограничения, секунды (по умолчанию 60) */
+      /** Rate-limit window length, seconds (default 60) */
       windowSec?: number;
     };
   };

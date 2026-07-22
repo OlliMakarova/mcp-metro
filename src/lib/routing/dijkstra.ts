@@ -1,10 +1,10 @@
-// Алгоритм Дейкстры: кратчайший по времени путь в графе метро.
-// Очередь с приоритетами — двоичная куча-минимум. На графе метро (≈450 вершин,
-// ≈1200 рёбер) поиск занимает доли миллисекунды.
+// Dijkstra's algorithm: fastest-time path in the metro graph.
+// The priority queue is a binary min-heap. On the metro graph (~450 nodes,
+// ~1200 edges) a search takes a fraction of a millisecond.
 
 import { IGraphEdge, IRouteGraph } from './graph.js';
 
-/** Простая двоичная куча-минимум */
+/** Simple binary min-heap */
 class MinHeap {
   private a: Array<{ id: number; dist: number }> = [];
 
@@ -55,24 +55,24 @@ class MinHeap {
 }
 
 export interface IDijkstraOpts {
-  /** Штраф в секундах за каждую пересадку (по умолчанию 0 — время перехода уже в графе) */
+  /** Penalty in seconds for each transfer (default 0 — transfer time is already in the graph) */
   transferPenalty?: number;
-  /** Станции, через которые идти нельзя (для алгоритма Йена) */
+  /** Stations that must not be passed through (for Yen's algorithm) */
   bannedNodes?: Set<number>;
-  /** Ключи рёбер "from-to-edgeId", которые использовать нельзя (для алгоритма Йена) */
+  /** Edge keys "from-to-edgeId" that must not be used (for Yen's algorithm) */
   bannedEdges?: Set<string>;
 }
 
 export interface IDijkstraResult {
-  /** Время пути в секундах (с учётом transferPenalty, если задан) */
+  /** Travel time in seconds (including transferPenalty, if set) */
   timeSec: number;
-  /** Рёбра пути по порядку */
+  /** Path edges in order */
   edges: IGraphEdge[];
 }
 
 export const edgeBanKey = (e: IGraphEdge): string => `${e.from}-${e.to}-${e.edgeId}`;
 
-/** Кратчайший по времени путь от fromId к toId, либо null, если пути нет */
+/** Fastest-time path from fromId to toId, or null if no path exists */
 export const dijkstra = (
   graph: IRouteGraph,
   fromId: number,
@@ -92,7 +92,7 @@ export const dijkstra = (
     const top = heap.pop()!;
     const { id, dist: d } = top;
     if (d > (dist.get(id) ?? Infinity)) {
-      continue; // устаревшая запись в куче
+      continue; // stale heap entry
     }
     if (id === toId) {
       break;
@@ -120,7 +120,7 @@ export const dijkstra = (
     return null;
   }
 
-  // Восстанавливаем путь по цепочке рёбер
+  // Reconstruct the path from the chain of edges
   const edges: IGraphEdge[] = [];
   let cur = toId;
   while (cur !== fromId) {

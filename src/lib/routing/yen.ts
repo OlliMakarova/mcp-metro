@@ -1,6 +1,6 @@
-// Алгоритм Йена: k кратчайших путей (варианты маршрутов).
-// Поверх Дейкстры поочерёдно запрещает рёбра уже найденных путей и ищет «ответвления»
-// (spur paths); из кандидатов выбирается самый быстрый — он становится следующим вариантом.
+// Yen's algorithm: k shortest paths (route variants).
+// On top of Dijkstra it bans, one by one, the edges of paths already found and searches
+// for spur paths; the fastest candidate becomes the next variant.
 
 import { IGraphEdge, IRouteGraph } from './graph.js';
 import { IDijkstraOpts, IDijkstraResult, dijkstra } from './dijkstra.js';
@@ -18,7 +18,7 @@ const sameEdgePrefix = (pathEdges: IGraphEdge[], rootEdges: IGraphEdge[], len: n
   return true;
 };
 
-/** До k различных маршрутов от fromId к toId в порядке возрастания времени */
+/** Up to k distinct routes from fromId to toId in ascending order of travel time */
 export const yenKShortestPaths = (
   graph: IRouteGraph,
   fromId: number,
@@ -42,7 +42,7 @@ export const yenKShortestPaths = (
       const rootEdges = prevPath.slice(0, i);
       const rootTime = rootEdges.reduce((s, e) => s + e.timeSec + (e.kind === 'transfer' ? transferPenalty : 0), 0);
 
-      // Запрещаем рёбра, которыми уже найденные пути продолжались из spurNode после того же префикса
+      // Ban the edges that already-found paths used to continue from spurNode after the same prefix
       const bannedEdges = new Set<string>(opts.bannedEdges ?? []);
       for (const p of paths) {
         const pe = p.edges;
@@ -51,7 +51,7 @@ export const yenKShortestPaths = (
           bannedEdges.add(`${e.from}-${e.to}-${e.edgeId}`);
         }
       }
-      // Запрещаем узлы корневого префикса (кроме spurNode), чтобы не было петель
+      // Ban the nodes of the root prefix (except spurNode) to avoid loops
       const bannedNodes = new Set<number>([fromId]);
       for (const e of rootEdges) {
         bannedNodes.add(e.from);

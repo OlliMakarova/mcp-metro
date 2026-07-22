@@ -1,22 +1,22 @@
 #!/usr/bin/env node
 
 /**
- * Общие тест-кейсы MCP-сервера метро (проверяются на транспортах STDIO, HTTP и SSE).
- * Покрывают промпты, ресурсы и инструмент mos_metro_info.
+ * Shared test cases for the metro MCP server (run over the STDIO, HTTP and SSE transports).
+ * They cover prompts, resources and the mos_metro_info tool.
  *
- * Каждый тест — это функция(client) -> Promise<{ name, passed, details? }>, где client
- * предоставляет методы: listPrompts(), getPrompt(name, args?), listResources(),
+ * Each test is a function(client) -> Promise<{ name, passed, details? }>, where client
+ * provides the methods: listPrompts(), getPrompt(name, args?), listResources(),
  * readResource(uri), listTools(), callTool(name, args?).
  *
- * Тесты рассчитаны на то, что при старте сервер загрузил данные метро из дисковой копии
- * (папка data-cache/). Станции «Пушкинская», «Университет», «Комсомольская», «Смоленская»
- * используются как устойчивые ориентиры реального набора данных.
+ * The tests assume that at startup the server loaded the metro data from the disk copy
+ * (the data-cache/ directory). The stations «Пушкинская», «Университет», «Комсомольская»
+ * and «Смоленская» are used as stable landmarks of the real dataset.
  */
 
 const ok = (name, details) => ({ name, passed: true, details });
 const fail = (name, details) => ({ name, passed: false, details });
 
-/** Извлечь текст системного сообщения из ответа prompts/get */
+/** Extract the system message text from a prompts/get response */
 const extractPromptText = (resp) => {
   const r = resp?.result || resp;
   const msg = r?.messages?.[0];
@@ -24,7 +24,7 @@ const extractPromptText = (resp) => {
   return typeof text === 'string' ? text : undefined;
 };
 
-/** Извлечь текст результата вызова инструмента (текстовый ответ или структурный JSON) */
+/** Extract the tool call result text (a plain text response or structured JSON) */
 const extractToolText = (resp) => {
   const r = resp?.result || resp;
   const text = r?.content?.[0]?.text;

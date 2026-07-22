@@ -1,8 +1,8 @@
-// Отрисовка ответов инструмента mos_metro_info в markdown (списки и таблицы).
+// Rendering of mos_metro_info tool responses as markdown (lists and tables).
 //
-// Все ответы, которые видит агент, оформляются человекочитаемым markdown: маршруты и
-// сведения о станции — таблицами и нумерованными списками, просьбы об уточнении — списком
-// вариантов. Структурные данные приходят из слоя библиотеки (src/lib) уже готовыми.
+// All responses the agent sees are formatted as human-readable markdown: routes and
+// station details as tables and numbered lists, clarification requests as an option
+// list. Structured data arrives ready-made from the library layer (src/lib).
 
 import { IStationWorkTimeDay, IWagonHint } from '../../lib/metro-data/types.js';
 import {
@@ -15,9 +15,9 @@ import {
 import { IResolveLineRef, IStationOption, TStationResolution } from '../../lib/station-search/resolve-station.js';
 import { IStationInfo, IStationLineRef } from '../../lib/station-info.js';
 
-// ─── Мелкие форматтеры ───────────────────────────────────────────────────────
+// ─── Small formatters ────────────────────────────────────────────────────────
 
-/** Секунды в человекочитаемую длительность: «25 мин», «1 ч 05 мин» */
+/** Seconds to a human-readable duration: «25 мин», «1 ч 05 мин» */
 export const fmtDuration = (totalSec: number): string => {
   const min = Math.round(totalSec / 60);
   if (min < 60) {
@@ -28,7 +28,7 @@ export const fmtDuration = (totalSec: number): string => {
   return m ? `${h} ч ${String(m).padStart(2, '0')} мин` : `${h} ч`;
 };
 
-/** Пометка типа линии для МЦД/МЦК */
+/** Line kind tag for MCD/MCC lines */
 const lineKindTag = (line: { isMcd?: boolean; isMcc?: boolean; kind?: string }): string => {
   const kind = 'kind' in line ? line.kind : undefined;
   if (line.isMcd || kind === 'mcd') {
@@ -49,7 +49,7 @@ const lineName = (line: ILineInfo | IStationLineRef | IResolveLineRef | undefine
   return `${nm}${lineKindTag(line)}`;
 };
 
-/** Человекочитаемые рекомендации по вагонам на пересадке */
+/** Human-readable car (wagon) recommendations for a transfer */
 const wagonAdvice = (wagons: IWagonHint[] | undefined): string | undefined => {
   if (!wagons?.length) {
     return undefined;
@@ -68,7 +68,7 @@ const wagonAdvice = (wagons: IWagonHint[] | undefined): string | undefined => {
   return kinds.size ? [...kinds].join(' или ') : undefined;
 };
 
-/** Расшифровка кодов услуг станции — официальные подписи сайта mosmetro.ru */
+/** Station service code labels — official captions from the mosmetro.ru website */
 const SERVICE_LABELS: Record<string, string> = {
   BANK: 'банкоматы',
   INFO: 'стойка «Живое общение»',
@@ -89,9 +89,9 @@ const SERVICE_LABELS: Record<string, string> = {
   TOILET: 'туалет',
   AEROEXPRESS: 'аэроэкспресс',
   GIFT_SHOP: 'сувенирный магазин',
-  // В словаре сайта отсутствует; расшифровка подтверждена новостями Дептранса (transport.mos.ru):
-  // окна обслуживания сервисных центров «Московский транспорт» — замена проездных, перенос
-  // билетов с неисправной «Тройки», консультации по тарифам
+  // Missing from the website's dictionary; the meaning is confirmed by Deptrans news
+  // (transport.mos.ru): service windows of the «Московский транспорт» service centers —
+  // travel card replacement, transferring tickets from a faulty «Тройка» card, fare advice
   WINDOW: 'сервисный центр «Московский транспорт» (окна обслуживания проездных)',
 };
 const serviceLabel = (code: string): string => SERVICE_LABELS[code] ?? code;
@@ -105,8 +105,8 @@ const NOTE_STATUS: Record<string, string> = {
 const WEEK_DAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 
 /**
- * Режим работы вестибюлей одной строкой: «05:30–01:00 (ежедневно)», а при разных часах
- * по дням — с группировкой подряд идущих одинаковых дней: «Пн–Пт 04:38–00:48, Сб–Вс 04:38–01:00».
+ * Vestibule working hours in one line: «05:30–01:00 (ежедневно)», and when hours differ
+ * by day — with grouping of consecutive identical days: «Пн–Пт 04:38–00:48, Сб–Вс 04:38–01:00».
  */
 const workTimeText = (workTime: IStationWorkTimeDay[] | undefined): string | undefined => {
   if (!workTime?.length) {
@@ -134,7 +134,7 @@ const workTimeText = (workTime: IStationWorkTimeDay[] | undefined): string | und
   return parts.join(', ');
 };
 
-// ─── Отрисовка маршрутов ─────────────────────────────────────────────────────
+// ─── Route rendering ─────────────────────────────────────────────────────────
 
 const renderRideLeg = (leg: Extract<TRouteLeg, { kind: 'ride' }>, index: number): string => {
   const path = leg.stations.map((s) => s.name.ru).join(' → ');
@@ -230,7 +230,7 @@ const renderVariant = (v: IRouteVariant, n: number): string => {
   return out.join('\n');
 };
 
-/** Полный markdown-ответ по найденным маршрутам */
+/** Full markdown response for the found routes */
 export const renderRoutes = (result: IFindRoutesResult, fromName: string, toName: string): string => {
   const sourceName = result.source === 'primary' ? 'основной' : 'резервный (сокращённый набор сведений)';
   const closures = result.closuresApplied
@@ -252,9 +252,9 @@ export const renderRoutes = (result: IFindRoutesResult, fromName: string, toName
   return [...head, body.join('\n\n')].join('\n');
 };
 
-// ─── Отрисовка сведений о станции ────────────────────────────────────────────
+// ─── Station details rendering ───────────────────────────────────────────────
 
-/** Полный markdown-ответ со сведениями о станции */
+/** Full markdown response with station details */
 export const renderStationInfo = (info: IStationInfo): string => {
   const sourceName = info.source === 'primary' ? 'основной' : 'резервный (сокращённый набор сведений)';
   const out: string[] = [];
@@ -343,7 +343,7 @@ export const renderStationInfo = (info: IStationInfo): string => {
   return out.join('\n');
 };
 
-// ─── Отрисовка просьбы об уточнении ──────────────────────────────────────────
+// ─── Clarification request rendering ─────────────────────────────────────────
 
 const optionLine = (opt: IStationOption, n: number): string => {
   const lines = opt.lines.map((l) => lineName(l)).join('; ') || 'линия неизвестна';
@@ -351,8 +351,8 @@ const optionLine = (opt: IStationOption, n: number): string => {
 };
 
 /**
- * Блок уточнения по одной станции: список вариантов (ambiguous) или просьба проверить
- * написание (not_found). `label` — роль станции, например «станцию отправления».
+ * Clarification block for a single station: an option list (ambiguous) or a request to check
+ * the spelling (not_found). `label` is the station role, e.g. «станцию отправления».
  */
 export const renderResolutionAsk = (label: string, query: string, resolution: TStationResolution): string => {
   if (resolution.kind === 'not_found') {

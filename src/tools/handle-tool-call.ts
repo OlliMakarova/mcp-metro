@@ -18,18 +18,18 @@ import { renderResolutionAsk, renderRoutes, renderStationInfo } from './metro/re
 
 const logger = lgr.getSubLogger({ name: chalk.bgGrey('tools') });
 
-/** Сколько вариантов маршрута запрашивать (постановка задачи: от 1 до 4) */
+/** How many route variants to request (per the task statement: from 1 to 4) */
 const ROUTE_COUNT = 4;
 
-/** Единый текст ошибки «данные метро недоступны» в markdown (без реальных имён источников) */
+/** Single "metro data unavailable" error text in markdown (without real source names) */
 const DATA_UNAVAILABLE_MD = `## Данные метро временно недоступны
 Не удалось получить данные о Московском метро: источники данных сейчас недоступны, а локальной копии на диске нет. Попробуйте повторить запрос позже.`;
 
 /**
- * Обработчик вызовов инструментов MCP-сервера метро.
+ * Tool call handler of the metro MCP server.
  *
- * Отладочный вывод запросов/ответов инструментов подключён централизованно в SDK
- * (см. init-mcp-server.ts) и включается переменной окружения DEBUG=mcp:tool.
+ * Debug output of tool requests/responses is wired centrally in the SDK
+ * (see init-mcp-server.ts) and is enabled via the DEBUG=mcp:tool environment variable.
  */
 export const handleToolCall = async (params: IToolHandlerParams): Promise<TToolHandlerResponse> => {
   const { name, arguments: args } = params;
@@ -43,8 +43,8 @@ export const handleToolCall = async (params: IToolHandlerParams): Promise<TToolH
   } catch (error: Error | any) {
     logger.error(`Tool execution failed for ${name}:`, error);
     error.printed = true;
-    // Реальные имена источников засекречены: вычищаем их из текста ошибки,
-    // прежде чем SDK отдаст её клиенту в MCP-ответе (в лог выше ушёл оригинал)
+    // Real data source names are confidential: scrub them from the error text
+    // before the SDK returns it to the client in the MCP response (the original went to the log above)
     if (typeof error?.message === 'string') {
       error.message = hideSourceNames(error.message);
     }
@@ -53,8 +53,8 @@ export const handleToolCall = async (params: IToolHandlerParams): Promise<TToolH
 };
 
 /**
- * Универсальный инструмент: сведения о станции или кратчайшие маршруты между двумя станциями.
- * Все ответы возвращаются готовым markdown-текстом (списки и таблицы).
+ * Universal tool: station details or shortest routes between two stations.
+ * All responses are returned as ready-made markdown text (lists and tables).
  */
 const handleMosMetroInfo = async (args: any): Promise<TToolHandlerResponse> => {
   const first = String(args?.first_metro_station ?? '').trim();
@@ -73,7 +73,7 @@ const handleMosMetroInfo = async (args: any): Promise<TToolHandlerResponse> => {
     return asTextError(DATA_UNAVAILABLE_MD);
   }
 
-  // ── Сведения о станции ──────────────────────────────────────────────────────
+  // ── Station details ─────────────────────────────────────────────────────────
   if (action === 'get_station_info') {
     const resolution = resolveStation(dataset, first);
     if (resolution.kind !== 'resolved') {
@@ -83,7 +83,7 @@ const handleMosMetroInfo = async (args: any): Promise<TToolHandlerResponse> => {
     return asTextContent(renderStationInfo(info));
   }
 
-  // ── Поиск маршрута ──────────────────────────────────────────────────────────
+  // ── Route search ────────────────────────────────────────────────────────────
   if (!second) {
     return asTextError('Для построения маршрута укажите станцию прибытия second_metro_station.');
   }
@@ -93,7 +93,7 @@ const handleMosMetroInfo = async (args: any): Promise<TToolHandlerResponse> => {
   const need1 = r1.kind !== 'resolved';
   const need2 = r2.kind !== 'resolved';
 
-  // Если хотя бы одна станция требует уточнения — просим уточнить сразу все такие станции
+  // If at least one station needs clarification — ask to clarify all such stations at once
   if (need1 || need2) {
     const blocks: string[] = [];
     if (need1) {
@@ -105,7 +105,7 @@ const handleMosMetroInfo = async (args: any): Promise<TToolHandlerResponse> => {
     return asTextContent(`# Нужно уточнить станции\n\n${blocks.join('\n\n')}`);
   }
 
-  // Обе станции определены
+  // Both stations resolved
   const fromOpt = (r1 as Extract<typeof r1, { kind: 'resolved' }>).option;
   const toOpt = (r2 as Extract<typeof r2, { kind: 'resolved' }>).option;
 

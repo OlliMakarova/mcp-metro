@@ -1,14 +1,15 @@
-// Скачивание и нормализация данных основного источника — mosmetro.ru.
+// Download and normalization of the primary data source — mosmetro.ru.
 //
-// Открытое, но недокументированное API приложения «Метро Москвы» (авторизация не нужна,
-// нужен лишь правдоподобный User-Agent):
-//   GET /api/schema/v1.0      — станции, линии, перегоны, переходы (названия на ru/en/ar/cn)
-//   GET /api/notifications/v2 — закрытия станций/перегонов/переходов, ремонты, обходные рёбра
+// An open but undocumented API of the "Moscow Metro" app (no authorization required,
+// only a plausible User-Agent):
+//   GET /api/schema/v1.0      — stations, lines, ride segments, transitions (names in ru/en/ar/cn)
+//   GET /api/notifications/v2 — station/segment/transition closures, repairs, detour edges
 //
-// Важно: поле pathLength у перегонов и переходов — ВРЕМЯ В СЕКУНДАХ, а не расстояние
-// (проверено сверкой расчёта с сайтом, см. data/mosmetro-ru/README.md).
-// Поскольку API недокументировано, каждый ответ проверяется на правдоподобие структуры —
-// невалидный ответ приравнивается к недоступности источника.
+// Important: the pathLength field of ride segments and transitions is TIME IN SECONDS,
+// not distance (verified by cross-checking calculations against the site, see
+// data/mosmetro-ru/README.md).
+// Since the API is undocumented, every response is checked for structural plausibility —
+// an invalid response is treated the same as source unavailability.
 
 import {
   ILocalizedName,
@@ -24,7 +25,7 @@ import {
   TNotificationStatus,
 } from './types.js';
 
-// ─── Минимальные типы сырых ответов API (только используемые поля) ──────────
+// ─── Minimal types of raw API responses (only the fields in use) ────────────
 
 interface IRawName {
   ru?: string | null;
@@ -122,7 +123,7 @@ export interface IMosmetroRawNotifications {
   data: IRawNotification[];
 }
 
-// ─── Скачивание ──────────────────────────────────────────────────────────────
+// ─── Download ────────────────────────────────────────────────────────────────
 
 export interface IFetchOpts {
   url: string;
@@ -134,23 +135,23 @@ const fetchJson = async ({ url, timeoutMs, fetchImpl }: IFetchOpts): Promise<unk
   const doFetch = fetchImpl ?? fetch;
   const res = await doFetch(url, {
     headers: {
-      // Без правдоподобного User-Agent сервер может отклонять запросы
+      // Without a plausible User-Agent the server may reject requests
       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
       Accept: 'application/json',
     },
     signal: AbortSignal.timeout(timeoutMs),
   });
   if (!res.ok) {
-    throw new Error(`HTTP ${res.status} ${res.statusText} при запросе ${url}`);
+    throw new Error(`HTTP ${res.status} ${res.statusText} while requesting ${url}`);
   }
   const json = (await res.json()) as { success?: boolean };
   if (json && typeof json === 'object' && json.success === false) {
-    throw new Error(`Сервер вернул success=false при запросе ${url}`);
+    throw new Error(`Server returned success=false while requesting ${url}`);
   }
   return json;
 };
 
-/** Проверка правдоподобия схемы: API недокументировано, структура может измениться без предупреждения */
+/** Schema plausibility check: the API is undocumented, its structure may change without notice */
 export const validateMosmetroSchema = (raw: unknown): IMosmetroRawSchema => {
   const root = raw as Partial<IMosmetroRawSchema> | null;
   const data = root?.data;
@@ -165,13 +166,15 @@ export const validateMosmetroSchema = (raw: unknown): IMosmetroRawSchema => {
     !Array.isArray(data.transitions) ||
     data.transitions.length < 100
   ) {
-    throw new Error('Ответ /api/schema/v1.0 не похож на схему метро — структура изменилась или ответ неполный');
+    throw new Error(
+      'Response of /api/schema/v1.0 does not look like a metro schema — structure changed or response incomplete',
+    );
   }
   const broken = data.stations.find(
     (s) => !s || typeof s.id !== 'number' || !s.name?.ru || typeof s.lineId !== 'number',
   );
   if (broken) {
-    throw new Error(`Станция без id/названия/линии в ответе схемы: ${JSON.stringify(broken).slice(0, 200)}`);
+    throw new Error(`Station without id/name/line in the schema response: ${JSON.stringify(broken).slice(0, 200)}`);
   }
   return root as IMosmetroRawSchema;
 };
@@ -179,7 +182,7 @@ export const validateMosmetroSchema = (raw: unknown): IMosmetroRawSchema => {
 export const validateMosmetroNotifications = (raw: unknown): IMosmetroRawNotifications => {
   const root = raw as Partial<IMosmetroRawNotifications> | null;
   if (!root?.data || !Array.isArray(root.data)) {
-    throw new Error('Ответ /api/notifications/v2 не похож на список уведомлений');
+    throw new Error('Response of /api/notifications/v2 does not look like a notifications list');
   }
   return root as IMosmetroRawNotifications;
 };
@@ -190,7 +193,7 @@ export const fetchMosmetroSchema = async (opts: IFetchOpts): Promise<IMosmetroRa
 export const fetchMosmetroNotifications = async (opts: IFetchOpts): Promise<IMosmetroRawNotifications> =>
   validateMosmetroNotifications(await fetchJson(opts));
 
-// ─── Нормализация в единый формат ────────────────────────────────────────────
+// ─── Normalization into the unified format ───────────────────────────────────
 
 const toLocalizedName = (raw: IRawName | null | undefined): ILocalizedName => ({
   ru: raw?.ru ?? '',
@@ -234,7 +237,7 @@ const normalizeStation = (s: IRawStation): IMetroStation => {
   };
 };
 
-/** Тип линии: по флагам станций линии, с запасным определением по названию */
+/** Line kind: from the flags of the line's stations, with a fallback by line name */
 const deriveLineKind = (line: IRawLine, stationsOfLine: IRawStation[]): TLineKind => {
   if (stationsOfLine.some((s) => s.mcd === true)) {
     return 'mcd';
@@ -258,7 +261,7 @@ const connectionToEdge = (c: IRawConnection, lineIdByStation: Map<number, number
   fromId: c.stationFromId,
   toId: c.stationToId,
   timeSec: c.pathLength,
-  // closedBackward — API умеет закрывать движение только в одну сторону; тогда ребро одностороннее
+  // closedBackward — the API can close traffic in one direction only; then the edge is one-way
   bi: !!c.bi && !c.closedBackward,
   ...(lineIdByStation.has(c.stationFromId) ? { lineId: lineIdByStation.get(c.stationFromId)! } : {}),
   ...(c.alternative ? { isAlternative: true } : {}),
@@ -313,8 +316,8 @@ export interface INormalizeMosmetroOpts {
 }
 
 /**
- * Собирает единый IMetroDataset из сырых ответов mosmetro.
- * Уведомления необязательны: без них маршруты строятся, но закрытия не учитываются.
+ * Builds a unified IMetroDataset from raw mosmetro responses.
+ * Notifications are optional: without them routes are still built, but closures are ignored.
  */
 export const normalizeMosmetro = (
   schemaRaw: IMosmetroRawSchema,

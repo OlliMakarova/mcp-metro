@@ -1,7 +1,7 @@
 /**
- * Уровень 1: краткое описание агента.
- * Используется маршрутизатором агентов при выборе подходящего агента из списка по запросу
- * пользователя. На этом уровне модель ещё не видит инструменты.
+ * Level 1: brief agent description.
+ * Used by the agent router when picking a suitable agent from the list for a user request.
+ * At this level the model does not yet see the tools.
  */
 
 export const AGENT_BRIEF = `Помощник по Московскому метрополитену (включая МЦК и МЦД): 

@@ -1,12 +1,12 @@
-// Неточный поиск станций метро по названию на четырёх языках
-// (русский, английский, арабский, китайский), устойчивый к опечаткам,
-// транслитерации, склейке слов и перестановке слов.
+// Fuzzy search of metro stations by name in four languages
+// (Russian, English, Arabic, Chinese), tolerant to typos,
+// transliteration, joined words and word reordering.
 //
-// Правила выдачи (из постановки задачи):
-//   - максимальная схожесть < порога        → 0 станций;
-//   - схожесть >= 1 (точное совпадение)     → только точные совпадения
-//     (одноимённые станции разных линий возвращаются все — их различает линия);
-//   - иначе                                  → от 2 до N станций по убыванию схожести.
+// Output rules (from the task statement):
+//   - maximum similarity < threshold         → 0 stations;
+//   - similarity >= 1 (exact match)          → only exact matches
+//     (same-named stations of different lines are all returned — the line tells them apart);
+//   - otherwise                              → 2 to N stations in descending similarity.
 
 import { IMetroDataset, IMetroLine, IMetroStation } from '../metro-data/types.js';
 import { detectLang, normalizeForSearch } from './normalize-lang.js';
@@ -17,26 +17,26 @@ import { enToRuVariants, transliterateRU } from './transliterate.js';
 export interface IStationMatch {
   station: IMetroStation;
   line?: IMetroLine;
-  /** Схожесть 0..1 (1 — точное совпадение с одним из вариантов написания) */
+  /** Similarity 0..1 (1 — exact match with one of the spelling variants) */
   score: number;
 }
 
 export interface IFuzzySearchOpts {
-  /** Максимум результатов N (по умолчанию 5) */
+  /** Maximum number of results N (default 5) */
   limit?: number;
-  /** Порог максимальной схожести, ниже которого возвращается пустой список (по умолчанию 0.5) */
+  /** Maximum-similarity threshold below which an empty list is returned (default 0.5) */
   threshold?: number;
 }
 
 export const DEFAULT_SEARCH_LIMIT = 5;
 export const DEFAULT_SEARCH_THRESHOLD = 0.5;
 
-/** Схожесть считается «точной», если не отличается от 1 больше чем на эпсилон */
+/** A similarity counts as "exact" if it differs from 1 by no more than epsilon */
 const EXACT_EPS = 1e-9;
 
 /**
- * Неточный поиск станций. Возвращает станции по убыванию схожести с запросом.
- * Одноимённые станции разных линий — отдельные записи (различаются полем line).
+ * Fuzzy station search. Returns stations in descending order of similarity to the query.
+ * Same-named stations of different lines are separate entries (distinguished by the line field).
  */
 export const fuzzySearchStations = (
   dataset: IMetroDataset,
@@ -51,9 +51,9 @@ export const fuzzySearchStations = (
     return [];
   }
 
-  // Варианты запроса: исходный + для латинского запроса обратные транслитерации
-  // в кириллицу («hovrino» → «ховрино» находит станцию как точное совпадение).
-  // enToRuVariants перебирает неоднозначности (h/kh → х, e/э, y → й/ы/и).
+  // Query variants: the original plus, for a Latin query, reverse transliterations
+  // into Cyrillic ("hovrino" → «ховрино» finds the station as an exact match).
+  // enToRuVariants enumerates the ambiguities (h/kh → х, e/э, y → й/ы/и).
   const queryVariants = new Set<string>([q]);
   if (detectLang(q) === 'en') {
     const ru = normalizeForSearch(transliterateRU(q));
@@ -75,7 +75,7 @@ export const fuzzySearchStations = (
     let best = 0;
     outer: for (const variant of entry.variants) {
       for (const qv of queryVariants) {
-        // Быстрый путь: точное совпадение нормализованных строк
+        // Fast path: exact match of normalized strings
         if (variant === qv) {
           best = 1;
           break outer;
@@ -99,20 +99,20 @@ export const fuzzySearchStations = (
 
   const maxScore = scored[0]?.score ?? 0;
 
-  // Правило 1: лучший результат хуже порога — станций не найдено
+  // Rule 1: the best result is below the threshold — no stations found
   if (maxScore < threshold) {
     return [];
   }
 
-  // Правило 2: точное совпадение — возвращаются только точные совпадения
-  // (обычно одна станция; одноимённые станции разных линий — все)
+  // Rule 2: exact match — only exact matches are returned
+  // (usually one station; same-named stations of different lines — all of them)
   if (maxScore >= 1 - EXACT_EPS) {
     return scored.filter((m) => m.score >= 1 - EXACT_EPS).slice(0, limit);
   }
 
-  // Правило 3: неточное совпадение — от 2 до N кандидатов по убыванию схожести.
-  // Возвращаем не меньше двух (даже если выше порога только один): при неточном
-  // совпадении пользователю нужны альтернативы для выбора.
+  // Rule 3: fuzzy match — 2 to N candidates in descending similarity.
+  // Return at least two (even if only one is above the threshold): with a fuzzy
+  // match the user needs alternatives to choose from.
   const aboveThreshold = scored.filter((m) => m.score >= threshold).length;
   const count = Math.min(scored.length, Math.max(2, Math.min(aboveThreshold, limit)));
   return scored.slice(0, count);

@@ -1,7 +1,7 @@
-// Секретность источников данных: реальные имена источников допустимы в логах и комментариях,
-// но никогда не должны попадать в выдачу — ответы MCP-инструментов, ресурсы и REST API.
-// Тесты закрепляют это требование: проверяют очистку текстов ошибок и отсутствие имён
-// в готовых markdown-ответах инструмента.
+// Data source secrecy: real source names are allowed in logs and comments, but must never
+// appear in the output — MCP tool responses, resources and the REST API.
+// The tests pin this requirement: they verify error text sanitization and the absence of
+// source names in ready-made markdown tool responses.
 
 import { describe, expect, it } from '@jest/globals';
 
@@ -24,7 +24,7 @@ describe('Публичное обозначение источника', () => {
     expect(hideSourceNames('Файл metrobook-graph.json повреждён')).not.toMatch(LEAK_RE);
     expect(hideSourceNames('Схема Mosmetro недоступна, откат на METROBOOK')).not.toMatch(LEAK_RE);
     expect(hideSourceNames('Данные (mosmetro.ru, metrobook.ru) не отвечают')).not.toMatch(LEAK_RE);
-    // Обычный текст остаётся нетронутым
+    // Regular text stays untouched
     expect(hideSourceNames('Маршрут не найден')).toBe('Маршрут не найден');
   });
 });

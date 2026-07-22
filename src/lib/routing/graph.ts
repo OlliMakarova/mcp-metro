@@ -1,9 +1,9 @@
-// Построение графа маршрутизации из единого набора данных IMetroDataset
-// с применением активных на заданный момент закрытий и ремонтов.
+// Builds the routing graph from the unified IMetroDataset,
+// applying the closures and repairs active at the given moment.
 //
-// Вершины — станции (пересадочный узел = несколько станций, по одной на линию),
-// рёбра — перегоны (kind='ride') и пешие переходы (kind='transfer'), вес — секунды.
-// «Штраф за пересадку» уже зашит в граф в виде времени перехода.
+// Nodes are stations (an interchange hub = several stations, one per line),
+// edges are line segments (kind='ride') and walking transfers (kind='transfer'), weight — seconds.
+// The "transfer penalty" is already baked into the graph as the transfer time.
 
 import { IMetroDataset, IMetroEdge, IMetroLine, IMetroStation, TNotificationStatus } from '../metro-data/types.js';
 
@@ -19,7 +19,7 @@ export interface IGraphEdge {
   isAlternative?: boolean;
 }
 
-/** Предупреждение по станции из уведомлений (ремонт эскалатора, закрытие выхода и т. п.) */
+/** Station warning from notifications (escalator repair, exit closure, etc.) */
 export interface IStationWarning {
   status: TNotificationStatus;
   title?: string;
@@ -29,25 +29,25 @@ export interface IStationWarning {
 export interface IRouteGraph {
   stations: Map<number, IMetroStation>;
   lines: Map<number, IMetroLine>;
-  /** Список смежности: stationId -> исходящие рёбра */
+  /** Adjacency list: stationId -> outgoing edges */
   adj: Map<number, IGraphEdge[]>;
-  /** Закрытые станции: stationId -> причина */
+  /** Closed stations: stationId -> reason */
   closedStations: Map<number, string>;
-  /** Предупреждения по станциям (статусы EMERGENCY/INFO — на проезд не влияют) */
+  /** Station warnings (EMERGENCY/INFO statuses — do not affect travel) */
   warnings: Map<number, IStationWarning[]>;
-  /** Момент, на который применены уведомления */
+  /** Point in time at which the notifications are applied */
   at: Date;
 }
 
 /**
- * Строит граф на момент `at` (по умолчанию — сейчас).
- * Порядок применения уведомлений:
- *   1) отобрать активные (startDate <= at <= endDate);
- *   2) удалить рёбра со статусом CLOSED;
- *   3) добавить альтернативные (обходные) рёбра;
- *   4) станции CLOSED исключить как точки входа/выхода/пересадки;
- *   5) статусы EMERGENCY/INFO сохранить как предупреждения.
- * Важно: EMERGENCY — это лишь предупреждающий значок, НЕ закрытие.
+ * Builds the graph at the moment `at` (default — now).
+ * Notification application order:
+ *   1) select the active ones (startDate <= at <= endDate);
+ *   2) remove edges with CLOSED status;
+ *   3) add alternative (detour) edges;
+ *   4) exclude CLOSED stations as entry/exit/transfer points;
+ *   5) keep EMERGENCY/INFO statuses as warnings.
+ * Important: EMERGENCY is only a warning badge, NOT a closure.
  */
 export const buildRouteGraph = (dataset: IMetroDataset, at: Date = new Date()): IRouteGraph => {
   const stations = new Map(dataset.stations.map((s) => [s.id, s]));
@@ -62,11 +62,11 @@ export const buildRouteGraph = (dataset: IMetroDataset, at: Date = new Date()): 
     const start = new Date(n.startDate);
     const end = new Date(n.endDate);
     if (!(start <= at && at <= end)) {
-      continue; // уведомление не активно на момент at
+      continue; // notification is not active at the moment `at`
     }
     for (const s of n.stations) {
       if (!stations.has(s.stationId)) {
-        continue; // уведомление ссылается на станцию, которой нет в схеме
+        continue; // notification references a station missing from the schema
       }
       if (s.status === 'CLOSED') {
         closedStations.set(s.stationId, s.description ?? n.title ?? 'Станция закрыта');
@@ -93,7 +93,7 @@ export const buildRouteGraph = (dataset: IMetroDataset, at: Date = new Date()): 
 
   const addDirected = (e: IMetroEdge, from: number, to: number): void => {
     if (!stations.has(from) || !stations.has(to)) {
-      return; // защита от битых ссылок в данных
+      return; // guard against broken references in the data
     }
     adj.get(from)!.push({
       from,
@@ -118,9 +118,9 @@ export const buildRouteGraph = (dataset: IMetroDataset, at: Date = new Date()): 
     }
   }
 
-  // Закрытая станция: нельзя начинать/заканчивать маршрут и делать пересадку через неё.
-  // Проезд «сквозь» оставляем возможным, только если перегоны не закрыты явно
-  // (в реальных уведомлениях закрытие станции сопровождается закрытием её перегонов).
+  // Closed station: cannot start/end a route there or transfer through it.
+  // Riding "through" remains possible only if its segments are not explicitly closed
+  // (in real notifications a station closure comes with the closure of its segments).
   for (const id of closedStations.keys()) {
     if (!adj.has(id)) {
       continue;
@@ -141,14 +141,15 @@ export const buildRouteGraph = (dataset: IMetroDataset, at: Date = new Date()): 
   return { stations, lines, adj, closedStations, warnings, at };
 };
 
-// ─── Мемоизация графа по набору данных и дню ────────────────────────────────
+// ─── Graph memoization by dataset and day ───────────────────────────────────
 
 const graphCache = new WeakMap<IMetroDataset, Map<string, IRouteGraph>>();
 
 /**
- * Граф для набора данных на момент `at` с кешированием. Ключ кеша — календарные сутки:
- * уведомления имеют суточную гранулярность обновления, перестраивать граф на каждый запрос
- * не нужно. Смена dataset автоматически сбрасывает кеш (WeakMap по идентичности объекта).
+ * Graph for a dataset at the moment `at`, with caching. The cache key is the calendar day:
+ * notifications update with daily granularity, so there is no need to rebuild the graph
+ * for every request. Swapping the dataset resets the cache automatically (WeakMap keyed
+ * by object identity).
  */
 export const getRouteGraph = (dataset: IMetroDataset, at: Date = new Date()): IRouteGraph => {
   let byDay = graphCache.get(dataset);
@@ -161,7 +162,7 @@ export const getRouteGraph = (dataset: IMetroDataset, at: Date = new Date()): IR
   if (!graph) {
     graph = buildRouteGraph(dataset, at);
     byDay.set(dayKey, graph);
-    // Ограничиваем размер: держим не более 4 «дней» на набор данных
+    // Bound the size: keep at most 4 "days" per dataset
     if (byDay.size > 4) {
       const oldest = byDay.keys().next().value;
       if (oldest !== undefined) {

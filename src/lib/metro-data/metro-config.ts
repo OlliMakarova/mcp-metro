@@ -1,19 +1,19 @@
-// Настройки слоя данных метро.
+// Metro data layer settings.
 //
-// Папка дискового кеша и адреса источников зашиты в код (константы ниже) — они не
-// настраиваются через конфигурацию. Из секции `metro` в config/*.yaml читаются только
-// период обновления, срок жизни уведомлений и тайм-аут HTTP-запроса.
-// Это единственное место, где слой данных метро обращается к appConfig, — остальные
-// модули принимают уже разрешённые настройки параметрами (это упрощает тестирование).
+// The disk-cache folder and source URLs are hard-coded (constants below) — they are not
+// configurable. From the `metro` section of config/*.yaml only the refresh interval, the
+// notifications time-to-live and the HTTP request timeout are read.
+// This is the only place where the metro data layer touches appConfig — the other modules
+// receive already-resolved settings as parameters (which simplifies testing).
 
 import * as path from 'node:path';
 import { appConfig } from 'fa-mcp-sdk';
 import { CustomAppConfig } from '../../_types_/custom-config.js';
 
-/** Папка дискового кеша скачанных данных (в корне проекта, вне контроля версий) */
+/** Disk-cache folder for downloaded data (in the project root, not under version control) */
 export const METRO_DATA_DIR = 'data-cache';
 
-/** Адреса источников данных */
+/** Data source URLs */
 export const METRO_URLS = {
   mosmetroSchema: 'https://prodapp.mosmetro.ru/api/schema/v1.0',
   mosmetroNotifications: 'https://prodapp.mosmetro.ru/api/notifications/v2',
@@ -25,13 +25,13 @@ const DEFAULT_NOTIFICATIONS_TTL_HOURS = 24;
 const DEFAULT_REQUEST_TIMEOUT_MS = 30_000;
 
 export interface IMetroConfigResolved {
-  /** Абсолютный путь к папке дискового кеша */
+  /** Absolute path to the disk-cache folder */
   dataDir: string;
-  /** Период планового обновления данных, миллисекунды */
+  /** Scheduled data refresh interval, milliseconds */
   refreshIntervalMs: number;
-  /** Срок жизни файла уведомлений о закрытиях, миллисекунды */
+  /** Time-to-live of the closure notifications file, milliseconds */
   notificationsTtlMs: number;
-  /** Тайм-аут одного HTTP-запроса к источнику, миллисекунды */
+  /** Timeout of a single HTTP request to a source, milliseconds */
   requestTimeoutMs: number;
   urls: {
     mosmetroSchema: string;

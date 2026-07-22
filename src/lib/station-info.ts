@@ -1,10 +1,10 @@
-// Сборка исчерпывающих сведений о физической станции (пересадочном узле) из набора данных.
+// Assembly of exhaustive information about a physical station (interchange hub) from the dataset.
 //
-// Станция задаётся идентификаторами её платформ (вершин графа) — обычно это одна вершина,
-// а для пересадочного узла несколько (по одной на линию). Результат — единый структурный
-// объект, пригодный и для ответа REST в формате JSON, и для отрисовки в markdown для агента.
-// Богатство сведений зависит от источника данных: при работе от резервного metrobook.ru
-// необязательные поля (выходы, услуги, расписание) просто отсутствуют.
+// A station is specified by the ids of its platforms (graph nodes) — usually one node,
+// or several for an interchange hub (one per line). The result is a single structured
+// object suitable both for a JSON REST response and for markdown rendering for the agent.
+// The richness of the details depends on the data source: with the metrobook.ru fallback
+// the optional fields (exits, services, schedule) are simply absent.
 
 import {
   IMetroDataset,
@@ -25,49 +25,49 @@ export interface IStationLineRef {
   name?: string;
   color?: string;
   kind: TLineKind;
-  /** Линия относится к Московским центральным диаметрам */
+  /** Line belongs to the Moscow Central Diameters */
   isMcd: boolean;
-  /** Линия относится к Московскому центральному кольцу */
+  /** Line belongs to the Moscow Central Circle */
   isMcc: boolean;
 }
 
-/** Первый и последний поезд по одному направлению (интервалов движения в данных нет) */
+/** First and last train per direction (the data contains no service intervals) */
 export interface IStationScheduleDir {
   toName?: string;
   /**
-   * В какие дни действует время: «чётные»/«нечётные» (числа месяца — поезда ходят по двум
-   * чередующимся графикам), при необходимости с уточнением «будни»/«выходные».
-   * Отсутствует, если время по направлению одинаково во все дни.
+   * Which days the times apply to: "чётные"/"нечётные" (even/odd dates of the month — trains
+   * run on two alternating timetables), optionally refined with "будни"/"выходные"
+   * (weekdays/weekends). Absent when the direction's times are the same on all days.
    */
   days?: string;
   first?: string;
   last?: string;
 }
 
-/** Наземный транспорт у выходов станции */
+/** Ground transport near the station exits */
 export interface IStationGroundTransport {
   bus: string[];
   trolleybus: string[];
   tram: string[];
 }
 
-/** Одна платформа станции (одна линия пересадочного узла) */
+/** One platform of the station (one line of the interchange hub) */
 export interface IStationPlatform {
   stationId: number;
   line?: IStationLineRef;
-  /** Время в секундах от входа с улицы до платформы */
+  /** Time in seconds from the street entrance to the platform */
   enterTimeSec?: number;
-  /** Время в секундах от платформы до выхода в город */
+  /** Time in seconds from the platform to the city exit */
   exitTimeSec?: number;
   services?: string[];
   exits?: IStationExit[];
   groundTransport?: IStationGroundTransport;
   schedule?: IStationScheduleDir[];
-  /** Часы работы вестибюлей по дням недели: 7 записей, понедельник — воскресенье */
+  /** Vestibule opening hours by day of week: 7 entries, Monday — Sunday */
   workTime?: IStationWorkTimeDay[];
 }
 
-/** Предупреждение по станции из уведомлений (ремонт эскалатора, закрытие выхода, лифта и т. п.) */
+/** Station warning from notifications (escalator repair, exit/elevator closure, etc.) */
 export interface IStationWarningInfo {
   status: TNotificationStatus;
   title?: string;
@@ -76,21 +76,21 @@ export interface IStationWarningInfo {
 
 export interface IStationInfo {
   name: ILocalizedName;
-  /** Идентификатор пересадочного узла */
+  /** Interchange hub identifier */
   clusterId: number;
   location?: IGeoPoint;
-  /** Линии, к которым относятся платформы станции */
+  /** Lines the station's platforms belong to */
   lines: IStationLineRef[];
   platforms: IStationPlatform[];
-  /** Другие линии узла, доступные пересадкой от указанных платформ */
+  /** Other lines of the hub, reachable by transfer from the given platforms */
   interchanges: IStationLineRef[];
-  /** Действующие сейчас предупреждения (ремонты, закрытия выходов/лифтов/эскалаторов) */
+  /** Currently active warnings (repairs, closures of exits/elevators/escalators) */
   warnings: IStationWarningInfo[];
-  /** Источник данных (нейтральное обозначение): primary — полный, backup — резервный сокращённый */
+  /** Data source (neutral designation): primary — full, backup — reduced fallback */
   source: TPublicDataSource;
-  /** Когда скачана схема (ISO UTC) */
+  /** When the schema was downloaded (ISO UTC) */
   schemaFetchedAt: string;
-  /** Учтены ли действующие закрытия и ремонты (true только при свежих уведомлениях mosmetro) */
+  /** Whether active closures and repairs are applied (true only with fresh mosmetro notifications) */
   closuresApplied: boolean;
 }
 
@@ -129,10 +129,11 @@ const DAY_TYPE_LABEL: Record<string, string> = { EVEN: 'чётные', ODD: 'н�
 const comboKey = (e: ITrainScheduleEntry): string => `${e.dayType ?? ''}|${e.weekend ?? ''}`;
 
 /**
- * Пометка «в какие дни действует время» для группы записей одного направления с одинаковыми
- * временами. Покрытые комбинации «чётность даты × будни/выходные» сводятся к краткому описанию:
- * «чётные», «будни», «нечётные, выходные» и т. п. Если группа покрывает все встречающиеся
- * по направлению комбинации (время едино во все дни) — пометка не нужна, возвращается undefined.
+ * "Which days the times apply to" label for a group of same-direction entries with identical
+ * times. The covered "date parity × weekday/weekend" combinations are reduced to a short
+ * description: "чётные" (even), "будни" (weekdays), "нечётные, выходные" (odd, weekends), etc.
+ * If the group covers all combinations seen for the direction (the times are the same on all
+ * days) — no label is needed and undefined is returned.
  */
 const scheduleDaysLabel = (group: ITrainScheduleEntry[], directionComboCount: number): string | undefined => {
   const combos = new Set(group.map(comboKey));
@@ -140,7 +141,7 @@ const scheduleDaysLabel = (group: ITrainScheduleEntry[], directionComboCount: nu
     return undefined;
   }
   const has = (dayType: string, weekend: boolean): boolean => combos.has(`${dayType}|${weekend}`);
-  // Обе чётности, но только будни или только выходные
+  // Both parities, but only weekdays or only weekends
   if (has('EVEN', false) && has('ODD', false) && !has('EVEN', true) && !has('ODD', true)) {
     return 'будни';
   }
@@ -167,10 +168,10 @@ const scheduleSummary = (
   if (!scheduleTrains) {
     return undefined;
   }
-  // По направлению до четырёх записей: комбинации «чётные/нечётные даты × будни/выходные».
-  // Времена в них нередко различаются (в текущих данных — у 228 станций из 443), поэтому
-  // записи с одинаковыми временами схлопываются в одну строку, а различающиеся получают
-  // пометку days, в какие дни это время действует.
+  // Up to four entries per direction: "even/odd dates × weekdays/weekends" combinations.
+  // Their times often differ (in current data — for 228 stations out of 443), so entries
+  // with identical times are collapsed into one row, and the differing ones get a `days`
+  // label saying which days that time applies to.
   const result: IStationScheduleDir[] = [];
   for (const entries of Object.values(scheduleTrains)) {
     const groups = new Map<string, ITrainScheduleEntry[]>();
@@ -221,8 +222,8 @@ const lineRef = (
 };
 
 /**
- * Собирает сведения о станции по идентификаторам её платформ (вершин графа) на момент `at`.
- * Неизвестные идентификаторы молча пропускаются; если ни один не найден — бросается ошибка.
+ * Assembles station details by its platform ids (graph nodes) at the moment `at`.
+ * Unknown ids are silently skipped; if none is found — an error is thrown.
  */
 export const buildStationInfo = (dataset: IMetroDataset, stationIds: number[], at: Date = new Date()): IStationInfo => {
   const graph = getRouteGraph(dataset, at);
@@ -255,7 +256,7 @@ export const buildStationInfo = (dataset: IMetroDataset, stationIds: number[], a
     };
   });
 
-  // Уникальные линии платформ станции
+  // Unique lines of the station's platforms
   const lineList: IStationLineRef[] = [];
   for (const p of platforms) {
     if (p.line && !lineList.some((l) => l.id === p.line!.id)) {
@@ -263,8 +264,8 @@ export const buildStationInfo = (dataset: IMetroDataset, stationIds: number[], a
     }
   }
 
-  // Пересадки: линии соседних платформ узла, достижимых переходом, но не входящих
-  // в число запрошенных платформ (это «другие линии этой станции»).
+  // Interchanges: lines of the hub's neighboring platforms reachable by transfer but not
+  // among the requested platforms (these are "the other lines of this station").
   const interchanges: IStationLineRef[] = [];
   for (const e of dataset.edges) {
     if (e.kind !== 'transfer') {
@@ -289,7 +290,7 @@ export const buildStationInfo = (dataset: IMetroDataset, stationIds: number[], a
     }
   }
 
-  // Действующие предупреждения по всем платформам узла
+  // Active warnings across all platforms of the hub
   const warnings: IStationWarningInfo[] = [];
   const seenWarn = new Set<string>();
   for (const id of ids) {

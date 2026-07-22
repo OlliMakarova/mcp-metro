@@ -1,6 +1,6 @@
-// Высокоуровневый поиск маршрутов: варианты (алгоритм Йена) с раскладкой на этапы
-// и всей доступной информацией о маршруте. Состав ответа зависит от богатства
-// источника данных: при работе от metrobook необязательные поля просто отсутствуют.
+// High-level route search: route variants (Yen's algorithm) split into legs
+// with all available route information. The response contents depend on how rich
+// the data source is: with metrobook data the optional fields are simply absent.
 
 import {
   ILocalizedName,
@@ -25,58 +25,58 @@ export interface ILineInfo {
   name?: ILocalizedName;
   color?: string;
   kind: TLineKind;
-  /** Линия относится к Московским центральным диаметрам */
+  /** Line belongs to the Moscow Central Diameters */
   isMcd: boolean;
-  /** Линия относится к Московскому центральному кольцу */
+  /** Line belongs to the Moscow Central Circle */
   isMcc: boolean;
 }
 
-/** Этап «поездка по линии»: последовательные перегоны одной линии */
+/** "Ride" leg: consecutive segments along a single line */
 export interface IRouteLegRide {
   kind: 'ride';
   line?: ILineInfo;
   timeSec: number;
-  /** Все станции этапа по порядку, включая начальную и конечную */
+  /** All stations of the leg in order, including the first and the last */
   stations: IRouteStationInfo[];
 }
 
-/** Этап «пересадка»: пеший переход между станциями узла */
+/** "Transfer" leg: walking transfer between stations of an interchange hub */
 export interface IRouteLegTransfer {
   kind: 'transfer';
   fromStation: IRouteStationInfo;
   toStation: IRouteStationInfo;
   timeSec: number;
-  /** Переход по улице */
+  /** Transfer goes via the street */
   isGround: boolean;
-  /** Рекомендации, в какой вагон садиться (только при данных mosmetro) */
+  /** Recommendations on which car to board (only with mosmetro data) */
   wagons?: IWagonHint[];
-  /** Ребро добавлено уведомлением как временный обход закрытого участка */
+  /** Edge added by a notification as a temporary detour around a closed segment */
   isAlternative?: boolean;
 }
 
 export type TRouteLeg = IRouteLegRide | IRouteLegTransfer;
 
-/** Маршруты наземного транспорта у станции (из описаний выходов в город) */
+/** Ground transport routes near a station (from descriptions of exits to the city) */
 export interface IGroundTransport {
   bus: string[];
   trolleybus: string[];
   tram: string[];
 }
 
-/** Сведения о конечной точке маршрута (станции отправления или назначения) */
+/** Details of a route endpoint (departure or destination station) */
 export interface IRouteEndpoint {
   station: IRouteStationInfo;
   line?: ILineInfo;
-  /** Время в секундах от входа с улицы до платформы (не входит в totalTimeSec) */
+  /** Time in seconds from the street entrance to the platform (not included in totalTimeSec) */
   enterTimeSec?: number;
-  /** Время в секундах от платформы до выхода в город (не входит в totalTimeSec) */
+  /** Time in seconds from the platform to the city exit (not included in totalTimeSec) */
   exitTimeSec?: number;
   groundTransport?: IGroundTransport;
   services?: string[];
   exits?: IStationExit[];
 }
 
-/** Предупреждение по станции вдоль маршрута (ремонт эскалатора, закрытые выходы и т. п.) */
+/** Warning for a station along the route (escalator repair, closed exits, etc.) */
 export interface IRouteWarning {
   stationId: number;
   stationName: string;
@@ -86,9 +86,9 @@ export interface IRouteWarning {
 }
 
 export interface IRouteVariant {
-  /** Общее время маршрута в секундах (сумма перегонов и переходов, без входа/выхода) */
+  /** Total route time in seconds (sum of rides and transfers, excluding entry/exit) */
   totalTimeSec: number;
-  /** Общее время, округлённое до минут (как показывает сайт mosmetro.ru) */
+  /** Total time rounded to minutes (as shown on the mosmetro.ru website) */
   totalTimeMin: number;
   rideTimeSec: number;
   transferTimeSec: number;
@@ -100,24 +100,24 @@ export interface IRouteVariant {
 }
 
 export interface IFindRoutesResult {
-  /** Источник данных (нейтральное обозначение): primary — полный, backup — резервный сокращённый */
+  /** Data source (neutral designation): primary — full, backup — reduced fallback */
   source: TPublicDataSource;
   schemaFetchedAt: string;
-  /** Учтены ли закрытия и ремонты (true только при свежих уведомлениях mosmetro) */
+  /** Whether closures and repairs are applied (true only with fresh mosmetro notifications) */
   closuresApplied: boolean;
   variants: IRouteVariant[];
 }
 
 export interface IFindRoutesOpts {
-  /** Сколько вариантов маршрута вернуть (по умолчанию 3) */
+  /** How many route variants to return (default 3) */
   k?: number;
-  /** Момент, на который применяются закрытия (по умолчанию — сейчас) */
+  /** Point in time at which closures are applied (default — now) */
   at?: Date;
-  /** Штраф в секундах за пересадку (по умолчанию 0 — время перехода уже в графе) */
+  /** Penalty in seconds per transfer (default 0 — transfer time is already in the graph) */
   transferPenalty?: number;
 }
 
-// ─── Вспомогательные сборщики ────────────────────────────────────────────────
+// ─── Helper builders ─────────────────────────────────────────────────────────
 
 const stationInfo = (graph: IRouteGraph, id: number): IRouteStationInfo => {
   const s = graph.stations.get(id);
@@ -237,11 +237,11 @@ const collectWarnings = (graph: IRouteGraph, edges: IGraphEdge[]): IRouteWarning
   return result;
 };
 
-// ─── Публичный интерфейс ─────────────────────────────────────────────────────
+// ─── Public interface ────────────────────────────────────────────────────────
 
 /**
- * Ищет до k вариантов маршрута между двумя станциями (id вершин графа).
- * Бросает ошибку, если станция неизвестна или закрыта на момент `at`.
+ * Finds up to k route variants between two stations (graph node ids).
+ * Throws if a station is unknown or is closed at the moment `at`.
  */
 export const findRoutes = (
   dataset: IMetroDataset,
@@ -303,10 +303,10 @@ export const findRoutes = (
 };
 
 /**
- * Поиск маршрутов между группами станций (одноимённые станции разных линий):
- * перебирает все пары «отправление × назначение», объединяет варианты и возвращает
- * k лучших по времени. Пары, где станция закрыта или пути нет, молча пропускаются;
- * если не нашлось ни одного варианта — бросается ошибка первой неудачной пары.
+ * Route search between groups of stations (same-named stations on different lines):
+ * iterates over all "departure × destination" pairs, merges the variants and returns
+ * the k fastest. Pairs where a station is closed or no path exists are silently skipped;
+ * if not a single variant is found — the error of the first failed pair is thrown.
  */
 export const findBestRoutes = (
   dataset: IMetroDataset,
@@ -338,7 +338,7 @@ export const findBestRoutes = (
     throw firstError ?? new Error('Не удалось построить маршрут: не заданы станции отправления/назначения');
   }
 
-  // Убираем дубликаты (одинаковая последовательность станций) и берём k лучших
+  // Drop duplicates (identical station sequences) and take the k fastest
   const seen = new Set<string>();
   const variants = allVariants
     .sort((a, b) => a.totalTimeSec - b.totalTimeSec)

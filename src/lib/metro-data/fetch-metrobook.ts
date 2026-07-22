@@ -1,16 +1,16 @@
-// Скачивание и нормализация данных резервного источника — metrobook.ru.
+// Download and normalization of the backup data source — metrobook.ru.
 //
-// Весь взвешенный граф метро зашит прямо в HTML главной страницы (один запрос GET /):
-//   mb.arrSD[sdid] = {sid, lid}          — «станция на линии» (вершина графа)
-//   mb.arrS[sid]   = {sdids: [...]}      — физическая станция = группа вершин
-//   mb.arrR[rid]   = {ttime, sdid1, sdid2, lid} — перегон, ttime в секундах
-//   mb.arrTT[a][b] = секунды             — пересадка; 999999 означает «переход запрещён»
-//   mb.arrL[lid]   = {type}              — линия: 0 метро, 1 МЦК, 2 МЦД
-// Названия станций — в вёрстке: <span mb_sd_id='NN' class='stName ...'>Название</span>.
+// The entire weighted metro graph is embedded right in the HTML of the main page (a single GET /):
+//   mb.arrSD[sdid] = {sid, lid}          — "station on a line" (graph vertex)
+//   mb.arrS[sid]   = {sdids: [...]}      — physical station = group of vertices
+//   mb.arrR[rid]   = {ttime, sdid1, sdid2, lid} — ride segment, ttime in seconds
+//   mb.arrTT[a][b] = seconds             — transfer; 999999 means "transfer forbidden"
+//   mb.arrL[lid]   = {type}              — line: 0 metro, 1 MCC, 2 MCD
+// Station names live in the markup: <span mb_sd_id='NN' class='stName ...'>Name</span>.
 //
-// Ограничения источника (см. data/metrobook-ru/README.md): названия только русские, у
-// пересадочного узла одна подпись, нет закрытий/вагонов/координат/времени входа-выхода,
-// точность времени — минута. Часть пробелов закрывает enrichMetrobookFromMosmetroSchema().
+// Source limitations (see data/metrobook-ru/README.md): Russian-only names, a transfer hub
+// has a single label, no closures/wagons/coordinates/enter-exit times, one-minute time
+// precision. Some of these gaps are covered by enrichMetrobookFromMosmetroSchema().
 
 import {
   ILocalizedName,
@@ -23,10 +23,10 @@ import {
 } from './types.js';
 import { IMosmetroRawSchema } from './fetch-mosmetro.js';
 
-/** Значение-соглашение «переход запрещён» в таблице пересадок metrobook */
+/** Convention value "transfer forbidden" in the metrobook transfer table */
 const FORBIDDEN_TRANSFER_SEC = 999_999;
 
-// ─── Скачивание и разбор HTML ────────────────────────────────────────────────
+// ─── Download and HTML parsing ───────────────────────────────────────────────
 
 export interface IMetrobookFetchOpts {
   url: string;
@@ -46,23 +46,23 @@ interface IMbRuntime {
 }
 
 /**
- * Извлекает граф из HTML главной страницы. Бросает понятную ошибку, если вёрстка изменилась.
- * Формат результата совместим с файлом metrobook-graph.json на диске.
+ * Extracts the graph from the main page HTML. Throws a clear error if the markup has changed.
+ * The result format is compatible with the metrobook-graph.json file on disk.
  */
 export const parseMetrobookHtml = (html: string, fetchedAt: string, sourceUrl: string): IMetrobookGraphFile => {
   const scripts = [...html.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/g)].map((m) => m[1] ?? '');
   const dataScript = scripts.find((s) => s.includes('mb.arrSD[') && s.includes('mb.arrR['));
   if (!dataScript) {
-    throw new Error('metrobook.ru: инлайн-скрипт с данными графа не найден — вёрстка сайта изменилась');
+    throw new Error('metrobook.ru: inline script with graph data not found — the site markup has changed');
   }
 
-  // Выполняем инлайн-скрипт в изолированном контексте: он только наполняет объект mb.
-  // Это тот же приём, что в проверенном скрипте исследования (data/metrobook-ru/fetch-data.js).
+  // Run the inline script in an isolated context: it only populates the mb object.
+  // This is the same technique as in the verified research script (data/metrobook-ru/fetch-data.js).
   const mb: IMbRuntime = { arrS: {}, arrSD: {}, arrR: {}, arrTT: [], arrDL: [], arrL: {} };
   // eslint-disable-next-line no-new-func
   new Function('mb', dataScript.replace(/var mb = new Object;[^;]*;/, '')).call(null, mb);
 
-  // Названия станций из вёрстки подписей схемы
+  // Station names from the schema label markup
   const names: Record<string, string> = {};
   for (const m of html.matchAll(/<span mb_sd_id='(\d+)' class='stName[^']*'>([^<]+)<\/span>/g)) {
     names[m[1]!] = (m[2] ?? '')
@@ -104,14 +104,14 @@ export const parseMetrobookHtml = (html: string, fetchedAt: string, sourceUrl: s
   return graph;
 };
 
-/** Проверка правдоподобия: вёрстка недокументирована и может измениться в любой момент */
+/** Plausibility check: the markup is undocumented and may change at any moment */
 export const validateMetrobookGraph = (g: IMetrobookGraphFile): void => {
   const instances = Object.keys(g.stationInstances).length;
   const edges = g.edges.length;
   const named = Object.values(g.stations).filter((s) => s.name).length;
   if (instances < 300 || edges < 300 || named < 250) {
     throw new Error(
-      `metrobook.ru: извлечённый граф неправдоподобен (вершин ${instances}, перегонов ${edges}, названных станций ${named}) — вёрстка сайта изменилась`,
+      `metrobook.ru: extracted graph is implausible (${instances} vertices, ${edges} ride segments, ${named} named stations) — the site markup has changed`,
     );
   }
 };
@@ -123,19 +123,19 @@ export const fetchMetrobookGraph = async (opts: IMetrobookFetchOpts): Promise<IM
     signal: AbortSignal.timeout(opts.timeoutMs),
   });
   if (!res.ok) {
-    throw new Error(`HTTP ${res.status} ${res.statusText} при запросе ${opts.url}`);
+    throw new Error(`HTTP ${res.status} ${res.statusText} while requesting ${opts.url}`);
   }
   const html = await res.text();
   return parseMetrobookHtml(html, (opts.now?.() ?? new Date()).toISOString(), opts.url);
 };
 
-// ─── Нормализация в единый формат ────────────────────────────────────────────
+// ─── Normalization into the unified format ───────────────────────────────────
 
 const LINE_KIND_BY_TYPE: Record<number, TLineKind> = { 0: 'metro', 1: 'mcc', 2: 'mcd' };
 
 /**
- * Собирает IMetroDataset из графа metrobook. Заполняется только обязательное ядро:
- * станции с русским названием, линии (без названий), перегоны и пересадки в секундах.
+ * Builds an IMetroDataset from the metrobook graph. Only the mandatory core is filled:
+ * stations with a Russian name, lines (without names), ride segments and transfers in seconds.
  */
 export const normalizeMetrobook = (g: IMetrobookGraphFile): IMetroDataset => {
   const stations: IMetroStation[] = Object.entries(g.stationInstances).map(([sdid, inst]) => {
@@ -153,7 +153,7 @@ export const normalizeMetrobook = (g: IMetrobookGraphFile): IMetroDataset => {
   }));
 
   const edges: IMetroEdge[] = [
-    // Перегоны в источнике неориентированные — считаем двусторонними
+    // Ride segments in the source are undirected — treat them as bidirectional
     ...g.edges.map((e) => ({
       kind: 'ride' as const,
       edgeId: `e${e.id}`,
@@ -163,9 +163,9 @@ export const normalizeMetrobook = (g: IMetrobookGraphFile): IMetroDataset => {
       bi: true,
       lineId: e.lineId,
     })),
-    // Пересадки перечислены в обе стороны отдельными записями — добавляем как односторонние.
-    // Значение 999999 — соглашение «переход запрещён», такие записи отбрасываются,
-    // иначе алгоритм Дейкстры мог бы выбрать «пересадку» длиной 11 дней.
+    // Transfers are listed in both directions as separate records — add them as one-way.
+    // The value 999999 is the "transfer forbidden" convention; such records are dropped,
+    // otherwise Dijkstra's algorithm could pick a "transfer" lasting 11 days.
     ...g.transfers
       .filter((t) => t.time < FORBIDDEN_TRANSFER_SEC)
       .map((t) => ({
@@ -187,17 +187,17 @@ export const normalizeMetrobook = (g: IMetrobookGraphFile): IMetroDataset => {
   };
 };
 
-// ─── Обогащение из последней сохранённой схемы mosmetro ─────────────────────
+// ─── Enrichment from the last saved mosmetro schema ─────────────────────────
 
 const normName = (s: string): string => s.toLowerCase().replace(/ё/g, 'е').replace(/\s+/g, ' ').trim();
 
 /**
- * Подтягивает в набор metrobook сведения из схемы mosmetro (пусть даже устаревшей):
- *  1) многоязычные названия станций (en/ar/cn) — по совпадению русского названия;
- *  2) «вторые» имена пересадочных узлов как searchAliases: у metrobook узел
- *     «Пушкинская — Тверская — Чеховская» подписан только «Пушкинская», и без псевдонимов
- *     поиск «Тверская» ничего бы не нашёл.
- * Возвращает новый dataset, исходный не изменяется.
+ * Pulls information from the mosmetro schema (even a stale one) into the metrobook dataset:
+ *  1) multilingual station names (en/ar/cn) — matched by the Russian name;
+ *  2) "secondary" names of transfer hubs as searchAliases: in metrobook the hub
+ *     "Pushkinskaya — Tverskaya — Chekhovskaya" is labeled only "Pushkinskaya", and without
+ *     aliases a search for "Tverskaya" would find nothing.
+ * Returns a new dataset; the original is not mutated.
  */
 export const enrichMetrobookFromMosmetroSchema = (
   dataset: IMetroDataset,
@@ -205,7 +205,7 @@ export const enrichMetrobookFromMosmetroSchema = (
 ): IMetroDataset => {
   const { data } = schemaRaw;
 
-  // Многоязычные названия по русскому имени
+  // Multilingual names keyed by the Russian name
   const namesByRu = new Map<string, ILocalizedName>();
   for (const s of data.stations) {
     const ru = s.name?.ru;
@@ -222,7 +222,7 @@ export const enrichMetrobookFromMosmetroSchema = (
     });
   }
 
-  // Пересадочные узлы mosmetro: объединение станций, связанных переходами (система непересекающихся множеств)
+  // Mosmetro transfer hubs: union of stations connected by transitions (disjoint-set union)
   const parent = new Map<number, number>();
   const find = (x: number): number => {
     let r = x;
@@ -246,7 +246,7 @@ export const enrichMetrobookFromMosmetroSchema = (
     union(t.stationFromId, t.stationToId);
   }
 
-  // Для каждого узла — множество названий его станций; индекс «название → все названия узла»
+  // For each hub — the set of names of its stations; index "name → all names of the hub"
   const nodeNames = new Map<number, Set<string>>();
   for (const s of data.stations) {
     const root = find(s.id);

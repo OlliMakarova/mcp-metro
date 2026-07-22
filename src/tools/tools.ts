@@ -3,10 +3,10 @@ import { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { IToolInputSchema } from 'fa-mcp-sdk';
 
 /**
- * Определения инструментов MCP-сервера метро.
+ * Tool definitions of the metro MCP server.
  *
- * Схемы соответствуют JSON Schema draft 2020-12 (`$schema`) и запрещают неизвестные поля
- * (`additionalProperties: false`) — требование стандарта §9.2.
+ * Schemas conform to JSON Schema draft 2020-12 (`$schema`) and forbid unknown fields
+ * (`additionalProperties: false`) — a requirement of the standard, §9.2.
  */
 
 const JSON_SCHEMA_2020_12 = 'https://json-schema.org/draft/2020-12/schema';
@@ -58,8 +58,8 @@ export const tools: Tool[] = [
   },
 ];
 
-/** Инструмент по имени */
+/** Tool by name */
 export const getToolByName = (name: string): Tool | undefined => tools.find((tool) => tool.name === name);
 
-/** Имена всех инструментов */
+/** Names of all tools */
 export const getToolNames = (): string[] => tools.map((tool) => tool.name);

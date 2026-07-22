@@ -1,14 +1,14 @@
-// REST API MCP-сервера метро.
+// REST API of the metro MCP server.
 //
-// Три конечные точки (маршрута) поверх того же слоя данных, что использует MCP-инструмент:
-//   GET /api/stations/search  — неточный поиск станции по названию;
-//   GET /api/stations/info     — исчерпывающие сведения о станции;
-//   GET /api/routes            — до 4 кратчайших маршрутов между станциями.
+// Three endpoints (routes) on top of the same data layer used by the MCP tool:
+//   GET /api/stations/search  — fuzzy station search by name;
+//   GET /api/stations/info     — exhaustive station details;
+//   GET /api/routes            — up to 4 shortest routes between stations.
 //
-// Каждый маршрут защищён ограничением частоты запросов (rate limiting) на основе
-// RateLimiterMemory из библиотеки rate-limiter-flexible — той же, что применяет SDK для
-// MCP-эндпоинта. Лимит считается по IP-адресу клиента; при превышении возвращается
-// HTTP 429 (Too Many Requests) с заголовком Retry-After.
+// Each route is protected by rate limiting based on RateLimiterMemory from the
+// rate-limiter-flexible library — the same one the SDK uses for the MCP endpoint.
+// The limit is counted per client IP address; when exceeded, HTTP 429
+// (Too Many Requests) is returned with a Retry-After header.
 
 import { Request, Response, Router } from 'express';
 import { RateLimiterMemory } from 'rate-limiter-flexible';
@@ -24,8 +24,8 @@ import { fuzzySearchStations } from '../lib/station-search/search-stations.js';
 import { getStationClusters } from '../lib/station-search/station-clusters.js';
 import { buildStationInfo } from '../lib/station-info.js';
 
-// Реальные имена источников засекречены: тексты внутренних ошибок перед отправкой
-// клиенту вычищаются от них (в лог выше уходит оригинал)
+// Real data source names are confidential: internal error texts are scrubbed of them
+// before being sent to the client (the original goes to the log above)
 const publicErrorText = (error: unknown): string =>
   error instanceof Error ? hideSourceNames(error.message) : 'Unknown error';
 
@@ -33,7 +33,7 @@ export const apiRouter: Router | null = Router();
 
 const authMW = createAuthMW();
 
-// ─── Ограничение частоты запросов ────────────────────────────────────────────
+// ─── Rate limiting ───────────────────────────────────────────────────────────
 
 const DEFAULT_MAX_REQUESTS = 60;
 const DEFAULT_WINDOW_SEC = 60;
@@ -44,10 +44,10 @@ const rateLimiter = new RateLimiterMemory({
   duration: restRateLimitCfg.windowSec ?? DEFAULT_WINDOW_SEC,
 });
 
-/** Ключ ограничения — IP-адрес клиента */
+/** Rate-limit key — the client's IP address */
 const clientKey = (req: Request): string => req.ip ?? req.socket.remoteAddress ?? 'unknown';
 
-/** Middleware ограничения частоты: списывает одну «единицу» на запрос */
+/** Rate-limiting middleware: consumes one point per request */
 const rateLimitMW = async (req: Request, res: Response, next: (err?: unknown) => void): Promise<void> => {
   try {
     await rateLimiter.consume(clientKey(req));
@@ -63,9 +63,9 @@ const rateLimitMW = async (req: Request, res: Response, next: (err?: unknown) =>
   }
 };
 
-// ─── Вспомогательное ─────────────────────────────────────────────────────────
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 
-/** Отдаёт активный набор данных или отвечает 503, если данных нет */
+/** Returns the active dataset or responds with 503 when no data is available */
 const requireDataset = (res: Response) => {
   const dataset = getMetroDatasetOrNull();
   if (!dataset) {
@@ -86,7 +86,7 @@ const parseIntParam = (value: unknown, fallback: number, min: number, max: numbe
   return Math.min(max, Math.max(min, Math.trunc(n)));
 };
 
-// ─── Маршрут 1: неточный поиск станции ───────────────────────────────────────
+// ─── Route 1: fuzzy station search ───────────────────────────────────────────
 
 apiRouter.get('/stations/search', rateLimitMW, authMW, (req: Request, res: Response) => {
   try {
@@ -118,7 +118,7 @@ apiRouter.get('/stations/search', rateLimitMW, authMW, (req: Request, res: Respo
   }
 });
 
-// ─── Маршрут 2: сведения о станции ───────────────────────────────────────────
+// ─── Route 2: station details ────────────────────────────────────────────────
 
 apiRouter.get('/stations/info', rateLimitMW, authMW, (req: Request, res: Response) => {
   try {
@@ -137,7 +137,7 @@ apiRouter.get('/stations/info', rateLimitMW, authMW, (req: Request, res: Respons
       return;
     }
     if (resolution.kind === 'ambiguous') {
-      // Неоднозначность: несколько станций — возвращаем список вариантов для уточнения (HTTP 300)
+      // Ambiguity: several stations matched — return the option list for clarification (HTTP 300)
       res
         .status(300)
         .json({ success: false, resolved: false, reason: 'ambiguous', query: q, options: resolution.options });
@@ -151,7 +151,7 @@ apiRouter.get('/stations/info', rateLimitMW, authMW, (req: Request, res: Respons
   }
 });
 
-// ─── Маршрут 3: поиск маршрутов ──────────────────────────────────────────────
+// ─── Route 3: route search ───────────────────────────────────────────────────
 
 apiRouter.get('/routes', rateLimitMW, authMW, (req: Request, res: Response) => {
   try {

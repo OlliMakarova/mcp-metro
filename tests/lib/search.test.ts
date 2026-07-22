@@ -1,6 +1,6 @@
-// Широкое качественное тестирование неточного поиска станций: опечатки, склейка и
-// перестановка слов, «ё»/«е», транслитерация, четыре языка (русский, английский,
-// арабский, китайский), правила выдачи «0 / 1 / от 2 до N результатов».
+// Broad qualitative testing of fuzzy station search: typos, glued and reordered words,
+// «ё»/«е», transliteration, four languages (Russian, English, Arabic, Chinese),
+// and the "0 / 1 / 2 to N results" output rules.
 
 import { describe, expect, test } from '@jest/globals';
 import { fuzzySearchStations } from '../../src/lib/station-search/search-stations.js';
@@ -11,7 +11,7 @@ import { getMetrobookDataset, getMosmetroDataset } from './helpers.js';
 
 const ds = getMosmetroDataset();
 
-/** Первое место выдачи должно занимать ожидаемое название */
+/** The expected name must take the first place in the results */
 const expectTop = (query: string, expectedRu: string): void => {
   const matches = fuzzySearchStations(ds, query);
   expect(matches.length).toBeGreaterThan(0);
@@ -34,7 +34,7 @@ describe('Правила выдачи', () => {
       expect(m.station.name.ru).toBe('Арбатская');
       expect(m.line).toBeDefined();
     }
-    // Станции относятся к разным линиям
+    // The stations belong to different lines
     const lineIds = new Set(matches.map((m) => m.station.lineId));
     expect(lineIds.size).toBe(matches.length);
   });
@@ -79,17 +79,17 @@ describe('Правила выдачи', () => {
 
 describe('Русский язык: опечатки и искажения', () => {
   test.each([
-    ['Ховринно', 'Ховрино'], // удвоенная буква
-    ['Хаврино', 'Ховрино'], // а вместо о
-    ['Комсомольскя', 'Комсомольская'], // пропущенная буква
-    ['Тёплый стант', 'Тёплый Стан'], // лишняя буква
-    ['Кузнецкий мсот', 'Кузнецкий мост'], // перестановка соседних букв
-    ['теплый стан', 'Тёплый Стан'], // е вместо ё, нижний регистр
-    ['Тропарево', 'Тропарёво'], // е вместо ё
-    ['улицадмитриевского', 'Улица Дмитриевского'], // склейка слов
-    ['стан теплый', 'Тёплый Стан'], // перестановка слов
-    ['мост кузнецкий', 'Кузнецкий мост'], // перестановка слов
-    ['площать революции', 'Площадь Революции'], // ть вместо дь
+    ['Ховринно', 'Ховрино'], // doubled letter
+    ['Хаврино', 'Ховрино'], // «а» instead of «о»
+    ['Комсомольскя', 'Комсомольская'], // missing letter
+    ['Тёплый стант', 'Тёплый Стан'], // extra letter
+    ['Кузнецкий мсот', 'Кузнецкий мост'], // adjacent letters swapped
+    ['теплый стан', 'Тёплый Стан'], // «е» instead of «ё», lower case
+    ['Тропарево', 'Тропарёво'], // «е» instead of «ё»
+    ['улицадмитриевского', 'Улица Дмитриевского'], // words glued together
+    ['стан теплый', 'Тёплый Стан'], // word order swapped
+    ['мост кузнецкий', 'Кузнецкий мост'], // word order swapped
+    ['площать революции', 'Площадь Революции'], // «ть» instead of «дь»
   ])('«%s» → %s', (query, expected) => {
     expectTop(query, expected);
   });
@@ -97,13 +97,13 @@ describe('Русский язык: опечатки и искажения', () =
 
 describe('Английский язык и транслитерация', () => {
   test.each([
-    ['Khovrino', 'Ховрино'], // официальное английское название
-    ['hovrino', 'Ховрино'], // бытовая транслитерация без k
-    ['Okhotny Ryad', 'Охотный Ряд'], // официальное английское название
-    ['Ohotny Ryad', 'Охотный Ряд'], // упрощённое написание
-    ['Teply Stan', 'Тёплый Стан'], // без апострофа и диакритики
-    ['Bulvar Rokosovskogo', 'Бульвар Рокоссовского'], // пропущена удвоенная s
-    ['kuzneckiy most', 'Кузнецкий мост'], // c вместо ts
+    ['Khovrino', 'Ховрино'], // official English name
+    ['hovrino', 'Ховрино'], // informal transliteration without «k»
+    ['Okhotny Ryad', 'Охотный Ряд'], // official English name
+    ['Ohotny Ryad', 'Охотный Ряд'], // simplified spelling
+    ['Teply Stan', 'Тёплый Стан'], // without apostrophe and diacritics
+    ['Bulvar Rokosovskogo', 'Бульвар Рокоссовского'], // doubled «s» omitted
+    ['kuzneckiy most', 'Кузнецкий мост'], // «c» instead of «ts»
   ])('«%s» → %s', (query, expected) => {
     expectTop(query, expected);
   });
@@ -111,26 +111,26 @@ describe('Английский язык и транслитерация', () => 
 
 describe('Арабский язык', () => {
   test('точное название находится', () => {
-    expectTop('خوفرينو', 'Ховрино'); // Ховрино
+    expectTop('خوفرينو', 'Ховрино'); // Khovrino
     const exact = fuzzySearchStations(ds, 'خوفرينو');
     expect(exact[0]!.score).toBe(1);
   });
 
   test('пропущенная буква прощается', () => {
-    expectTop('خوفرنو', 'Ховрино'); // выпала ي
+    expectTop('خوفرنو', 'Ховрино'); // the letter ي dropped
   });
 
   test('нормализация: варианты алефа и та-марбута унифицируются', () => {
     expect(normalizeArabic('أإآٱ')).toBe('اااا');
     expect(normalizeArabic('محطة')).toBe('محطه'); // ة → ه
-    // Огласовки удаляются: مَتْرُو → مترو
+    // Vowel diacritics (harakat) are removed: مَتْرُو → مترو
     expect(normalizeArabic('مَتْرُو')).toBe('مترو');
   });
 });
 
 describe('Китайский язык', () => {
   test('точное название находится', () => {
-    expectTop('霍夫林诺', 'Ховрино'); // Ховрино
+    expectTop('霍夫林诺', 'Ховрино'); // Khovrino
     const exact = fuzzySearchStations(ds, '霍夫林诺');
     expect(exact[0]!.score).toBe(1);
   });

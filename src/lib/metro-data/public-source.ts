@@ -1,25 +1,25 @@
-// Публичное обозначение источника данных.
+// Public designation of the data source.
 //
-// Реальные названия источников засекречены: они допустимы в логах, комментариях в коде и
-// документации проекта, но НИКОГДА не должны попадать в выдачу наружу — в ответы
-// MCP-инструментов, MCP-ресурсы и REST API, ни при успехе, ни в текстах ошибок.
-// Наружу источник обозначается нейтрально: 'primary' (основной, полный набор сведений)
-// или 'backup' (резервный, сокращённый набор).
+// The real source names are confidential: they are allowed in logs, code comments and
+// project documentation, but must NEVER appear in outward-facing output — MCP tool
+// responses, MCP resources or the REST API, neither on success nor in error texts.
+// Externally the source is designated neutrally: 'primary' (the main, full dataset)
+// or 'backup' (the fallback, reduced dataset).
 
 import { TMetroSource } from './types.js';
 
-/** Обозначение источника данных в публичных ответах (реальные имена закрыты) */
+/** Source designation in public responses (real names are hidden) */
 export type TPublicDataSource = 'primary' | 'backup';
 
 export const toPublicSource = (source: TMetroSource): TPublicDataSource =>
   source === 'mosmetro' ? 'primary' : 'backup';
 
-// Имя хоста источника целиком (включая поддомены вроде prodapp.* и зону .ru),
-// а также «голое» имя источника в произвольном тексте
+// The full source host name (including subdomains like prodapp.* and the .ru zone),
+// as well as the "bare" source name in arbitrary text
 const SOURCE_NAMES_RE = /(?:https?:\/\/)?(?:[a-z0-9-]+\.)*(?:mosmetro|metrobook)(?:\.[a-z]{2,})?/gi;
 
 /**
- * Страховка на границе выдачи: вычищает реальные имена источников из текста (прежде всего
- * из сообщений внутренних ошибок), перед тем как текст уйдёт клиенту MCP или REST.
+ * Safety net at the output boundary: strips real source names from text (primarily from
+ * internal error messages) before the text goes out to an MCP or REST client.
  */
 export const hideSourceNames = (text: string): string => text.replace(SOURCE_NAMES_RE, '[источник данных]');

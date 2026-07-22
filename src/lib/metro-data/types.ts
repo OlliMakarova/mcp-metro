@@ -1,17 +1,18 @@
-// Единый нормализованный формат данных метро (IMetroDataset).
+// Unified normalized metro data format (IMetroDataset).
 //
-// Формат один для обоих источников. Богатый источник (mosmetro.ru) заполняет все поля,
-// скудный (metrobook.ru) — только обязательное ядро: станции с русским названием, линии,
-// рёбра с временем в секундах. Весь код маршрутизации и поиска пишется против этого типа:
-// отсутствие необязательного поля означает лишь меньше сведений в ответе, без веток по источнику.
+// The format is the same for both sources. The rich source (mosmetro.ru) fills all fields,
+// the reduced one (metrobook.ru) — only the mandatory core: stations with a Russian name,
+// lines, edges with time in seconds. All routing and search code is written against this
+// type: a missing optional field just means less information in the response, without any
+// per-source branching.
 
-/** Источник, из которого получен набор данных */
+/** The source the dataset was obtained from */
 export type TMetroSource = 'mosmetro' | 'metrobook';
 
-/** Тип линии: обычное метро, Московское центральное кольцо, Московские центральные диаметры */
+/** Line kind: regular metro, Moscow Central Circle, Moscow Central Diameters */
 export type TLineKind = 'metro' | 'mcc' | 'mcd';
 
-/** Название на поддерживаемых языках. Русское название обязательно, остальные — по наличию в источнике */
+/** Name in supported languages. The Russian name is mandatory, the rest depend on the source */
 export interface ILocalizedName {
   ru: string;
   en?: string;
@@ -24,106 +25,106 @@ export interface IGeoPoint {
   lon: number;
 }
 
-/** Выход станции в город с маршрутами наземного транспорта поблизости */
+/** Station exit to the city with nearby surface transport routes */
 export interface IStationExit {
   title?: string;
   exitNumber?: number;
   location?: IGeoPoint;
-  /** Номера маршрутов через запятую, как отдаёт источник (например, "270, м40") */
+  /** Route numbers separated by commas, as provided by the source (e.g. "270, м40") */
   bus?: string;
   trolleybus?: string;
   tram?: string;
 }
 
-/** Первый/последний поезд в направлении stationToId (интервалов движения в открытых данных нет) */
+/** First/last train towards stationToId (train intervals are not in the open data) */
 export interface ITrainScheduleEntry {
   stationToId: number;
   stationToName?: string;
   first?: string;
   last?: string;
-  /** EVEN/ODD — чётные/нечётные числа месяца: поезда ходят по двум чередующимся графикам */
+  /** EVEN/ODD — even/odd days of the month: trains run on two alternating timetables */
   dayType?: string;
-  /** true — график выходного дня, false — будний */
+  /** true — weekend timetable, false — weekday */
   weekend?: boolean;
 }
 
-/** Часы работы вестибюлей станции в один день недели ("05:30" — "01:00") */
+/** Station vestibule opening hours for one day of the week ("05:30" — "01:00") */
 export interface IStationWorkTimeDay {
   open?: string;
   close?: string;
 }
 
 export interface IMetroStation {
-  /** Идентификатор вершины графа: станция конкретной линии (пересадочный узел — несколько станций) */
+  /** Graph vertex identifier: a station of a specific line (a transfer hub is several stations) */
   id: number;
   name: ILocalizedName;
   lineId: number;
-  /** Время в секундах от входа с улицы до платформы (у станций МЦД в данных отсутствует) */
+  /** Time in seconds from street entrance to the platform (absent for MCD stations in the data) */
   enterTimeSec?: number;
-  /** Время в секундах от платформы до выхода в город */
+  /** Time in seconds from the platform to the city exit */
   exitTimeSec?: number;
   location?: IGeoPoint;
   exits?: IStationExit[];
-  /** Сервисы станции: BANK, ELEVATOR, VENDING и т. п. */
+  /** Station services: BANK, ELEVATOR, VENDING, etc. */
   services?: string[];
-  /** Расписание первых/последних поездов по направлениям (ключ — id направления в источнике) */
+  /** Timetable of first/last trains by direction (key — direction id in the source) */
   scheduleTrains?: Record<string, ITrainScheduleEntry[]>;
-  /** Часы работы вестибюлей по дням недели: 7 записей, понедельник — воскресенье (только mosmetro) */
+  /** Vestibule opening hours by day of week: 7 entries, Monday — Sunday (mosmetro only) */
   workTime?: IStationWorkTimeDay[];
-  /** Строящаяся (перспективная) станция — ещё не открыта (в текущих данных таких нет, поле на будущее) */
+  /** Under-construction (prospective) station — not yet open (none in current data, future-proof field) */
   isPerspective?: boolean;
-  /** Наземная станция (платформа не под землёй) */
+  /** Surface station (platform not underground) */
   isOutside?: boolean;
-  /** Тактильная схема станции для незрячих — ссылка на HTML-страницу */
+  /** Tactile station map for the blind — link to an HTML page */
   typhloHtmlUrl?: string;
-  /** Схемы-картинки станции — ссылки на изображения (PNG/JPG) */
+  /** Station map images — links to images (PNG/JPG) */
   schemeImageUrls?: string[];
-  /** Аудиофайлы с описанием станции (навигация для незрячих) — ссылки на WAV */
+  /** Audio files describing the station (navigation for the blind) — links to WAV */
   audioUrls?: string[];
-  /** Историческая справка о станции (в текущих данных источника всегда пусто, поле на будущее) */
+  /** Historical note about the station (always empty in current source data, future-proof field) */
   history?: string;
   /**
-   * Дополнительные названия для неточного поиска. Используется при работе от metrobook:
-   * у пересадочного узла там одна подпись («Пушкинская»), и «вторые» имена узла
-   * («Тверская», «Чеховская») подтягиваются сюда из последней сохранённой схемы mosmetro.
+   * Additional names for fuzzy search. Used when running on metrobook data:
+   * a transfer hub there has a single label ("Pushkinskaya"), and the hub's "secondary"
+   * names ("Tverskaya", "Chekhovskaya") are pulled in here from the last saved mosmetro schema.
    */
   searchAliases?: string[];
 }
 
 export interface IMetroLine {
   id: number;
-  /** У metrobook названий линий нет — поле необязательное */
+  /** Metrobook has no line names — the field is optional */
   name?: ILocalizedName;
   color?: string;
   kind: TLineKind;
 }
 
-/** Рекомендация, в какой вагон садиться, чтобы удобнее выйти к переходу */
+/** Recommendation which wagon to board for the most convenient exit to a transfer */
 export interface IWagonHint {
   stationToId?: number;
   stationPrevId?: number;
-  /** NEAR_FIRST — ближе к голове, NEAR_END — ближе к хвосту, CENTER — в середину */
+  /** NEAR_FIRST — closer to the head, NEAR_END — closer to the tail, CENTER — in the middle */
   types: string[];
 }
 
 export interface IMetroEdge {
-  /** ride — поездка между соседними станциями; transfer — пеший переход внутри узла */
+  /** ride — trip between adjacent stations; transfer — walking transfer inside a hub */
   kind: 'ride' | 'transfer';
-  /** Уникальный ключ ребра в наборе данных (нужен для применения закрытий и алгоритма Йена) */
+  /** Unique edge key within the dataset (needed for applying closures and Yen's algorithm) */
   edgeId: string;
   fromId: number;
   toId: number;
-  /** Время в секундах (в источнике mosmetro поле называется pathLength, но содержит секунды) */
+  /** Time in seconds (in the mosmetro source the field is called pathLength but holds seconds) */
   timeSec: number;
-  /** Двустороннее ли ребро */
+  /** Whether the edge is bidirectional */
   bi: boolean;
-  /** Линия (только для kind='ride') */
+  /** Line (kind='ride' only) */
   lineId?: number;
-  /** Переход по улице (только для kind='transfer') */
+  /** Street-level transfer (kind='transfer' only) */
   isGround?: boolean;
-  /** Рекомендации по вагонам (только для kind='transfer', только mosmetro) */
+  /** Wagon recommendations (kind='transfer' only, mosmetro only) */
   wagons?: IWagonHint[];
-  /** Временное ребро-обход из уведомления о закрытии */
+  /** Temporary detour edge from a closure notification */
   isAlternative?: boolean;
 }
 
@@ -136,54 +137,54 @@ export interface INotificationStationRef {
   description?: string;
 }
 
-/** Уведомление о закрытии/ремонте, действующее в период startDate..endDate */
+/** Closure/repair notification effective within the startDate..endDate period */
 export interface IMetroNotification {
   id: number | string;
   title?: string;
   description?: string;
-  /** ISO-строки местного времени, как отдаёт API */
+  /** ISO strings in local time, as provided by the API */
   startDate: string;
   endDate: string;
   stations: INotificationStationRef[];
-  /** edgeId закрытых перегонов и переходов (удалить из графа на период действия) */
+  /** edgeId of closed ride segments and transfers (remove from the graph for the period) */
   closedEdgeIds: string[];
-  /** Временные рёбра-обходы (добавить в граф на период действия) */
+  /** Temporary detour edges (add to the graph for the period) */
   alternativeEdges: IMetroEdge[];
 }
 
 export interface IMetroDataset {
   source: TMetroSource;
-  /** Когда скачана схема (ISO UTC) */
+  /** When the schema was downloaded (ISO UTC) */
   schemaFetchedAt: string;
-  /** Когда скачаны уведомления; отсутствует, если уведомлений нет (metrobook или mosmetro без них) */
+  /** When notifications were downloaded; absent if there are none (metrobook or mosmetro without them) */
   notificationsFetchedAt?: string;
   stations: IMetroStation[];
   lines: IMetroLine[];
   edges: IMetroEdge[];
-  /** Закрытия и ремонты. Есть только у mosmetro; срок жизни файла — 24 часа */
+  /** Closures and repairs. Mosmetro only; the file's time-to-live is 24 hours */
   notifications?: IMetroNotification[];
 }
 
-/** Нормализованный граф metrobook.ru — формат файла metrobook-graph.json на диске */
+/** Normalized metrobook.ru graph — the format of the metrobook-graph.json file on disk */
 export interface IMetrobookGraphFile {
   source: string;
   fetchedAt: string;
   mapId: number;
-  /** lineId -> { type: 0 метро | 1 МЦК | 2 МЦД } */
+  /** lineId -> { type: 0 metro | 1 MCC | 2 MCD } */
   lines: Record<string, { type: number }>;
-  /** sdid («станция на линии») -> вершина графа */
+  /** sdid ("station on a line") -> graph vertex */
   stationInstances: Record<string, { stationId: number; lineId: number; name: string | null }>;
-  /** sid (физическая станция) -> группа вершин */
+  /** sid (physical station) -> group of vertices */
   stations: Record<string, { sdids: number[]; name: string | null }>;
-  /** Перегоны, time — секунды */
+  /** Ride segments, time — seconds */
   edges: Array<{ id: number; sdid1: number; sdid2: number; lineId: number; time: number }>;
-  /** Пересадки, time — секунды; 999999 означает «переход запрещён» и отбрасывается */
+  /** Transfers, time — seconds; 999999 means "transfer forbidden" and is dropped */
   transfers: Array<{ from: number; to: number; time: number }>;
 }
 
 /**
- * Ошибка «данные метро недоступны»: оба источника не отвечают и на диске нет копии.
- * Сообщение показывается пользователю, поэтому реальные имена источников в нём недопустимы.
+ * "Metro data unavailable" error: both sources are down and there is no disk copy.
+ * The message is shown to the user, so real source names must not appear in it.
  */
 export class MetroDataUnavailableError extends Error {
   constructor(message?: string) {

@@ -1,5 +1,5 @@
-// Тесты оповещений в Telegram: отправка через подменённый fetch (без сети),
-// поведение при ошибках и логика сообщений о смене состояния источников.
+// Telegram notification tests: sending through a mocked fetch (no network),
+// error-handling behavior and the source state change message logic.
 
 import { describe, expect, test } from '@jest/globals';
 import { isTelegramConfigured, sendTelegramMessage } from '../../src/lib/telegram-notify.js';
@@ -8,7 +8,7 @@ import { getMetrobookDataset, getMosmetroDataset } from './helpers.js';
 
 const CFG = { enabled: true, botToken: 'TOKEN123', chatId: '42' };
 
-/** Подменённый fetch, запоминающий запрос и возвращающий заданный ответ */
+/** Mocked fetch that records the request and returns the given reply */
 const makeFetch = (
   reply: { status?: number; body?: unknown } | 'network',
 ): { fetchImpl: typeof fetch; calls: Array<{ url: string; body: any }> } => {
@@ -97,19 +97,19 @@ describe('Состояние источников и тексты оповеще
   test('ухудшение: понятные тексты с именем сервиса', () => {
     const backup = buildStateChangeMessage('mcp-metro', 'ok', 'backup', getMetrobookDataset());
     expect(backup).toContain('mcp-metro');
-    expect(backup).toContain('mosmetro.ru недоступен');
+    expect(backup).toContain('mosmetro.ru source is unavailable');
     expect(backup).toContain('metrobook.ru');
 
     const disk = buildStateChangeMessage('mcp-metro', 'backup', 'disk', getMosmetroDataset());
-    expect(disk).toContain('дисковая копия');
+    expect(disk).toContain('disk copy');
     expect(disk).toContain('2026-07-22');
 
     const none = buildStateChangeMessage('mcp-metro', 'disk', 'none', null);
-    expect(none).toContain('дисковой копии нет');
+    expect(none).toContain('no disk copy');
   });
 
   test('восстановление: сообщение о возврате к полным данным', () => {
     const ok = buildStateChangeMessage('mcp-metro', 'disk', 'ok', getMosmetroDataset());
-    expect(ok).toContain('снова доступен');
+    expect(ok).toContain('available again');
   });
 });

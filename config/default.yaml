@@ -509,7 +509,7 @@ webServer:
       jwksCacheTtl: 600
       #> Minimum interval between repeat JWKS fetches when kid is missing (seconds). Default: 30.
       jwksCooldown: 30
-      #> Allowed clock skew for exp/nbf checks (seconds). Default: 30. Max enforced: 60 (standard Прил. A.1).
+      #> Allowed clock skew for exp/nbf checks (seconds). Default: 30. Max enforced: 60 (standard Appendix A.1).
       clockSkew: 30
       #> Default TTL (seconds) for tokens issued by embedded /oauth/token endpoint. Default: 1800 (30 min).
       defaultTtl: 1800

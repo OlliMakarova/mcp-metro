@@ -4,8 +4,8 @@ import { getMetroDatasetOrNull } from './lib/metro-data/cache.js';
 import { toPublicSource } from './lib/metro-data/public-source.js';
 
 /**
- * Ресурсы MCP-сервера метро. Содержимое формируется динамически из активного набора данных,
- * поэтому оно всегда отражает последнюю загруженную схему.
+ * Resources of the metro MCP server. Content is generated dynamically from the active dataset,
+ * so it always reflects the most recently loaded schema.
  */
 
 const LINE_KIND_LABEL: Record<string, string> = {
@@ -14,7 +14,7 @@ const LINE_KIND_LABEL: Record<string, string> = {
   mcd: 'МЦД (Московские центральные диаметры)',
 };
 
-/** Список линий метрополитена в формате markdown */
+/** List of metro lines in markdown format */
 const renderLines = (): string => {
   const dataset = getMetroDatasetOrNull();
   if (!dataset) {
@@ -32,7 +32,7 @@ const renderLines = (): string => {
 ${rows}`;
 };
 
-/** Состояние и свежесть данных метро в формате markdown */
+/** Metro data status and freshness in markdown format */
 const renderStatus = (): string => {
   const dataset = getMetroDatasetOrNull();
   if (!dataset) {
@@ -40,7 +40,7 @@ const renderStatus = (): string => {
 
 Данные метро временно недоступны (источники не отвечают, локальной копии нет).`;
   }
-  // Реальные имена источников засекречены — наружу уходит только нейтральное обозначение
+  // Real data source names are confidential — only a neutral label goes out
   const sourceName =
     toPublicSource(dataset.source) === 'primary' ? 'основной (полный набор сведений)' : 'резервный (базовый набор)';
   return `# Состояние данных метро

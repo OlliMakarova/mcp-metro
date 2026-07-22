@@ -1,6 +1,6 @@
-// Тесты резервного источника metrobook: маршрут по скудным данным даёт то же время,
-// что и по полным (57 минут), необязательные поля отсутствуют, а обогащение из схемы
-// mosmetro добавляет многоязычные названия и «вторые» имена пересадочных узлов.
+// Tests for the metrobook backup source: a route built from the sparse data yields the same
+// time as from the full data (57 minutes), optional fields are absent, and enrichment from
+// the mosmetro schema adds multilingual names and the "second" names of interchange hubs.
 
 import { describe, expect, test } from '@jest/globals';
 import { enrichMetrobookFromMosmetroSchema, parseMetrobookHtml } from '../../src/lib/metro-data/fetch-metrobook.js';
@@ -10,8 +10,8 @@ import { IMetroDataset } from '../../src/lib/metro-data/types.js';
 import { AT_FIXTURE_DATE, getMetrobookDataset, loadMetrobookHtml, loadSchemaRaw, stationIdsByName } from './helpers.js';
 
 /**
- * Идентификаторы станций через неточный поиск: в metrobook написание может отличаться
- * от официального («Теплый стан» вместо «Тёплый Стан»), точное сравнение не подходит
+ * Station identifiers via fuzzy search: metrobook spelling may differ from the official
+ * one («Теплый стан» instead of «Тёплый Стан»), so exact comparison is not suitable
  */
 const idsByFuzzyName = (dataset: IMetroDataset, name: string): number[] =>
   fuzzySearchStations(dataset, name).map((m) => m.station.id);
@@ -21,21 +21,21 @@ describe('Резервный источник metrobook', () => {
 
   test('нормализация: ядро графа на месте, запрещённые пересадки отброшены', () => {
     expect(ds.source).toBe('metrobook');
-    expect(ds.stations.length).toBeGreaterThan(400); // вершины «станция × линия»
+    expect(ds.stations.length).toBeGreaterThan(400); // "station × line" vertices
     expect(ds.lines.length).toBe(21);
     expect(ds.notifications).toBeUndefined();
-    // Пересадок со временем 999999 («переход запрещён») в наборе быть не должно
+    // The dataset must contain no transfers with time 999999 ("transfer forbidden")
     expect(ds.edges.every((e) => e.timeSec < 999_999)).toBe(true);
   });
 
   test('маршрут Ховрино → Тёплый Стан по данным metrobook: те же 57 минут', () => {
-    // Название в metrobook — «Теплый стан»: точное совпадение достигается через нормализацию
+    // The metrobook name is «Теплый стан»: an exact match is achieved via normalization
     const res = findBestRoutes(ds, stationIdsByName(ds, 'Ховрино'), idsByFuzzyName(ds, 'Тёплый Стан'), {
       k: 1,
       at: AT_FIXTURE_DATE,
     });
     expect(res.source).toBe('backup');
-    // Закрытий у metrobook нет — деградация без ошибок
+    // metrobook has no closures — graceful degradation without errors
     expect(res.closuresApplied).toBe(false);
     expect(res.variants[0]!.totalTimeMin).toBe(57);
     expect(res.variants[0]!.transfersCount).toBe(1);
@@ -63,7 +63,7 @@ describe('Резервный источник metrobook', () => {
 
   test('изменение вёрстки даёт понятную ошибку', () => {
     expect(() => parseMetrobookHtml('<html><body>пусто</body></html>', '2026-07-22T00:00:00.000Z', 'x')).toThrow(
-      /вёрстка сайта изменилась/,
+      /site markup has changed/,
     );
   });
 
@@ -86,8 +86,8 @@ describe('Резервный источник metrobook', () => {
     });
 
     test('отсутствующее у metrobook имя узла находится через псевдоним', () => {
-      // «Площадь трёх вокзалов» есть в узле «Комсомольская» у mosmetro,
-      // но такой подписи нет в вёрстке metrobook — её даёт только обогащение
+      // «Площадь трёх вокзалов» exists in the «Комсомольская» hub in mosmetro,
+      // but this label is absent from the metrobook markup — only enrichment provides it
       const before = fuzzySearchStations(getMetrobookDataset(), 'Площадь трёх вокзалов');
       expect(before.every((m) => m.score < 1)).toBe(true);
 

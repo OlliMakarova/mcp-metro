@@ -1,6 +1,6 @@
-// Тесты маршрутизации по полным данным mosmetro: эталонный маршрут «Ховрино → Тёплый Стан»
-// (сверен с сайтом mosmetro.ru 22.07.2026), закрытие «Серп и Молот» с обходным ребром,
-// богатая информация о маршруте (вагоны, наземный транспорт, время входа/выхода).
+// Routing tests on the full mosmetro data: the reference route «Ховрино → Тёплый Стан»
+// (verified against the mosmetro.ru website on 2026-07-22), the «Серп и Молот» closure with
+// a bypass edge, rich route information (wagons, ground transport, entry/exit times).
 
 import { describe, expect, test } from '@jest/globals';
 import { buildRouteGraph } from '../../src/lib/routing/graph.js';
@@ -27,7 +27,7 @@ describe('Маршрутизация по данным mosmetro', () => {
     expect(res.closuresApplied).toBe(true);
     expect(res.variants).toHaveLength(3);
 
-    // Сверка с сайтом mosmetro.ru (22.07.2026): 56/59/60 мин — расхождение ±1 мин от округления
+    // Cross-checked with mosmetro.ru (2026-07-22): 56/59/60 min — ±1 min discrepancy due to rounding
     const [v1, v2, v3] = res.variants;
     expect(v1!.totalTimeMin).toBe(57);
     expect(v1!.transfersCount).toBe(1);
@@ -43,14 +43,14 @@ describe('Маршрутизация по данным mosmetro', () => {
     const res = findRoutes(ds, fromId!, toId!, { k: 1, at: AT_FIXTURE_DATE });
     const v = res.variants[0]!;
 
-    // Этапы: поездка → пересадка → поездка
+    // Legs: ride → transfer → ride
     expect(v.legs.map((l) => l.kind)).toEqual(['ride', 'transfer', 'ride']);
 
     const ride1 = v.legs[0]!;
     if (ride1.kind !== 'ride') {
       throw new Error('первый этап должен быть поездкой');
     }
-    // Все станции этапа по порядку, от Ховрино до Новокузнецкой
+    // All stations of the leg in order, from «Ховрино» to «Новокузнецкая»
     expect(ride1.stations[0]!.name.ru).toBe('Ховрино');
     expect(ride1.stations.length).toBeGreaterThan(10);
     expect(ride1.line?.name?.ru).toContain('Замоскворецкая');
@@ -62,15 +62,15 @@ describe('Маршрутизация по данным mosmetro', () => {
     }
     expect(transfer.fromStation.name.ru).toBe('Новокузнецкая');
     expect(transfer.toStation.name.ru).toBe('Третьяковская');
-    // Рекомендации по вагонам — уникальная информация mosmetro
+    // Wagon recommendations — information unique to mosmetro
     expect(transfer.wagons?.length).toBeGreaterThan(0);
 
-    // Время входа/выхода и наземный транспорт у конечных точек
+    // Entry/exit times and ground transport at the endpoints
     expect(v.departure.enterTimeSec).toBeGreaterThan(0);
     expect(v.arrival.exitTimeSec).toBeGreaterThan(0);
     expect(v.departure.groundTransport?.bus.length).toBeGreaterThan(0);
 
-    // Названия станций многоязычные
+    // Station names are multilingual
     expect(v.departure.station.name.en).toBe('Khovrino');
     expect(v.departure.station.name.ar).toBeTruthy();
     expect(v.departure.station.name.cn).toBeTruthy();
@@ -84,11 +84,11 @@ describe('Маршрутизация по данным mosmetro', () => {
     const closedId = serpIds.find((id) => graphDuring.closedStations.has(id));
     expect(closedId).toBeDefined();
 
-    // В период закрытия маршрут от закрытой станции невозможен
+    // During the closure period no route from the closed station is possible
     const [anyToId] = stationIdsByName(ds, 'Тёплый Стан');
     expect(() => findRoutes(ds, closedId!, anyToId!, { at: AT_FIXTURE_DATE })).toThrow(/закрыта/i);
 
-    // После окончания периода станция снова доступна
+    // After the period ends the station is available again
     const graphAfter = buildRouteGraph(ds, AT_AFTER_CLOSURE);
     expect(graphAfter.closedStations.has(closedId!)).toBe(false);
     const resAfter = findRoutes(ds, closedId!, anyToId!, { at: AT_AFTER_CLOSURE });
@@ -96,29 +96,29 @@ describe('Маршрутизация по данным mosmetro', () => {
   });
 
   test('обходное ребро: Нижегородская → Курская (D4) в объезд закрытой станции', () => {
-    // Уведомление добавляет альтернативный перегон 549 → 551 (540 секунд)
-    // и закрывает перегоны через станцию 550 («Серп и Молот» D4)
+    // The notification adds an alternative segment 549 → 551 (540 seconds)
+    // and closes the segments passing through station 550 («Серп и Молот» D4)
     const graph = buildRouteGraph(ds, AT_FIXTURE_DATE);
     const altEdge = [...graph.adj.values()].flat().find((e) => e.isAlternative && e.kind === 'ride');
     expect(altEdge).toBeDefined();
 
     const res = findRoutes(ds, altEdge!.from, altEdge!.to, { k: 1, at: AT_FIXTURE_DATE });
     const v = res.variants[0]!;
-    // Маршрут не проходит через закрытую станцию
+    // The route does not pass through the closed station
     const stationIdsOnRoute = v.legs.flatMap((l) => (l.kind === 'ride' ? l.stations.map((s) => s.id) : []));
     for (const closed of graph.closedStations.keys()) {
       expect(stationIdsOnRoute).not.toContain(closed);
     }
-    // Обход занимает время альтернативного ребра
+    // The bypass takes the time of the alternative edge
     expect(v.totalTimeSec).toBe(altEdge!.timeSec);
   });
 
   test('предупреждения EMERGENCY не закрывают станции, но попадают в ответ', () => {
     const graph = buildRouteGraph(ds, AT_FIXTURE_DATE);
-    // В данных есть станции с предупреждениями (ремонты эскалаторов и т. п.)
+    // The data contains stations with warnings (escalator repairs, etc.)
     expect(graph.warnings.size).toBeGreaterThan(0);
-    // Ни одна станция с предупреждением EMERGENCY/INFO не считается закрытой,
-    // если для неё нет отдельного статуса CLOSED
+    // No station with an EMERGENCY/INFO warning is considered closed
+    // unless it has a separate CLOSED status
     for (const id of graph.warnings.keys()) {
       if (!graph.closedStations.has(id)) {
         expect(graph.stations.has(id)).toBe(true);
@@ -137,7 +137,7 @@ describe('Маршрутизация по данным mosmetro', () => {
     expect(res.closuresApplied).toBe(false);
     expect(res.variants[0]!.totalTimeMin).toBe(57);
 
-    // Станция «Серп и Молот» без уведомлений не считается закрытой
+    // Without notifications the «Серп и Молот» station is not considered closed
     const graph = buildRouteGraph(dsNoNotif, AT_FIXTURE_DATE);
     expect(graph.closedStations.size).toBe(0);
   });

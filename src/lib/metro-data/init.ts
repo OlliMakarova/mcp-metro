@@ -1,8 +1,8 @@
-// Инициализация слоя данных метро при старте сервера:
-//   1) мгновенная загрузка последней копии с диска (без сети) — сервер стартует быстро;
-//   2) фоновое обновление из сети сразу после старта;
-//   3) плановое обновление раз в refreshIntervalHours (по умолчанию 24 часа);
-//   4) оповещение в Telegram при смене состояния источников (ухудшение и восстановление).
+// Initialization of the metro data layer at server startup:
+//   1) instant load of the latest copy from disk (no network) — the server starts fast;
+//   2) background refresh from the network right after startup;
+//   3) scheduled refresh every refreshIntervalHours (24 hours by default);
+//   4) Telegram notification on source-state changes (both degradation and recovery).
 
 import { appConfig, logger as lgr } from 'fa-mcp-sdk';
 import { CustomAppConfig } from '../../_types_/custom-config.js';
@@ -17,8 +17,8 @@ const logger = lgr.getSubLogger({ name: 'metro-data' });
 
 let refreshTimer: NodeJS.Timeout | null = null;
 
-// Текущее состояние источников. Исходно «ok»: первое же успешное обновление не создаёт
-// шума, а первое деградировавшее — сразу даёт оповещение (в том числе после рестарта).
+// Current source state. Initially 'ok': the first successful refresh produces no noise,
+// while the first degraded one immediately triggers a notification (including after a restart).
 let currentState: TMetroDataState = 'ok';
 
 const getTelegramConfig = (): ITelegramConfig => {
@@ -41,21 +41,21 @@ const buildDeps = (): IRefreshDeps => {
   };
 };
 
-/** Однократное обновление данных из сети с записью результата в кеш и оповещением */
+/** One-off refresh from the network, storing the result in the cache and sending a notification */
 export const refreshMetroDataNow = async (): Promise<void> => {
   const result = await refreshMetroData(buildDeps());
   if (result.dataset) {
     setMetroDataset(result.dataset);
   }
-  // При result.dataset === null кеш сознательно НЕ очищается: если в памяти остались
-  // данные с прошлого успешного обновления, они лучше пустого кеша.
+  // When result.dataset === null the cache is deliberately NOT cleared: data left in memory
+  // from the last successful refresh is better than an empty cache.
 
   await notifyStateChange(stateFromOrigin(result.origin), result.dataset !== null ? result.dataset : null);
 };
 
 /**
- * Оповещение в Telegram при переходе между состояниями источников.
- * Ошибки отправки только журналируются и никогда не ломают обновление данных.
+ * Telegram notification on transitions between source states.
+ * Send failures are only logged and never break the data refresh.
  */
 const notifyStateChange = async (
   next: TMetroDataState,
@@ -66,7 +66,7 @@ const notifyStateChange = async (
   if (prev === next) {
     return;
   }
-  logger.info(`Состояние источников данных метро изменилось: ${prev} → ${next}`);
+  logger.info(`Metro data source state changed: ${prev} → ${next}`);
 
   const tg = getTelegramConfig();
   if (!isTelegramConfigured(tg)) {
@@ -78,37 +78,37 @@ const notifyStateChange = async (
   }
   const sent = await sendTelegramMessage(tg, text, { onError: (msg) => logger.warn(msg) });
   if (sent) {
-    logger.info('Оповещение о смене состояния источников отправлено в Telegram');
+    logger.info('Source-state change notification sent to Telegram');
   }
 };
 
-/** Запуск слоя данных: загрузка с диска, фоновое обновление, планировщик раз в сутки */
+/** Data layer startup: load from disk, background refresh, daily scheduler */
 export const initMetroData = async (): Promise<void> => {
   const cfg = getMetroConfig();
   const deps = buildDeps();
 
-  // Быстрый старт: последняя копия с диска, если она есть
+  // Fast start: the latest disk copy, if present
   const disk = await loadMetroDataFromDisk(deps);
   if (disk.dataset) {
     setMetroDataset(disk.dataset);
-    logger.info(`Данные метро загружены с диска (${disk.origin}): станций ${disk.dataset.stations.length}`);
+    logger.info(`Metro data loaded from disk (${disk.origin}): ${disk.dataset.stations.length} stations`);
   } else {
-    logger.info('Дисковой копии данных метро нет — ожидается первое обновление из сети');
+    logger.info('No disk copy of metro data — waiting for the first refresh from the network');
   }
 
-  // Первое обновление из сети — в фоне, не задерживая старт сервера
+  // First refresh from the network — in the background, without delaying server startup
   void refreshMetroDataNow().catch((e) => {
-    logger.error(`Фоновое обновление данных метро завершилось ошибкой: ${e instanceof Error ? e.message : e}`);
+    logger.error(`Background metro data refresh failed: ${e instanceof Error ? e.message : e}`);
   });
 
-  // Плановое обновление раз в cfg.refreshIntervalMs (по умолчанию 24 часа)
+  // Scheduled refresh every cfg.refreshIntervalMs (24 hours by default)
   stopMetroDataScheduler();
   refreshTimer = setInterval(() => {
     void refreshMetroDataNow().catch((e) => {
-      logger.error(`Плановое обновление данных метро завершилось ошибкой: ${e instanceof Error ? e.message : e}`);
+      logger.error(`Scheduled metro data refresh failed: ${e instanceof Error ? e.message : e}`);
     });
   }, cfg.refreshIntervalMs);
-  // unref: таймер не должен удерживать процесс от завершения
+  // unref: the timer must not keep the process from exiting
   refreshTimer.unref();
 };
 

@@ -1,8 +1,8 @@
 /**
- * Уровень 2: полный системный промпт агента.
+ * Level 2: full agent system prompt.
  *
- * Становится виден модели после того, как маршрутизатор выбрал этого агента. На этом уровне
- * модель получает список инструментов и данный промпт с указаниями, как ими пользоваться.
+ * Becomes visible to the model after the router has selected this agent. At this level
+ * the model receives the tool list and this prompt with instructions on how to use them.
  */
 
 export const AGENT_PROMPT = `Ты — помощник по Московскому метрополитену (метро, МЦК и МЦД). Отвечай пользователю

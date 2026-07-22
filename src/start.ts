@@ -16,8 +16,8 @@ const isConsulProd = (process.env.NODE_CONSUL_ENV || process.env.NODE_ENV) === '
  * Main function that assembles all project data and starts the MCP server
  */
 const startProject = async (): Promise<void> => {
-  // Слой данных метро: загрузка дисковой копии, фоновое обновление из сети,
-  // плановое обновление раз в сутки (mosmetro.ru с откатом на metrobook.ru)
+  // Metro data layer: load the on-disk copy, refresh from the network in the background,
+  // scheduled refresh once a day (mosmetro.ru with fallback to metrobook.ru)
   await initMetroData();
 
   // Read logo from assets

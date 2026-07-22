@@ -1,13 +1,13 @@
-// Дисковый кеш скачанных данных метро.
+// Disk cache of downloaded metro data.
 //
-// Состав папки (dataDir, вне контроля версий):
-//   mosmetro-schema.json         — схема метро; живёт вечно, пока не заменена свежей версией
-//   mosmetro-notifications.json  — закрытия/ремонты; срок жизни 24 часа (см. deleteNotifications)
-//   metrobook-graph.json         — нормализованный граф резервного источника; живёт вечно
-//   meta.json                    — { files: { <имя>: { fetchedAt, bytes, sha256 } } }
+// Folder contents (dataDir, not under version control):
+//   mosmetro-schema.json         — metro schema; lives forever until replaced by a fresh version
+//   mosmetro-notifications.json  — closures/repairs; 24-hour time-to-live (see deleteNotifications)
+//   metrobook-graph.json         — normalized graph of the backup source; lives forever
+//   meta.json                    — { files: { <name>: { fetchedAt, bytes, sha256 } } }
 //
-// Запись атомарная: сначала во временный файл, затем переименование, чтобы при падении
-// процесса на диске не оказался наполовину записанный JSON.
+// Writes are atomic: first to a temporary file, then rename, so that a process crash
+// never leaves a half-written JSON on disk.
 
 import { createHash } from 'node:crypto';
 import * as fsp from 'node:fs/promises';
@@ -24,7 +24,7 @@ export const STORAGE_FILES = {
 export type TStorageFileKey = Exclude<keyof typeof STORAGE_FILES, 'meta'>;
 
 export interface IStorageFileMeta {
-  /** Когда файл был скачан (ISO UTC) */
+  /** When the file was downloaded (ISO UTC) */
   fetchedAt: string;
   bytes: number;
   sha256: string;
@@ -61,7 +61,7 @@ export class MetroStorage {
       const text = await fsp.readFile(fullPath, 'utf8');
       return JSON.parse(text);
     } catch {
-      // Файла нет или он повреждён — для читающего кода это равнозначно «данных нет»
+      // File is missing or corrupted — for the reading code this is the same as "no data"
       return null;
     }
   }
@@ -73,12 +73,12 @@ export class MetroStorage {
     await fsp.rename(tmpPath, fullPath);
   }
 
-  /** Читает файл данных; вернёт null, если файла нет или он не разбирается как JSON */
+  /** Reads a data file; returns null if the file is missing or does not parse as JSON */
   async read(key: TStorageFileKey): Promise<unknown | null> {
     return this.readJsonFile(this.filePath(key));
   }
 
-  /** Атомарно пишет файл данных и обновляет метаданные (fetchedAt, размер, контрольная сумма) */
+  /** Atomically writes a data file and updates its metadata (fetchedAt, size, checksum) */
   async write(key: TStorageFileKey, json: unknown, fetchedAt?: string): Promise<void> {
     const content = JSON.stringify(json);
     await this.writeFileAtomic(this.filePath(key), content);
@@ -91,18 +91,18 @@ export class MetroStorage {
     await this.writeMeta(meta);
   }
 
-  /** Метаданные файла (когда скачан) или null, если файл ещё не записывался */
+  /** File metadata (when it was downloaded) or null if the file has never been written */
   async getFileMeta(key: TStorageFileKey): Promise<IStorageFileMeta | null> {
     const meta = await this.readMeta();
     return meta.files[key] ?? null;
   }
 
-  /** Удаляет файл данных и его метаданные (используется для устаревших уведомлений) */
+  /** Deletes a data file and its metadata (used for stale notifications) */
   async delete(key: TStorageFileKey): Promise<void> {
     try {
       await fsp.unlink(this.filePath(key));
     } catch {
-      // файла и так нет — это не ошибка
+      // the file is already gone — not an error
     }
     const meta = await this.readMeta();
     if (meta.files[key]) {
@@ -112,13 +112,13 @@ export class MetroStorage {
   }
 
   /**
-   * Читает уведомления с диска с проверкой срока жизни: если файл старше ttlMs,
-   * он удаляется и возвращается null — устаревшие сведения о закрытиях опаснее их отсутствия.
+   * Reads notifications from disk with a time-to-live check: if the file is older than ttlMs,
+   * it is deleted and null is returned — stale closure information is more dangerous than none.
    */
   async readNotificationsFresh(ttlMs: number): Promise<unknown | null> {
     const meta = await this.getFileMeta('mosmetroNotifications');
     if (!meta) {
-      // Файл без метаданных не считаем доверенным — возраст неизвестен
+      // A file without metadata is not trusted — its age is unknown
       await this.delete('mosmetroNotifications');
       return null;
     }
@@ -130,7 +130,7 @@ export class MetroStorage {
     return this.read('mosmetroNotifications');
   }
 
-  /** Типизированное чтение сохранённого графа metrobook */
+  /** Typed read of the saved metrobook graph */
   async readMetrobookGraph(): Promise<IMetrobookGraphFile | null> {
     const raw = await this.read('metrobookGraph');
     if (raw && typeof raw === 'object' && 'stationInstances' in raw && 'edges' in raw) {

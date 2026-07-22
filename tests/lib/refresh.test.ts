@@ -1,7 +1,7 @@
-// Тесты каскада источников и правил хранения на диске:
-//   свежий mosmetro → свежий metrobook → диск (mosmetro приоритетнее metrobook) → пусто;
-//   срок жизни уведомлений 24 часа; атомарность и целостность файлов при сбоях.
-// Сеть подменяется фиктивным fetch, диск — временной папкой.
+// Tests for the source cascade and disk storage rules:
+//   fresh mosmetro → fresh metrobook → disk (mosmetro takes priority over metrobook) → empty;
+//   notifications live for 24 hours; file atomicity and integrity on failures.
+// The network is replaced with a fake fetch, the disk with a temporary directory.
 
 import { afterEach, beforeEach, describe, expect, test } from '@jest/globals';
 import { mkdtempSync, rmSync, existsSync } from 'node:fs';
@@ -19,7 +19,7 @@ const URLS = {
 
 const TTL_MS = 24 * 3_600_000;
 
-/** Ответ, похожий на Response, — ровно те поля, которые использует код скачивания */
+/** A Response-like object — exactly the fields the download code uses */
 const httpResponse = (body: unknown, status = 200): Response =>
   ({
     ok: status < 400,
@@ -31,7 +31,7 @@ const httpResponse = (body: unknown, status = 200): Response =>
 
 type TRoute = 'schema' | 'notifications' | 'metrobook';
 
-/** Фиктивный fetch: для каждого маршрута задаётся тело ответа, код ошибки или обрыв сети */
+/** Fake fetch: for each route a response body, an error code or a network failure is configured */
 const makeFetch = (routes: Partial<Record<TRoute, unknown | { fail: number | 'network' }>>): typeof fetch =>
   (async (input: unknown) => {
     const url = String(input);
@@ -96,7 +96,7 @@ describe('Каскад источников и дисковый кеш', () => {
   });
 
   test('схема mosmetro недоступна → данные с metrobook, файл уведомлений удалён', async () => {
-    // Заранее кладём «вчерашние» уведомления — они должны удалиться по правилу срока жизни
+    // Pre-store "yesterday's" notifications — they must be deleted by the TTL rule
     await storage.write('mosmetroNotifications', loadNotificationsRaw());
     const res = await refreshMetroData(
       deps(makeFetch({ schema: { fail: 500 }, notifications: { fail: 500 }, metrobook: loadMetrobookHtml() })),
@@ -105,13 +105,13 @@ describe('Каскад источников и дисковый кеш', () => {
     expect(res.dataset?.source).toBe('metrobook');
     expect(res.dataset?.notifications).toBeUndefined();
     expect(fileExists('metrobookGraph')).toBe(true);
-    expect(fileExists('mosmetroNotifications')).toBe(false); // правило TTL
+    expect(fileExists('mosmetroNotifications')).toBe(false); // TTL rule
   });
 
   test('свежий metrobook обогащается из дисковой схемы mosmetro', async () => {
-    // Первый запуск: mosmetro успешен, схема сохранена на диск
+    // First run: mosmetro succeeds, the schema is saved to disk
     await refreshMetroData(deps(allOkFetch()));
-    // Второй запуск: mosmetro упал, metrobook жив — названия подтягиваются из дисковой схемы
+    // Second run: mosmetro is down, metrobook is alive — names are pulled from the on-disk schema
     const res = await refreshMetroData(
       deps(
         makeFetch({ schema: { fail: 'network' }, notifications: { fail: 'network' }, metrobook: loadMetrobookHtml() }),
@@ -128,10 +128,10 @@ describe('Каскад источников и дисковый кеш', () => {
     expect(res.origin).toBe('mosmetro-disk');
     expect(res.dataset?.source).toBe('mosmetro');
     expect(res.dataset?.stations.length).toBe(443);
-    // Уведомления не обновились — файл удалён по правилу срока жизни, закрытия не применяются
+    // Notifications were not refreshed — the file was deleted by the TTL rule, closures are not applied
     expect(res.dataset?.notifications).toBeUndefined();
     expect(fileExists('mosmetroNotifications')).toBe(false);
-    // Схема с диска не удаляется никогда
+    // The on-disk schema is never deleted
     expect(fileExists('mosmetroSchema')).toBe(true);
   });
 
@@ -172,14 +172,14 @@ describe('Каскад источников и дисковый кеш', () => {
       ),
     );
     expect(res.origin).toBe('metrobook-fresh');
-    // Старая валидная схема на диске цела
+    // The old valid schema on disk is intact
     const disk = await loadMetroDataFromDisk(deps(allFailFetch()));
     expect(disk.origin).toBe('mosmetro-disk');
     expect(disk.dataset?.stations.length).toBe(443);
   });
 
   test('устаревшие уведомления (старше 24 часов) игнорируются при чтении с диска и удаляются', async () => {
-    // Пишем уведомления «два дня назад» через хранилище с подменёнными часами
+    // Write notifications "two days ago" via a storage instance with a mocked clock
     const twoDaysAgo = new Date(Date.now() - 2 * 24 * 3_600_000);
     const oldStorage = new MetroStorage(dir, () => twoDaysAgo);
     await oldStorage.write('mosmetroSchema', loadSchemaRaw());
@@ -188,7 +188,7 @@ describe('Каскад источников и дисковый кеш', () => {
     const disk = await loadMetroDataFromDisk(deps(allFailFetch()));
     expect(disk.origin).toBe('mosmetro-disk');
     expect(disk.dataset?.notifications).toBeUndefined();
-    expect(fileExists('mosmetroNotifications')).toBe(false); // устаревший файл удалён
+    expect(fileExists('mosmetroNotifications')).toBe(false); // stale file deleted
   });
 
   test('свежие уведомления с диска применяются', async () => {

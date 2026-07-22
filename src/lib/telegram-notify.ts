@@ -1,35 +1,35 @@
-// Отправка оповещений в Telegram через Bot API — один HTTP-запрос sendMessage,
-// без внешних библиотек. Модуль чистый и тестируемый: fetch и тайм-аут передаются
-// параметрами, ошибки отправки НИКОГДА не пробрасываются наружу (оповещение не должно
-// ломать основную работу) — функция просто возвращает false, а причину пишет через
-// переданный обработчик onError.
+// Sending notifications to Telegram via the Bot API — a single sendMessage HTTP request,
+// no external libraries. The module is pure and testable: fetch and the timeout are passed
+// as parameters, and send errors are NEVER propagated (a notification must not break the
+// main flow) — the function simply returns false and reports the cause via the provided
+// onError handler.
 
 export interface ITelegramConfig {
-  /** Выключатель: false или пустые токен/чат — отправка тихо пропускается */
+  /** Kill switch: false or empty token/chat — sending is silently skipped */
   enabled: boolean;
-  /** Токен бота от @BotFather (секрет — хранить в config/local.yaml или ENV) */
+  /** Bot token from @BotFather (a secret — keep in config/local.yaml or ENV) */
   botToken: string;
-  /** Идентификатор чата: личный, группа или канал, куда добавлен бот */
+  /** Chat id: personal chat, group or channel the bot was added to */
   chatId: string;
 }
 
 export interface ITelegramSendOpts {
   fetchImpl?: typeof fetch;
   timeoutMs?: number;
-  /** Куда сообщить о неудачной отправке (обычно logger.warn) */
+  /** Where to report a failed send (usually logger.warn) */
   onError?: (message: string) => void;
 }
 
 const DEFAULT_TIMEOUT_MS = 10_000;
 
-/** Проверка, что оповещения настроены и включены */
+/** Checks that notifications are configured and enabled */
 export const isTelegramConfigured = (cfg: ITelegramConfig | null | undefined): cfg is ITelegramConfig =>
   !!cfg && cfg.enabled && !!cfg.botToken && !!cfg.chatId;
 
 /**
- * Отправляет текстовое сообщение в Telegram. Возвращает true при успехе.
- * Не бросает исключений: любая ошибка (сеть, тайм-аут, ответ ok=false) приводит
- * к false и вызову onError с описанием причины.
+ * Sends a text message to Telegram. Returns true on success.
+ * Never throws: any error (network, timeout, ok=false response) results in false
+ * and a call to onError with the cause description.
  */
 export const sendTelegramMessage = async (
   cfg: ITelegramConfig,
@@ -51,17 +51,17 @@ export const sendTelegramMessage = async (
     });
     if (!res.ok) {
       const body = await res.text().catch(() => '');
-      onError?.(`Telegram ответил HTTP ${res.status}: ${body.slice(0, 300)}`);
+      onError?.(`Telegram responded with HTTP ${res.status}: ${body.slice(0, 300)}`);
       return false;
     }
     const json = (await res.json()) as { ok?: boolean; description?: string };
     if (json.ok !== true) {
-      onError?.(`Telegram отклонил сообщение: ${json.description ?? JSON.stringify(json).slice(0, 300)}`);
+      onError?.(`Telegram rejected the message: ${json.description ?? JSON.stringify(json).slice(0, 300)}`);
       return false;
     }
     return true;
   } catch (e) {
-    onError?.(`Не удалось отправить сообщение в Telegram: ${e instanceof Error ? e.message : String(e)}`);
+    onError?.(`Failed to send Telegram message: ${e instanceof Error ? e.message : String(e)}`);
     return false;
   }
 };

@@ -1,22 +1,22 @@
-// Кластеры физических станций (пересадочных узлов).
+// Clusters of physical stations (interchange hubs).
 //
-// В наборе данных вершина графа — это станция конкретной линии. Один физический
-// пересадочный узел («Комсомольская» Сокольнической и Кольцевой линий) — это несколько
-// вершин, соединённых рёбрами-переходами (kind='transfer'). Для определения станции по
-// названию важно отличать такой единый узел (пользователю не нужно ничего уточнять — это
-// одна станция) от разных одноимённых станций, которые переходом НЕ связаны (например,
-// «Смоленская» Арбатско-Покровской и Филёвской линий — это две разные станции, между
-// которыми пересадки нет, и здесь уточнение необходимо).
+// In the dataset a graph node is a station of a specific line. One physical interchange
+// hub («Комсомольская» of the Sokolnicheskaya and Koltsevaya lines) is several nodes
+// connected by transfer edges (kind='transfer'). To resolve a station by name it matters
+// to distinguish such a unified hub (the user has nothing to clarify — it is one station)
+// from different same-named stations NOT connected by a transfer (e.g. «Смоленская» of the
+// Arbatsko-Pokrovskaya and Filyovskaya lines — two different stations with no transfer
+// between them, where clarification is required).
 //
-// Кластеризация выполняется алгоритмом «системы непересекающихся множеств» (union-find):
-// все вершины, соединённые цепочкой переходов, попадают в один кластер. Результат
-// мемоизируется по идентичности объекта dataset (WeakMap): при суточном обновлении данных
-// новый набор автоматически приводит к пересчёту.
+// Clustering uses the union-find (disjoint set union) algorithm: all nodes connected
+// by a chain of transfers end up in one cluster. The result is memoized by dataset
+// object identity (WeakMap): the daily data refresh produces a new dataset object
+// and automatically triggers a recompute.
 
 import { IMetroDataset } from '../metro-data/types.js';
 
 export interface IStationClusters {
-  /** Возвращает идентификатор кластера (корень объединения) для вершины графа */
+  /** Returns the cluster id (the union root) for a graph node */
   clusterOf(stationId: number): number;
 }
 
@@ -28,7 +28,7 @@ const buildClusters = (dataset: IMetroDataset): IStationClusters => {
     while (parent.get(root) !== root) {
       root = parent.get(root)!;
     }
-    // Сжатие путей: подвешиваем пройденные вершины прямо к корню для скорости
+    // Path compression: re-attach the visited nodes directly to the root for speed
     let cur = x;
     while (parent.get(cur) !== root) {
       const next = parent.get(cur)!;
@@ -46,7 +46,7 @@ const buildClusters = (dataset: IMetroDataset): IStationClusters => {
     if (e.kind !== 'transfer') {
       continue;
     }
-    // Ребро может ссылаться на вершину, отсутствующую в схеме, — пропускаем такое
+    // An edge may reference a node missing from the schema — skip such edges
     if (!parent.has(e.fromId) || !parent.has(e.toId)) {
       continue;
     }
@@ -64,7 +64,7 @@ const buildClusters = (dataset: IMetroDataset): IStationClusters => {
 
 const clustersCache = new WeakMap<IMetroDataset, IStationClusters>();
 
-/** Кластеры пересадочных узлов для набора данных с мемоизацией */
+/** Interchange hub clusters for a dataset, memoized */
 export const getStationClusters = (dataset: IMetroDataset): IStationClusters => {
   let clusters = clustersCache.get(dataset);
   if (!clusters) {

@@ -1,11 +1,10 @@
 import { TPromptContentFunction } from 'fa-mcp-sdk';
 
 /**
- * Подсказки по конкретным инструментам, отдаваемые встроенным промптом `tool_prompt`.
+ * Per-tool hints served by the built-in `tool_prompt` prompt.
  *
- * Промпт `tool_prompt` всегда объявлен в MCP, но непустую строку возвращает только для
- * инструментов, перечисленных здесь. Клиент передаёт имя инструмента в обязательном
- * аргументе `tool`.
+ * The `tool_prompt` prompt is always declared in MCP, but returns a non-empty string only
+ * for the tools listed here. The client passes the tool name in the required `tool` argument.
  */
 const TOOL_PROMPTS: Record<string, string> = {
   mos_metro_info: `Инструмент "mos_metro_info" отвечает на два вида запросов по Московскому метро (метро, МЦК, МЦД).

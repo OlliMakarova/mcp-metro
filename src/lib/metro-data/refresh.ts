@@ -1,18 +1,18 @@
-// Оркестратор получения данных метро. Каскад источников:
+// Orchestrator of metro data acquisition. Source cascade:
 //
-//   1. Свежий mosmetro.ru (схема + уведомления)      — полный набор сведений
-//   2. Свежий metrobook.ru                            — скудный набор (ядро графа)
-//   3. Диск: файлы mosmetro (уведомления — если им меньше 24 часов)
-//   4. Диск: файл metrobook
-//   5. Ничего нет → dataset = null (кеш пустой, маршрутизация вернёт ошибку)
+//   1. Fresh mosmetro.ru (schema + notifications)     — full dataset
+//   2. Fresh metrobook.ru                             — reduced dataset (graph core)
+//   3. Disk: mosmetro files (notifications — only if younger than 24 hours)
+//   4. Disk: metrobook file
+//   5. Nothing available → dataset = null (cache empty, routing will return an error)
 //
-// Правило срока жизни уведомлений: если при обновлении уведомления получить не удалось,
-// их файл УДАЛЯЕТСЯ с диска — устаревшие сведения о закрытиях хуже их отсутствия.
-// Файл схемы, напротив, не удаляется никогда: станции и перегоны не «протухают».
+// Notifications time-to-live rule: if notifications could not be fetched during a refresh,
+// their file is DELETED from disk — stale closure information is worse than none.
+// The schema file, by contrast, is never deleted: stations and ride segments do not go stale.
 //
-// Все зависимости (хранилище, адреса, fetch, часы, журнал) передаются параметрами —
-// модуль не обращается ни к appConfig, ни к fa-mcp-sdk и легко тестируется
-// с подменёнными источниками. Журнал логирования передаёт init.ts.
+// All dependencies (storage, URLs, fetch, clock, log) are passed as parameters —
+// the module touches neither appConfig nor fa-mcp-sdk and is easy to test
+// with substituted sources. The logger is provided by init.ts.
 
 import {
   IMosmetroRawNotifications,
@@ -32,17 +32,17 @@ import {
 import { MetroStorage } from './storage.js';
 import { IMetroDataset } from './types.js';
 
-/** Журнал логирования (подмножество, которое использует этот модуль) */
+/** Logger (the subset this module uses) */
 export interface IRefreshLog {
   info: (msg: string) => void;
   warn: (msg: string) => void;
   error: (msg: string) => void;
 }
 
-/** Журнал по умолчанию — тишина (в проде init.ts передаёт логгер fa-mcp-sdk) */
+/** Default logger — silence (in production init.ts passes the fa-mcp-sdk logger) */
 const SILENT_LOG: IRefreshLog = { info: () => {}, warn: () => {}, error: () => {} };
 
-/** Откуда в итоге взяты данные */
+/** Where the data ultimately came from */
 export type TRefreshOrigin = 'mosmetro-fresh' | 'metrobook-fresh' | 'mosmetro-disk' | 'metrobook-disk' | 'none';
 
 export interface IRefreshResult {
@@ -66,12 +66,12 @@ export interface IRefreshDeps {
 
 const errText = (e: unknown): string => (e instanceof Error ? e.message : String(e));
 
-/** Чтение лучшего доступного набора данных с диска (без обращений к сети) */
+/** Reads the best available dataset from disk (no network access) */
 export const loadMetroDataFromDisk = async (deps: IRefreshDeps): Promise<IRefreshResult> => {
   const { storage, notificationsTtlMs } = deps;
   const log = deps.log ?? SILENT_LOG;
 
-  // Приоритет 1: файлы mosmetro
+  // Priority 1: mosmetro files
   const schemaRawUnchecked = await storage.read('mosmetroSchema');
   if (schemaRawUnchecked) {
     try {
@@ -86,7 +86,7 @@ export const loadMetroDataFromDisk = async (deps: IRefreshDeps): Promise<IRefres
           notificationsRaw = validateMosmetroNotifications(notifUnchecked);
           notificationsFetchedAt = (await storage.getFileMeta('mosmetroNotifications'))?.fetchedAt;
         } catch (e) {
-          log.warn(`Файл уведомлений на диске повреждён, игнорируется: ${errText(e)}`);
+          log.warn(`Notifications file on disk is corrupted, ignoring it: ${errText(e)}`);
         }
       }
 
@@ -96,18 +96,18 @@ export const loadMetroDataFromDisk = async (deps: IRefreshDeps): Promise<IRefres
       });
       return { dataset, origin: 'mosmetro-disk' };
     } catch (e) {
-      log.warn(`Файл схемы mosmetro на диске не прошёл проверку структуры: ${errText(e)}`);
+      log.warn(`Mosmetro schema file on disk failed the structure check: ${errText(e)}`);
     }
   }
 
-  // Приоритет 2: файл metrobook
+  // Priority 2: metrobook file
   const metrobookGraph = await storage.readMetrobookGraph();
   if (metrobookGraph) {
     try {
       validateMetrobookGraph(metrobookGraph);
       return { dataset: normalizeMetrobook(metrobookGraph), origin: 'metrobook-disk' };
     } catch (e) {
-      log.warn(`Файл графа metrobook на диске не прошёл проверку структуры: ${errText(e)}`);
+      log.warn(`Metrobook graph file on disk failed the structure check: ${errText(e)}`);
     }
   }
 
@@ -115,8 +115,8 @@ export const loadMetroDataFromDisk = async (deps: IRefreshDeps): Promise<IRefres
 };
 
 /**
- * Плановое обновление: скачивает данные по каскаду источников, сохраняет их на диск
- * и возвращает лучший доступный набор данных.
+ * Scheduled refresh: downloads data through the source cascade, saves it to disk
+ * and returns the best available dataset.
  */
 export const refreshMetroData = async (deps: IRefreshDeps): Promise<IRefreshResult> => {
   const { storage, urls, requestTimeoutMs, fetchImpl, now } = deps;
@@ -128,16 +128,16 @@ export const refreshMetroData = async (deps: IRefreshDeps): Promise<IRefreshResu
     ...(fetchImpl ? { fetchImpl } : {}),
   });
 
-  // ── Шаг 1: основной источник mosmetro.ru ──────────────────────────────────
+  // ── Step 1: primary source mosmetro.ru ────────────────────────────────────
   let schemaRaw: IMosmetroRawSchema | null = null;
   try {
     schemaRaw = await fetchMosmetroSchema(fetchOpts(urls.mosmetroSchema));
   } catch (e) {
-    log.warn(`Схема mosmetro недоступна: ${errText(e)}`);
+    log.warn(`Mosmetro schema is unavailable: ${errText(e)}`);
   }
 
-  // Уведомления пытаемся получить независимо от исхода схемы: даже при недоступной схеме
-  // свежие уведомления полезны набору данных, собранному из дисковой копии схемы.
+  // Try to fetch notifications regardless of the schema outcome: even when the schema is
+  // unavailable, fresh notifications are useful for a dataset built from the disk schema copy.
   let notificationsRaw: IMosmetroRawNotifications | null = null;
   let notificationsFetchedAt: string | undefined;
   try {
@@ -145,8 +145,8 @@ export const refreshMetroData = async (deps: IRefreshDeps): Promise<IRefreshResu
     notificationsFetchedAt = nowIso();
     await storage.write('mosmetroNotifications', notificationsRaw, notificationsFetchedAt);
   } catch (e) {
-    // Правило срока жизни: обновить уведомления не удалось — устаревший файл удаляется
-    log.warn(`Уведомления mosmetro недоступны, файл устаревших уведомлений удаляется: ${errText(e)}`);
+    // Time-to-live rule: refreshing notifications failed — the stale file gets deleted
+    log.warn(`Mosmetro notifications are unavailable, deleting the stale notifications file: ${errText(e)}`);
     await storage.delete('mosmetroNotifications');
   }
 
@@ -158,14 +158,14 @@ export const refreshMetroData = async (deps: IRefreshDeps): Promise<IRefreshResu
       ...(notificationsRaw && notificationsFetchedAt ? { notificationsFetchedAt } : {}),
     });
     log.info(
-      `Данные метро обновлены с mosmetro.ru: станций ${dataset.stations.length}, уведомлений ${
+      `Metro data refreshed from mosmetro.ru: ${dataset.stations.length} stations, ${
         dataset.notifications?.length ?? 0
-      }`,
+      } notifications`,
     );
     return { dataset, origin: 'mosmetro-fresh' };
   }
 
-  // ── Шаг 2: резервный источник metrobook.ru ────────────────────────────────
+  // ── Step 2: backup source metrobook.ru ────────────────────────────────────
   try {
     const graph = await fetchMetrobookGraph({
       url: urls.metrobook,
@@ -176,29 +176,29 @@ export const refreshMetroData = async (deps: IRefreshDeps): Promise<IRefreshResu
     await storage.write('metrobookGraph', graph, graph.fetchedAt);
     let dataset = normalizeMetrobook(graph);
 
-    // Обогащение из последней сохранённой схемы mosmetro (даже устаревшей):
-    // многоязычные названия и «вторые» имена пересадочных узлов для поиска
+    // Enrichment from the last saved mosmetro schema (even a stale one):
+    // multilingual names and "secondary" transfer-hub names for search
     const diskSchemaUnchecked = await storage.read('mosmetroSchema');
     if (diskSchemaUnchecked) {
       try {
         dataset = enrichMetrobookFromMosmetroSchema(dataset, validateMosmetroSchema(diskSchemaUnchecked));
       } catch (e) {
-        log.warn(`Обогащение metrobook из дисковой схемы mosmetro не удалось: ${errText(e)}`);
+        log.warn(`Enriching metrobook from the disk mosmetro schema failed: ${errText(e)}`);
       }
     }
-    log.info(`Данные метро обновлены с резервного источника metrobook.ru: станций ${dataset.stations.length}`);
+    log.info(`Metro data refreshed from the backup source metrobook.ru: ${dataset.stations.length} stations`);
     return { dataset, origin: 'metrobook-fresh' };
   } catch (e) {
-    log.warn(`Резервный источник metrobook недоступен: ${errText(e)}`);
+    log.warn(`Backup source metrobook is unavailable: ${errText(e)}`);
   }
 
-  // ── Шаг 3–4: дисковые копии ───────────────────────────────────────────────
+  // ── Steps 3–4: disk copies ────────────────────────────────────────────────
   const disk = await loadMetroDataFromDisk(deps);
   if (disk.dataset) {
-    log.info(`Оба источника недоступны — использована дисковая копия (${disk.origin})`);
+    log.info(`Both sources are unavailable — using the disk copy (${disk.origin})`);
     return disk;
   }
 
-  log.error('Данные метро получить не удалось: оба источника недоступны, дисковых копий нет');
+  log.error('Failed to obtain metro data: both sources are unavailable and there are no disk copies');
   return { dataset: null, origin: 'none' };
 };

@@ -1,17 +1,17 @@
-// Состояние слоя данных метро для оповещений: по результату обновления (origin)
-// вычисляется один из четырёх уровней, а сообщение в Telegram отправляется только
-// при ПЕРЕХОДЕ между уровнями (алерт по фронту, а не по уровню) — и при ухудшении,
-// и при восстановлении. Модуль чистый: без обращений к сети, конфигурации и SDK.
+// Metro data layer state for notifications: from the refresh result (origin) one of four
+// levels is derived, and a Telegram message is sent only on a TRANSITION between levels
+// (edge-triggered alerting, not level-triggered) — both on degradation and on recovery.
+// The module is pure: no network, configuration or SDK access.
 
 import { TRefreshOrigin } from './refresh.js';
 import { IMetroDataset } from './types.js';
 
 /**
- * Уровни состояния слоя данных (от лучшего к худшему):
- *  ok     — свежие полные данные mosmetro.ru;
- *  backup — mosmetro недоступен, работаем на свежем резервном metrobook.ru;
- *  disk   — оба источника недоступны, работаем с дисковой копии;
- *  none   — данных нет вообще (кеш пуст, маршрутизация возвращает ошибку).
+ * Data layer state levels (from best to worst):
+ *  ok     — fresh full data from mosmetro.ru;
+ *  backup — mosmetro unavailable, running on fresh backup metrobook.ru;
+ *  disk   — both sources unavailable, running on a disk copy;
+ *  none   — no data at all (cache empty, routing returns an error).
  */
 export type TMetroDataState = 'ok' | 'backup' | 'disk' | 'none';
 
@@ -31,15 +31,15 @@ export const stateFromOrigin = (origin: TRefreshOrigin): TMetroDataState => {
 
 const formatDate = (iso: string | undefined): string => {
   if (!iso) {
-    return 'неизвестной даты';
+    return 'an unknown date';
   }
   const d = new Date(iso);
-  return Number.isNaN(d.getTime()) ? 'неизвестной даты' : `${d.toISOString().slice(0, 16).replace('T', ' ')} UTC`;
+  return Number.isNaN(d.getTime()) ? 'an unknown date' : `${d.toISOString().slice(0, 16).replace('T', ' ')} UTC`;
 };
 
 /**
- * Текст оповещения о переходе между состояниями. Возвращает null, если состояние
- * не изменилось (оповещать не о чем).
+ * Notification text for a state transition. Returns null if the state
+ * has not changed (nothing to notify about).
  */
 export const buildStateChangeMessage = (
   serviceName: string,
@@ -52,12 +52,12 @@ export const buildStateChangeMessage = (
   }
   switch (next) {
     case 'ok':
-      return `✅ ${serviceName}: источник mosmetro.ru снова доступен — данные метро полные, закрытия и ремонты учитываются.`;
+      return `✅ ${serviceName}: the mosmetro.ru source is available again — metro data is complete, closures and repairs are taken into account.`;
     case 'backup':
-      return `⚠️ ${serviceName}: источник mosmetro.ru недоступен. Данные обновлены с резервного metrobook.ru: маршруты строятся, но закрытия станций, вагоны и наземный транспорт недоступны.`;
+      return `⚠️ ${serviceName}: the mosmetro.ru source is unavailable. Data was refreshed from the backup metrobook.ru: routes are built, but station closures, train cars and ground transport are unavailable.`;
     case 'disk':
-      return `⚠️ ${serviceName}: оба источника (mosmetro.ru и metrobook.ru) недоступны. Используется дисковая копия (${dataset?.source ?? '?'}) от ${formatDate(dataset?.schemaFetchedAt)}; устаревшие сведения о закрытиях удалены.`;
+      return `⚠️ ${serviceName}: both sources (mosmetro.ru and metrobook.ru) are unavailable. Using a disk copy (${dataset?.source ?? '?'}) from ${formatDate(dataset?.schemaFetchedAt)}; stale closure information has been removed.`;
     case 'none':
-      return `🛑 ${serviceName}: данные метро получить не удалось — оба источника недоступны, дисковой копии нет. Построение маршрутов будет возвращать ошибку до восстановления источников.`;
+      return `🛑 ${serviceName}: failed to obtain metro data — both sources are unavailable and there is no disk copy. Route building will return an error until the sources recover.`;
   }
 };

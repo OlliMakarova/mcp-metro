@@ -1,17 +1,17 @@
-// Метрика схожести коротких слов и фраз: опечатки, слитное/раздельное написание,
-// штраф за перестановку слов. Основа — проверенный модуль из проекта mcp-jira
-// (src/lib/string-similarity.ts), адаптированный под ESM без самозапуска.
+// Similarity metric for short words and phrases: typos, joined/split spelling,
+// penalty for word reordering. Based on the proven module from the mcp-jira project
+// (src/lib/string-similarity.ts), adapted for ESM without self-execution.
 //
-// Расстояние OSA (Optimal String Alignment) — редакционное расстояние Левенштейна,
-// дополненное перестановкой соседних символов («тчк» ~ «тчк»), что хорошо ловит
-// типичные опечатки. Токенная метрика (взвешенная LCS) учитывает порядок слов.
+// OSA (Optimal String Alignment) distance is the Levenshtein edit distance extended
+// with transposition of adjacent characters, which catches typical typos well.
+// The token metric (weighted LCS) takes word order into account.
 
 type Cache<T> = Map<string, T>;
 
-const WORD_RE = /[\p{L}\p{N}_]+/gu; // буквы/цифры/подчёркивание любого алфавита
-const COMBINING_MARKS = /\p{M}/gu; // диакритика (удаляется после NFKD)
+const WORD_RE = /[\p{L}\p{N}_]+/gu; // letters/digits/underscore of any alphabet
+const COMBINING_MARKS = /\p{M}/gu; // diacritics (removed after NFKD)
 
-/** Верхняя граница размера кешей расстояний — защита от неограниченного роста на потоке запросов */
+/** Upper bound on the distance cache sizes — guards against unbounded growth under a request stream */
 const CACHE_LIMIT = 100_000;
 
 function stripAccents(s: string): string {
@@ -25,12 +25,12 @@ function normalize(s: string): { tokens: string[]; compact: string } {
   return { tokens, compact };
 }
 
-// ---- Расстояние OSA (Optimal String Alignment) ----
+// ---- OSA (Optimal String Alignment) distance ----
 
 const osaCache: Cache<number> = new Map();
 
 function osaDistance(a: string, b: string): number {
-  const key = `${a}${b}`;
+  const key = `${a}${b}`;
   const hit = osaCache.get(key);
   if (hit !== undefined) {
     return hit;
@@ -64,11 +64,11 @@ function osaDistance(a: string, b: string): number {
       const bj = b.charCodeAt(j - 1);
       const cost = ai === bj ? 0 : 1;
       let best = Math.min(
-        dp[i - 1]![j]! + 1, // удаление
-        dp[i]![j - 1]! + 1, // вставка
-        dp[i - 1]![j - 1]! + cost, // замена
+        dp[i - 1]![j]! + 1, // deletion
+        dp[i]![j - 1]! + 1, // insertion
+        dp[i - 1]![j - 1]! + cost, // substitution
       );
-      // перестановка соседних символов
+      // transposition of adjacent characters
       if (
         i > 1 &&
         j > 1 &&
@@ -95,7 +95,7 @@ function charSimilarity(a: string, b: string): number {
   if (!a || !b) {
     return 0;
   }
-  const key = `${a}${b}`;
+  const key = `${a}${b}`;
   const hit = charSimCache.get(key);
   if (hit !== undefined) {
     return hit;
@@ -110,7 +110,7 @@ function charSimilarity(a: string, b: string): number {
   return sim;
 }
 
-// ---- Токенное выравнивание с учётом порядка (взвешенная LCS) ----
+// ---- Order-aware token alignment (weighted LCS) ----
 
 function tokenSimilarity(tokensA: string[], tokensB: string[]): number {
   const n = tokensA.length;
@@ -122,7 +122,7 @@ function tokenSimilarity(tokensA: string[], tokensB: string[]): number {
     return 0;
   }
 
-  // предвычисляем попарные схожести токенов
+  // precompute pairwise token similarities
   const sim: number[][] = Array.from({ length: n }, (_, i) =>
     Array.from({ length: m }, (__, j) => charSimilarity(tokensA[i]!, tokensB[j]!)),
   );
@@ -134,15 +134,15 @@ function tokenSimilarity(tokensA: string[], tokensB: string[]): number {
     }
   }
   const best = dp[n]![m]!;
-  return best / Math.max(n, m); // нормировка: штраф за пропуски и перестановки
+  return best / Math.max(n, m); // normalization: penalizes gaps and reorderings
 }
 
-// ---- Сравнение «мешка слов» (порядок не важен) ----
+// ---- Bag-of-words comparison (order does not matter) ----
 
 /**
- * Жадное сопоставление токенов без учёта порядка: для каждого токена первой фразы
- * подбирается самый похожий свободный токен второй. Ловит перестановку слов
- * («стан тёплый» ~ «тёплый стан»), которую токенная LCS-метрика штрафует до нуля.
+ * Greedy order-independent token matching: for each token of the first phrase the most
+ * similar free token of the second is picked. Catches word reordering
+ * («стан тёплый» ~ «тёплый стан»), which the token LCS metric penalizes down to zero.
  */
 function tokenBagSimilarity(tokensA: string[], tokensB: string[]): number {
   const n = tokensA.length;
@@ -176,26 +176,26 @@ function tokenBagSimilarity(tokensA: string[], tokensB: string[]): number {
   return total / Math.max(n, m);
 }
 
-// ---- Комбинированная метрика ----
+// ---- Combined metric ----
 
-/** Множитель-штраф за совпадение только с перестановкой слов */
+/** Penalty multiplier for matching only up to word reordering */
 const BAG_PENALTY = 0.85;
 
 /**
- * Схожесть двух фраз в диапазоне 0..1 (1 — совпадение с точностью до регистра,
- * пробелов и диакритики). Слитное сравнение ловит опечатки и склейку слов,
- * токенное — наказывает перестановку слов, «мешок слов» — страхует от нулевой
- * оценки при полной перестановке (со штрафом BAG_PENALTY).
+ * Similarity of two phrases in the 0..1 range (1 — match up to case,
+ * spaces and diacritics). The joined comparison catches typos and word joining,
+ * the token one penalizes word reordering, and the bag-of-words one insures
+ * against a zero score on full reordering (with the BAG_PENALTY penalty).
  */
 export function phraseSimilarity(a: string, b: string): number {
   const { tokens: ta, compact: ca } = normalize(a);
   const { tokens: tb, compact: cb } = normalize(b);
 
-  const simChar = charSimilarity(ca, cb); // слитное сравнение
-  const simTok = tokenSimilarity(ta, tb); // порядок слов важен
-  const simBag = tokenBagSimilarity(ta, tb); // порядок слов не важен, но со штрафом
+  const simChar = charSimilarity(ca, cb); // joined comparison
+  const simTok = tokenSimilarity(ta, tb); // word order matters
+  const simBag = tokenBagSimilarity(ta, tb); // word order ignored, but penalized
 
-  // взвешенная комбинация + «страховка» от псевдосовпадения токенов
+  // weighted combination + "insurance" against pseudo-matching of tokens
   const combo = 0.6 * simChar + 0.4 * simTok;
   return Math.max(combo, simChar * 0.9, simBag * BAG_PENALTY);
 }

@@ -1,14 +1,14 @@
-// Индекс вариантов названий станций для неточного поиска.
+// Index of station name variants for fuzzy search.
 //
-// Для каждой станции собираются нормализованные варианты написания на всех доступных
-// языках (русский, английский, арабский, китайский) плюс транслитерации:
-//   «Ховрино» → "ховрино", "khovrino" (транслит), + en "khovrino", + варианты
-//   обратной транслитерации английского названия в кириллицу.
-// Сюда же попадают searchAliases — «вторые» имена пересадочных узлов при работе
-// от metrobook (см. enrichMetrobookFromMosmetroSchema).
+// For each station, normalized spelling variants are collected in all available
+// languages (Russian, English, Arabic, Chinese) plus transliterations:
+//   «Ховрино» → "ховрино", "khovrino" (transliteration), + en "khovrino", + variants
+//   of reverse transliteration of the English name into Cyrillic.
+// searchAliases also go here — the "second" names of interchange hubs when running
+// on metrobook data (see enrichMetrobookFromMosmetroSchema).
 //
-// Индекс мемоизируется по идентичности объекта dataset (WeakMap): смена набора данных
-// при суточном обновлении автоматически приводит к перестроению индекса.
+// The index is memoized by dataset object identity (WeakMap): swapping the dataset
+// during the daily refresh automatically triggers an index rebuild.
 
 import { IMetroDataset, IMetroLine, IMetroStation } from '../metro-data/types.js';
 import { normalizeForSearch } from './normalize-lang.js';
@@ -17,7 +17,7 @@ import { enToRuVariants, transliterate, transliterateRU } from './transliterate.
 export interface IStationSearchEntry {
   station: IMetroStation;
   line?: IMetroLine;
-  /** Нормализованные варианты написания названия */
+  /** Normalized spelling variants of the name */
   variants: string[];
 }
 
@@ -40,9 +40,9 @@ const buildVariantsForEnglish = (en: string): string[] => {
   }
   return [
     norm,
-    // Детерминированная обратная транслитерация в кириллицу
+    // Deterministic reverse transliteration into Cyrillic
     normalizeForSearch(transliterateRU(norm)),
-    // Несколько вариантов с перебором неоднозначностей (e/э, y/й/ы и т. п.)
+    // Several variants enumerating the ambiguities (e/э, y/й/ы, etc.)
     ...enToRuVariants(norm, 5).map(normalizeForSearch),
   ];
 };
@@ -93,7 +93,7 @@ export const buildSearchIndex = (dataset: IMetroDataset): ISearchIndex => {
 
 const indexCache = new WeakMap<IMetroDataset, ISearchIndex>();
 
-/** Индекс поиска для набора данных с мемоизацией */
+/** Search index for a dataset, memoized */
 export const getSearchIndex = (dataset: IMetroDataset): ISearchIndex => {
   let index = indexCache.get(dataset);
   if (!index) {
