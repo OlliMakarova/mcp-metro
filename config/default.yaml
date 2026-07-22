@@ -409,7 +409,7 @@ swagger:
 #> UI theme overrides for built-in pages (home, admin, agent-tester)
 uiColor:
   #> Font color of the header and a number of interface elements on the HOME page
-  primary: '#0f65dc'
+  primary: '#ff0013'
 
 #> HTTP server hosting MCP, admin panel, agent tester, swagger and health endpoints
 webServer:
