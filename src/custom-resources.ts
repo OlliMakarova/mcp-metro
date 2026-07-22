@@ -1,7 +1,6 @@
 import { IResourceData } from 'fa-mcp-sdk';
 
 import { getMetroDatasetOrNull } from './lib/metro-data/cache.js';
-import { toPublicSource } from './lib/metro-data/public-source.js';
 
 /**
  * Resources of the metro MCP server. Content is generated dynamically from the active dataset,
@@ -32,22 +31,16 @@ const renderLines = (): string => {
 ${rows}`;
 };
 
-/** Metro data status and freshness in markdown format */
+/** Metro data summary in markdown format (no source or freshness details — confidential) */
 const renderStatus = (): string => {
   const dataset = getMetroDatasetOrNull();
   if (!dataset) {
     return `# Состояние данных метро
 
-Данные метро временно недоступны (источники не отвечают, локальной копии нет).`;
+Данные метро временно недоступны.`;
   }
-  // Real data source names are confidential — only a neutral label goes out
-  const sourceName =
-    toPublicSource(dataset.source) === 'primary' ? 'основной (полный набор сведений)' : 'резервный (базовый набор)';
   return `# Состояние данных метро
 
-- Источник: ${sourceName}
-- Схема скачана: ${dataset.schemaFetchedAt}
-- Уведомления скачаны: ${dataset.notificationsFetchedAt ?? 'нет'}
 - Станций: ${dataset.stations.length}
 - Линий: ${dataset.lines.length}
 - Перегонов и переходов: ${dataset.edges.length}
@@ -65,7 +58,7 @@ export const customResources: IResourceData[] = [
   {
     uri: 'metro://status',
     name: 'Состояние данных метро',
-    description: 'Источник и свежесть загруженных данных: дата схемы, число станций, линий и действующих уведомлений.',
+    description: 'Сводка загруженных данных: число станций, линий, перегонов и действующих уведомлений.',
     mimeType: 'text/markdown',
     content: () => renderStatus(),
   },

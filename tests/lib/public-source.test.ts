@@ -5,7 +5,7 @@
 
 import { describe, expect, it } from '@jest/globals';
 
-import { hideSourceNames, toPublicSource } from '../../src/lib/metro-data/public-source.js';
+import { hideSourceNames } from '../../src/lib/metro-data/public-source.js';
 import { buildStationInfo } from '../../src/lib/station-info.js';
 import { findBestRoutes } from '../../src/lib/routing/find-routes.js';
 import { renderRoutes, renderStationInfo } from '../../src/tools/metro/render.js';
@@ -13,12 +13,7 @@ import { getMetrobookDataset, getMosmetroDataset, stationIdsByName } from './hel
 
 const LEAK_RE = /mosmetro|metrobook|prodapp/i;
 
-describe('Публичное обозначение источника', () => {
-  it('toPublicSource скрывает реальные имена', () => {
-    expect(toPublicSource('mosmetro')).toBe('primary');
-    expect(toPublicSource('metrobook')).toBe('backup');
-  });
-
+describe('Сокрытие имён источников', () => {
   it('hideSourceNames вычищает имена источников из произвольного текста', () => {
     expect(hideSourceNames('Ошибка при запросе https://prodapp.mosmetro.ru/api/schema/v1.0')).not.toMatch(LEAK_RE);
     expect(hideSourceNames('Файл metrobook-graph.json повреждён')).not.toMatch(LEAK_RE);

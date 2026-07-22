@@ -16,7 +16,6 @@ import {
   TLineKind,
   TNotificationStatus,
 } from './metro-data/types.js';
-import { TPublicDataSource, toPublicSource } from './metro-data/public-source.js';
 import { getRouteGraph } from './routing/graph.js';
 import { getStationClusters } from './station-search/station-clusters.js';
 
@@ -86,10 +85,6 @@ export interface IStationInfo {
   interchanges: IStationLineRef[];
   /** Currently active warnings (repairs, closures of exits/elevators/escalators) */
   warnings: IStationWarningInfo[];
-  /** Data source (neutral designation): primary — full, backup — reduced fallback */
-  source: TPublicDataSource;
-  /** When the schema was downloaded (ISO UTC) */
-  schemaFetchedAt: string;
   /** Whether active closures and repairs are applied (true only with fresh mosmetro notifications) */
   closuresApplied: boolean;
 }
@@ -312,8 +307,6 @@ export const buildStationInfo = (dataset: IMetroDataset, stationIds: number[], a
     platforms,
     interchanges,
     warnings,
-    source: toPublicSource(dataset.source),
-    schemaFetchedAt: dataset.schemaFetchedAt,
     closuresApplied: !!dataset.notifications,
   };
 };

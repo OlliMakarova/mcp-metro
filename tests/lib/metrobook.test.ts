@@ -34,7 +34,6 @@ describe('Резервный источник metrobook', () => {
       k: 1,
       at: AT_FIXTURE_DATE,
     });
-    expect(res.source).toBe('backup');
     // metrobook has no closures — graceful degradation without errors
     expect(res.closuresApplied).toBe(false);
     expect(res.variants[0]!.totalTimeMin).toBe(57);

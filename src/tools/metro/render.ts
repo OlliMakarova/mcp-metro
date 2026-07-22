@@ -256,14 +256,17 @@ const operatingWarning = (result: IFindRoutesResult): string | undefined => {
     return undefined;
   }
   const parts = [
-    `⚠️ **Внимание: вход в метро скоро закрывается.** Сейчас ${op.moscowTime
-  } по московскому времени, вход на станцию отправления закроется примерно через ${op.minutesToClose
-  } мин (график работы: ${op.window}) — постарайтесь войти до закрытия.`,
+    `⚠️ **Внимание: вход в метро скоро закрывается.** Сейчас ${
+      op.moscowTime
+    } по московскому времени, вход на станцию отправления закроется примерно через ${
+      op.minutesToClose
+    } мин (график работы: ${op.window}) — постарайтесь войти до закрытия.`,
   ];
   if (transfersMayClose && op.closesAt) {
     parts.push(
       `Маршрут занимает около ${fastest.totalTimeMin} мин и включает пересадки: переходы между линиями закрываются в ${
-        op.closesAt}, поэтому пересадка в конце поездки будет уже закрыта — доехать этим маршрутом до конца не получится. Выбирайте вариант без пересадок или наземный транспорт.`,
+        op.closesAt
+      }, поэтому пересадка в конце поездки будет уже закрыта — доехать этим маршрутом до конца не получится. Выбирайте вариант без пересадок или наземный транспорт.`,
     );
   }
   return parts.join(' ');
@@ -271,16 +274,12 @@ const operatingWarning = (result: IFindRoutesResult): string | undefined => {
 
 /** Full markdown response for the found routes */
 export const renderRoutes = (result: IFindRoutesResult, fromName: string, toName: string): string => {
-  const sourceName = result.source === 'primary' ? 'основной' : 'резервный (сокращённый набор сведений)';
-  const closures = result.closuresApplied
-    ? 'Действующие закрытия и ремонты учтены.'
-    : 'Данных о действующих закрытиях нет (учитываются только при свежих данных основного источника).';
+  const closures = result.closuresApplied ? 'Учтены действующие закрытия и ремонты.' : '';
 
   const head = [
     `# Маршруты: ${fromName} → ${toName}`,
     '',
-    `Источник данных: **${sourceName}** (схема от ${result.schemaFetchedAt}). ${closures}`,
-    `Найдено вариантов: **${result.variants.length}** (по возрастанию времени в пути).`,
+    `Найдено вариантов: **${result.variants.length}**.${closures}`,
     '',
   ];
   const opWarning = operatingWarning(result);
@@ -300,7 +299,6 @@ export const renderRoutes = (result: IFindRoutesResult, fromName: string, toName
 
 /** Full markdown response with station details */
 export const renderStationInfo = (info: IStationInfo): string => {
-  const sourceName = info.source === 'primary' ? 'основной' : 'резервный (сокращённый набор сведений)';
   const out: string[] = [];
   out.push(`# Станция: ${info.name.ru}`);
   const otherNames = [info.name.en, info.name.ar, info.name.cn].filter(Boolean);
@@ -382,8 +380,6 @@ export const renderStationInfo = (info: IStationInfo): string => {
     }
   }
 
-  out.push('');
-  out.push(`_Источник данных: ${sourceName}, схема от ${info.schemaFetchedAt}._`);
   return out.join('\n');
 };
 

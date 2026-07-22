@@ -10,7 +10,6 @@ import {
   TLineKind,
   TNotificationStatus,
 } from '../metro-data/types.js';
-import { TPublicDataSource, toPublicSource } from '../metro-data/public-source.js';
 import { IGraphEdge, IRouteGraph, getRouteGraph } from './graph.js';
 import { IOperatingStatus, getOperatingStatus } from './operating-hours.js';
 import { yenKShortestPaths } from './yen.js';
@@ -101,9 +100,6 @@ export interface IRouteVariant {
 }
 
 export interface IFindRoutesResult {
-  /** Data source (neutral designation): primary — full, backup — reduced fallback */
-  source: TPublicDataSource;
-  schemaFetchedAt: string;
   /** Whether closures and repairs are applied (true only with fresh mosmetro notifications) */
   closuresApplied: boolean;
   /** Entry status of the departure hub at the requested moment (Moscow time) */
@@ -298,8 +294,6 @@ export const findRoutes = (
   });
 
   return {
-    source: toPublicSource(dataset.source),
-    schemaFetchedAt: dataset.schemaFetchedAt,
     closuresApplied: !!dataset.notifications,
     operating: getOperatingStatus(dataset, [fromId], at),
     variants,
