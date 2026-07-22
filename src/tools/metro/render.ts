@@ -200,7 +200,8 @@ const renderVariant = (v: IRouteVariant, n: number): string => {
   out.push(`## Вариант ${n} — ${fmtDuration(v.totalTimeSec)} в пути, пересадок: ${v.transfersCount}`);
   out.push('');
   out.push(
-    `- **Время в пути:** ${fmtDuration(v.totalTimeSec)} (в поездах ${fmtDuration(v.rideTimeSec)}, на переходах ${fmtDuration(v.transferTimeSec)}).`,
+    `- **Время в пути:** ${fmtDuration(v.totalTimeSec)} (в поездах ${fmtDuration(v.rideTimeSec)}, на переходах ${
+      fmtDuration(v.transferTimeSec)}, ожидание поездов ~${fmtDuration(v.waitTimeSec)}).`,
   );
   if (extraEnter || extraExit) {
     out.push(
@@ -274,14 +275,21 @@ const operatingWarning = (result: IFindRoutesResult): string | undefined => {
 
 /** Full markdown response for the found routes */
 export const renderRoutes = (result: IFindRoutesResult, fromName: string, toName: string): string => {
-  const closures = result.closuresApplied ? 'Учтены действующие закрытия и ремонты.' : '';
+  const closures = result.closuresApplied ? ' Учтены действующие закрытия и ремонты.' : '';
 
   const head = [
     `# Маршруты: ${fromName} → ${toName}`,
     '',
-    `Найдено вариантов: **${result.variants.length}**.${closures}`,
+    `Найдено вариантов: **${result.variants.length}**.${closures} Во время в пути заложено ожидание поездов на станции посадки и на каждой пересадке — по типичным интервалам движения для текущего времени суток.`,
     '',
   ];
+  const hasMcd = result.variants.some((v) => v.legs.some((l) => l.kind === 'ride' && l.line?.isMcd));
+  if (hasMcd) {
+    head.push(
+      'ℹ️ Часть маршрутов проходит по МЦД: интервалы там зависят от конкретного рейса и его конечной станции, поэтому фактическое ожидание может отличаться — при возможности сверяйтесь с расписанием электричек.',
+    );
+    head.push('');
+  }
   const opWarning = operatingWarning(result);
   if (opWarning) {
     head.push(opWarning);

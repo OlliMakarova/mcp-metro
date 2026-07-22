@@ -5,6 +5,7 @@
 import { describe, expect, test } from '@jest/globals';
 import { buildRouteGraph } from '../../src/lib/routing/graph.js';
 import { findBestRoutes, findRoutes } from '../../src/lib/routing/find-routes.js';
+import { getExpectedWaitSec } from '../../src/lib/routing/train-intervals.js';
 import {
   AT_AFTER_CLOSURE,
   AT_FIXTURE_DATE,
@@ -15,8 +16,10 @@ import {
 
 describe('Маршрутизация по данным mosmetro', () => {
   const ds = getMosmetroDataset();
+  /** Expected wait per boarding for a metro line at the fixture moment (Wednesday noon) */
+  const METRO_WAIT = getExpectedWaitSec('metro', AT_FIXTURE_DATE);
 
-  test('эталонный маршрут Ховрино → Тёплый Стан: 57 мин, 1 пересадка; варианты 59 и 60 мин', () => {
+  test('эталонный маршрут Ховрино → Тёплый Стан: 1 пересадка, ожидание поездов заложено', () => {
     const fromIds = stationIdsByName(ds, 'Ховрино');
     const toIds = stationIdsByName(ds, 'Тёплый Стан');
     expect(fromIds.length).toBeGreaterThanOrEqual(1);
@@ -26,14 +29,25 @@ describe('Маршрутизация по данным mosmetro', () => {
     expect(res.closuresApplied).toBe(true);
     expect(res.variants).toHaveLength(3);
 
-    // Cross-checked with mosmetro.ru (2026-07-22): 56/59/60 min — ±1 min discrepancy due to rounding
+    // Cross-checked with mosmetro.ru (2026-07-22): the site shows 56 min for the fastest
+    // variant WITHOUT train waits — the ride+transfer sum is pinned here and does not
+    // depend on EXPECTED_WAIT_FACTOR (±1 min discrepancy due to rounding).
     const [v1, v2, v3] = res.variants;
-    expect(v1!.totalTimeMin).toBe(57);
+    expect(Math.round((v1!.rideTimeSec + v1!.transferTimeSec) / 60)).toBe(57);
     expect(v1!.transfersCount).toBe(1);
-    expect(v2!.totalTimeMin).toBe(59);
-    expect(v2!.transfersCount).toBe(2);
-    expect(v3!.totalTimeMin).toBe(60);
-    expect(v3!.transfersCount).toBe(2);
+
+    // Wait-dependent values derive from the factor: one boarding at the start plus one
+    // after every transfer walk (consecutive hub walks yield a single boarding).
+    // All variants of this route ride regular metro lines only.
+    for (const v of [v1!, v2!, v3!]) {
+      const boardings = v.legs.filter((l) => l.kind === 'ride').length;
+      expect(v.waitTimeSec).toBe(boardings * METRO_WAIT);
+      expect(v.totalTimeSec).toBe(v.rideTimeSec + v.transferTimeSec + v.waitTimeSec);
+      expect(v.totalTimeMin).toBe(Math.round(v.totalTimeSec / 60));
+    }
+    // Variants come sorted by the total time including waits
+    expect(v1!.totalTimeSec).toBeLessThanOrEqual(v2!.totalTimeSec);
+    expect(v2!.totalTimeSec).toBeLessThanOrEqual(v3!.totalTimeSec);
   });
 
   test('лучший вариант содержит этапы, вагоны на пересадке и наземный транспорт', () => {
@@ -108,8 +122,10 @@ describe('Маршрутизация по данным mosmetro', () => {
     for (const closed of graph.closedStations.keys()) {
       expect(stationIdsOnRoute).not.toContain(closed);
     }
-    // The bypass takes the time of the alternative edge
-    expect(v.totalTimeSec).toBe(altEdge!.timeSec);
+    // The bypass takes the time of the alternative edge plus the wait for the train
+    // (the D4 edge belongs to an MCD line — one boarding at the MCD daytime interval)
+    expect(v.waitTimeSec).toBe(getExpectedWaitSec('mcd', AT_FIXTURE_DATE));
+    expect(v.totalTimeSec).toBe(altEdge!.timeSec + v.waitTimeSec);
   });
 
   test('предупреждения EMERGENCY не закрывают станции, но попадают в ответ', () => {
@@ -134,7 +150,10 @@ describe('Маршрутизация по данным mosmetro', () => {
       { k: 1, at: AT_FIXTURE_DATE },
     );
     expect(res.closuresApplied).toBe(false);
-    expect(res.variants[0]!.totalTimeMin).toBe(57);
+    // The wait-free part matches the reference variant; waits derive from the factor
+    const v0 = res.variants[0]!;
+    expect(Math.round((v0.rideTimeSec + v0.transferTimeSec) / 60)).toBe(57);
+    expect(v0.waitTimeSec).toBe(2 * METRO_WAIT);
 
     // Without notifications the «Серп и Молот» station is not considered closed
     const graph = buildRouteGraph(dsNoNotif, AT_FIXTURE_DATE);

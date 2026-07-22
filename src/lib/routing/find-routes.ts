@@ -12,6 +12,7 @@ import {
 } from '../metro-data/types.js';
 import { IGraphEdge, IRouteGraph, getRouteGraph } from './graph.js';
 import { IOperatingStatus, getOperatingStatus } from './operating-hours.js';
+import { getExpectedWaitSec } from './train-intervals.js';
 import { yenKShortestPaths } from './yen.js';
 
 export interface IRouteStationInfo {
@@ -86,12 +87,19 @@ export interface IRouteWarning {
 }
 
 export interface IRouteVariant {
-  /** Total route time in seconds (sum of rides and transfers, excluding entry/exit) */
+  /** Total route time in seconds: rides + transfers + expected train waits (excluding entry/exit) */
   totalTimeSec: number;
-  /** Total time rounded to minutes (as shown on the mosmetro.ru website) */
+  /** Total time rounded to minutes */
   totalTimeMin: number;
   rideTimeSec: number;
   transferTimeSec: number;
+  /**
+   * Expected wait for trains (seconds): a share of the typical interval (EXPECTED_WAIT_FACTOR)
+   * at the boarding station plus the same share of the new line's interval after every
+   * transfer. Intervals are empirical (time of day, weekday/weekend, metro/MCC/MCD) —
+   * see train-intervals.ts.
+   */
+  waitTimeSec: number;
   transfersCount: number;
   legs: TRouteLeg[];
   departure: IRouteEndpoint;
@@ -110,7 +118,7 @@ export interface IFindRoutesResult {
 export interface IFindRoutesOpts {
   /** How many route variants to return (default 3) */
   k?: number;
-  /** Point in time at which closures are applied (default — now) */
+  /** Point in time at which closures and train-wait intervals are applied (default — now) */
   at?: Date;
   /** Penalty in seconds per transfer (default 0 — transfer time is already in the graph) */
   transferPenalty?: number;
@@ -264,7 +272,13 @@ export const findRoutes = (
     throw new Error(`Станция назначения закрыта: ${graph.closedStations.get(toId)}`);
   }
 
-  const dijkstraOpts = transferPenalty !== undefined ? { transferPenalty } : {};
+  // Expected train wait per line at the moment `at` — priced into transfer edges so that
+  // path search ranks a transfer to an infrequent line (MCD) against a longer direct ride
+  const waitSecByLineId = new Map<number, number>();
+  for (const l of dataset.lines) {
+    waitSecByLineId.set(l.id, getExpectedWaitSec(l.kind, at));
+  }
+  const dijkstraOpts = { waitSecByLineId, ...(transferPenalty !== undefined ? { transferPenalty } : {}) };
   const raw = yenKShortestPaths(graph, fromId, toId, k, dijkstraOpts);
 
   const variants: IRouteVariant[] = raw.map(({ edges }) => {
@@ -279,19 +293,32 @@ export const findRoutes = (
         transfersCount += 1;
       }
     }
-    const totalTimeSec = rideTimeSec + transferTimeSec + (transferPenalty ?? 0) * transfersCount;
+    const legs = buildLegs(graph, edges);
+    // One boarding per ride leg: the first train plus a train after every transfer
+    let waitTimeSec = 0;
+    for (const leg of legs) {
+      if (leg.kind === 'ride') {
+        waitTimeSec += getExpectedWaitSec(leg.line?.kind, at);
+      }
+    }
+    const totalTimeSec = rideTimeSec + transferTimeSec + waitTimeSec + (transferPenalty ?? 0) * transfersCount;
     return {
       totalTimeSec,
       totalTimeMin: Math.round(totalTimeSec / 60),
       rideTimeSec,
       transferTimeSec,
+      waitTimeSec,
       transfersCount,
-      legs: buildLegs(graph, edges),
+      legs,
       departure: endpoint(graph, fromId),
       arrival: endpoint(graph, toId),
       warnings: collectWarnings(graph, edges),
     };
   });
+
+  // Yen orders paths by edge weights (waits approximated on transfer edges); the exact
+  // per-leg waits above may shift close variants — re-sort by the final total time
+  variants.sort((a, b) => a.totalTimeSec - b.totalTimeSec);
 
   return {
     closuresApplied: !!dataset.notifications,

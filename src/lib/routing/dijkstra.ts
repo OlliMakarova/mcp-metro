@@ -57,6 +57,14 @@ class MinHeap {
 export interface IDijkstraOpts {
   /** Penalty in seconds for each transfer (default 0 — transfer time is already in the graph) */
   transferPenalty?: number;
+  /**
+   * Expected wait for a train (seconds) by lineId. Added to the weight of every transfer
+   * edge based on the line of its target station: after a transfer the passenger waits for
+   * a train of the new line. Ranks a transfer to an infrequent line (MCD) fairly against
+   * a slightly longer ride without one. The wait at the very first boarding is a constant
+   * for all paths of one search and is accounted for at the find-routes level.
+   */
+  waitSecByLineId?: Map<number, number>;
   /** Stations that must not be passed through (for Yen's algorithm) */
   bannedNodes?: Set<number>;
   /** Edge keys "from-to-edgeId" that must not be used (for Yen's algorithm) */
@@ -72,6 +80,21 @@ export interface IDijkstraResult {
 
 export const edgeBanKey = (e: IGraphEdge): string => `${e.from}-${e.to}-${e.edgeId}`;
 
+/**
+ * Edge weight for path search: ride edges cost their time; transfer edges additionally
+ * carry the transfer penalty and the expected wait for a train of the boarded line
+ * (the line of the transfer's target station). Shared by Dijkstra and Yen so both
+ * always price paths identically.
+ */
+export const edgeWeight = (graph: IRouteGraph, e: IGraphEdge, opts: IDijkstraOpts): number => {
+  if (e.kind !== 'transfer') {
+    return e.timeSec;
+  }
+  const toLineId = graph.stations.get(e.to)?.lineId;
+  const wait = toLineId !== undefined ? (opts.waitSecByLineId?.get(toLineId) ?? 0) : 0;
+  return e.timeSec + (opts.transferPenalty ?? 0) + wait;
+};
+
 /** Fastest-time path from fromId to toId, or null if no path exists */
 export const dijkstra = (
   graph: IRouteGraph,
@@ -79,7 +102,6 @@ export const dijkstra = (
   toId: number,
   opts: IDijkstraOpts = {},
 ): IDijkstraResult | null => {
-  const transferPenalty = opts.transferPenalty ?? 0;
   const { bannedNodes, bannedEdges } = opts;
 
   const dist = new Map<number, number>();
@@ -105,8 +127,7 @@ export const dijkstra = (
       if (bannedEdges?.has(edgeBanKey(e))) {
         continue;
       }
-      const w = e.timeSec + (e.kind === 'transfer' ? transferPenalty : 0);
-      const nd = d + w;
+      const nd = d + edgeWeight(graph, e, opts);
       if (nd < (dist.get(e.to) ?? Infinity)) {
         dist.set(e.to, nd);
         prevEdge.set(e.to, e);

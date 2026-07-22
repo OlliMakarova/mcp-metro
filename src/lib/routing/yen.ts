@@ -3,7 +3,7 @@
 // for spur paths; the fastest candidate becomes the next variant.
 
 import { IGraphEdge, IRouteGraph } from './graph.js';
-import { IDijkstraOpts, IDijkstraResult, dijkstra } from './dijkstra.js';
+import { IDijkstraOpts, IDijkstraResult, dijkstra, edgeWeight } from './dijkstra.js';
 
 const pathKey = (edges: IGraphEdge[]): string => edges.map((e) => `${e.from}-${e.to}`).join('|');
 
@@ -32,7 +32,6 @@ export const yenKShortestPaths = (
   }
   const paths: IDijkstraResult[] = [first];
   const candidates: Array<IDijkstraResult & { key: string }> = [];
-  const transferPenalty = opts.transferPenalty ?? 0;
 
   for (let ki = 1; ki < k; ki++) {
     const prevPath = paths[ki - 1]!.edges;
@@ -40,7 +39,7 @@ export const yenKShortestPaths = (
     for (let i = 0; i < prevPath.length; i++) {
       const spurNode = i === 0 ? fromId : prevPath[i - 1]!.to;
       const rootEdges = prevPath.slice(0, i);
-      const rootTime = rootEdges.reduce((s, e) => s + e.timeSec + (e.kind === 'transfer' ? transferPenalty : 0), 0);
+      const rootTime = rootEdges.reduce((s, e) => s + edgeWeight(graph, e, opts), 0);
 
       // Ban the edges that already-found paths used to continue from spurNode after the same prefix
       const bannedEdges = new Set<string>(opts.bannedEdges ?? []);

@@ -1,10 +1,12 @@
 // Tests for the metrobook backup source: a route built from the sparse data yields the same
-// time as from the full data (57 minutes), optional fields are absent, and enrichment from
-// the mosmetro schema adds multilingual names and the "second" names of interchange hubs.
+// time as from the full data (57 minutes of rides and transfers plus train waits), optional
+// fields are absent, and enrichment from the mosmetro schema adds multilingual names and
+// hub "second" names.
 
 import { describe, expect, test } from '@jest/globals';
 import { enrichMetrobookFromMosmetroSchema, parseMetrobookHtml } from '../../src/lib/metro-data/fetch-metrobook.js';
 import { findBestRoutes } from '../../src/lib/routing/find-routes.js';
+import { getExpectedWaitSec } from '../../src/lib/routing/train-intervals.js';
 import { fuzzySearchStations } from '../../src/lib/station-search/search-stations.js';
 import { IMetroDataset } from '../../src/lib/metro-data/types.js';
 import { AT_FIXTURE_DATE, getMetrobookDataset, loadMetrobookHtml, loadSchemaRaw, stationIdsByName } from './helpers.js';
@@ -28,7 +30,7 @@ describe('Резервный источник metrobook', () => {
     expect(ds.edges.every((e) => e.timeSec < 999_999)).toBe(true);
   });
 
-  test('маршрут Ховрино → Тёплый Стан по данным metrobook: те же 57 минут', () => {
+  test('маршрут Ховрино → Тёплый Стан по данным metrobook: те же 57 минут поездок плюс ожидание', () => {
     // The metrobook name is «Теплый стан»: an exact match is achieved via normalization
     const res = findBestRoutes(ds, stationIdsByName(ds, 'Ховрино'), idsByFuzzyName(ds, 'Тёплый Стан'), {
       k: 1,
@@ -36,8 +38,13 @@ describe('Резервный источник metrobook', () => {
     });
     // metrobook has no closures — graceful degradation without errors
     expect(res.closuresApplied).toBe(false);
-    expect(res.variants[0]!.totalTimeMin).toBe(57);
-    expect(res.variants[0]!.transfersCount).toBe(1);
+    const v = res.variants[0]!;
+    // The wait-free part matches the full mosmetro data; the wait itself derives from
+    // EXPECTED_WAIT_FACTOR: two boardings (start + one transfer) on regular metro lines
+    expect(Math.round((v.rideTimeSec + v.transferTimeSec) / 60)).toBe(57);
+    expect(v.waitTimeSec).toBe(2 * getExpectedWaitSec('metro', AT_FIXTURE_DATE));
+    expect(v.totalTimeSec).toBe(v.rideTimeSec + v.transferTimeSec + v.waitTimeSec);
+    expect(v.transfersCount).toBe(1);
   });
 
   test('деградация: необязательные поля просто отсутствуют, код не падает', () => {

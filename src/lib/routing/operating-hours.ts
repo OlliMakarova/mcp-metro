@@ -50,7 +50,7 @@ const fmtMin = (minutesOfDay: number): string => {
 };
 
 /** Moscow wall-clock parts of the instant: minutes of day and day of week (0 = Monday) */
-const moscowClock = (at: Date): { minutesOfDay: number; weekday: number; hhmm: string } => {
+export const moscowClock = (at: Date): { minutesOfDay: number; weekday: number; hhmm: string } => {
   const parts = new Intl.DateTimeFormat('en-US', {
     timeZone: MOSCOW_TZ,
     hourCycle: 'h23',

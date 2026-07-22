@@ -15,11 +15,15 @@ import { IMetroDataset, IMetrobookGraphFile } from '../../src/lib/metro-data/typ
 
 export const FIXTURES_DIR = path.resolve(__dirname, '..', 'fixtures');
 
-/** Point in time the reference answers are pinned to (the «Серп и Молот» closure is active) */
-export const AT_FIXTURE_DATE = new Date('2026-07-22T12:00:00');
+/**
+ * Point in time the reference answers are pinned to: Wednesday noon Moscow time
+ * (the «Серп и Молот» closure is active, daytime train intervals apply).
+ * Pinned to +03:00 so train-wait values do not depend on the machine timezone.
+ */
+export const AT_FIXTURE_DATE = new Date('2026-07-22T12:00:00+03:00');
 
 /** Point in time after the «Серп и Молот» closure ends (2026-08-31) */
-export const AT_AFTER_CLOSURE = new Date('2026-09-15T12:00:00');
+export const AT_AFTER_CLOSURE = new Date('2026-09-15T12:00:00+03:00');
 
 const readJson = (file: string): unknown => JSON.parse(readFileSync(path.join(FIXTURES_DIR, file), 'utf8'));
 
