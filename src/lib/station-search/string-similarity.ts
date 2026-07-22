@@ -199,7 +199,3 @@ export function phraseSimilarity(a: string, b: string): number {
   const combo = 0.6 * simChar + 0.4 * simTok;
   return Math.max(combo, simChar * 0.9, simBag * BAG_PENALTY);
 }
-
-export function isClose(a: string, b: string, threshold = 0.72): boolean {
-  return phraseSimilarity(a, b) >= threshold;
-}

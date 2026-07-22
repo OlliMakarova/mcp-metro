@@ -181,14 +181,3 @@ export interface IMetrobookGraphFile {
   /** Transfers, time — seconds; 999999 means "transfer forbidden" and is dropped */
   transfers: Array<{ from: number; to: number; time: number }>;
 }
-
-/**
- * "Metro data unavailable" error: both sources are down and there is no disk copy.
- * The message is shown to the user, so real source names must not appear in it.
- */
-export class MetroDataUnavailableError extends Error {
-  constructor(message?: string) {
-    super(message ?? 'Данные метро временно недоступны: источники данных не отвечают, локальной копии на диске нет');
-    this.name = 'MetroDataUnavailableError';
-  }
-}

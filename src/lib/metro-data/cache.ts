@@ -5,7 +5,7 @@
 // (WeakMap), so swapping the dataset automatically triggers their rebuild without any
 // explicit subscriptions.
 
-import { IMetroDataset, MetroDataUnavailableError } from './types.js';
+import { IMetroDataset } from './types.js';
 
 let currentDataset: IMetroDataset | null = null;
 
@@ -14,19 +14,5 @@ export const setMetroDataset = (dataset: IMetroDataset | null): void => {
   currentDataset = dataset;
 };
 
-/** Whether the cache holds data */
-export const hasMetroData = (): boolean => currentDataset !== null;
-
 /** The active dataset or null */
 export const getMetroDatasetOrNull = (): IMetroDataset | null => currentDataset;
-
-/**
- * The active dataset. If the cache is empty (both sources unavailable and no disk copy),
- * throws MetroDataUnavailableError — the caller must surface this error to the user.
- */
-export const getMetroDataset = (): IMetroDataset => {
-  if (!currentDataset) {
-    throw new MetroDataUnavailableError();
-  }
-  return currentDataset;
-};
