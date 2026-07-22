@@ -74,7 +74,6 @@ OpenAPI/Swagger UI is served at `/docs`; the raw spec at `/api/openapi.json`.
 |------|-------------|
 | `agent_brief` | Short agent description used for agent selection. |
 | `agent_prompt` | Full system prompt instructing the LLM how to use the tool. |
-| `tool_prompt` (arg `tool=mos_metro_info`) | Usage notes for the tool. |
 
 ## Install & Run
 

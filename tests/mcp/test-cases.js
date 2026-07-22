@@ -61,16 +61,6 @@ export const METRO_TESTS = {
         return fail(name, { error: e?.message });
       }
     },
-    async (client) => {
-      const name = 'tool_prompt для mos_metro_info возвращает подсказку';
-      try {
-        const text = extractPromptText(await client.getPrompt('tool_prompt', { tool: 'mos_metro_info' }));
-        const good = typeof text === 'string' && text.includes('mos_metro_info');
-        return good ? ok(name, { text }) : fail(name, { text });
-      } catch (e) {
-        return fail(name, { error: e?.message });
-      }
-    },
   ],
 
   resources: [

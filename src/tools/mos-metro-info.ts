@@ -1,22 +1,13 @@
-import chalk from 'chalk';
+import { Tool } from '@modelcontextprotocol/sdk/types.js';
 
-import {
-  asTextContent,
-  asTextError,
-  IToolHandlerParams,
-  logger as lgr,
-  ToolExecutionError,
-  TToolHandlerResponse,
-} from 'fa-mcp-sdk';
+import { asTextContent, asTextError, TToolHandlerResponse } from 'fa-mcp-sdk';
 
 import { getMetroDatasetOrNull } from '../lib/metro-data/cache.js';
 import { hideSourceNames } from '../lib/metro-data/public-source.js';
 import { findBestRoutes } from '../lib/routing/find-routes.js';
-import { resolveStation } from '../lib/station-search/resolve-station.js';
 import { buildStationInfo } from '../lib/station-info.js';
+import { resolveStation } from '../lib/station-search/resolve-station.js';
 import { renderResolutionAsk, renderRoutes, renderStationInfo } from './metro/render.js';
-
-const logger = lgr.getSubLogger({ name: chalk.bgGrey('tools') });
 
 /** How many route variants to request (per the task statement: from 1 to 4) */
 const ROUTE_COUNT = 4;
@@ -26,37 +17,52 @@ const DATA_UNAVAILABLE_MD = `## Данные метро временно нед�
 Не удалось получить данные о Московском метро: источники данных сейчас недоступны, а локальной копии на диске нет. Попробуйте повторить запрос позже.`;
 
 /**
- * Tool call handler of the metro MCP server.
+ * Tool definition.
  *
- * Debug output of tool requests/responses is wired centrally in the SDK
- * (see init-mcp-server.ts) and is enabled via the DEBUG=mcp:tool environment variable.
+ * The schema conforms to JSON Schema draft 2020-12 and forbids unknown fields
+ * (`additionalProperties: false`) — a requirement of the standard, §9.2.
  */
-export const handleToolCall = async (params: IToolHandlerParams): Promise<TToolHandlerResponse> => {
-  const { name, arguments: args } = params;
-  logger.info(`Tool called: ${name}`);
+export const mosMetroInfoTool: Tool = {
+  name: 'mos_metro_info',
+  title: 'Московское метро: маршруты и сведения о станциях',
+  description: `Поиск маршрутов между двумя станциями Московского метрополитена (включая МЦК и МЦД) и выдача сведений о станции.
+В режиме search_route строит от 1 до 4 кратчайших маршрутов между двумя станциями с полным временем в пути, станциями, пересадками, рекомендациями по вагонам, наземным транспортом на конечных станциях и действующими ограничениями (ремонты, закрытия).
+В режиме get_station_info возвращает сведения о станции: линии, выходы, наземный транспорт, услуги, расписание первых и последних поездов, пересадки и предупреждения.
 
-  try {
-    if (name === 'mos_metro_info') {
-      return await handleMosMetroInfo(args);
-    }
-    throw new ToolExecutionError(name, `Unknown tool: ${name}`);
-  } catch (error: Error | any) {
-    logger.error(`Tool execution failed for ${name}:`, error);
-    error.printed = true;
-    // Real data source names are confidential: scrub them from the error text
-    // before the SDK returns it to the client in the MCP response (the original went to the log above)
-    if (typeof error?.message === 'string') {
-      error.message = hideSourceNames(error.message);
-    }
-    throw error;
-  }
+Названия станций передавать так как их укажет пользователь.
+`,
+  inputSchema: {
+    type: 'object',
+    properties: {
+      first_metro_station: {
+        type: 'string',
+        description: `Название станции отправления (для search_route) или станции, о которой нужны сведения (для get_station_info).`,
+      },
+      second_metro_station: {
+        type: 'string',
+        description: `Название станции прибытия. Обязательно только для action=search_route.`,
+      },
+      action: {
+        type: 'string',
+        enum: ['search_route', 'get_station_info'],
+        description: `Тип действия: "search_route" — построить кратчайшие маршруты между двумя станциями;
+"get_station_info" — вернуть сведения о станции first_metro_station.`,
+      },
+    },
+    required: ['first_metro_station', 'action'],
+    additionalProperties: false,
+  },
+  annotations: {
+    readOnlyHint: true,
+    openWorldHint: false,
+  },
 };
 
 /**
  * Universal tool: station details or shortest routes between two stations.
  * All responses are returned as ready-made markdown text (lists and tables).
  */
-const handleMosMetroInfo = async (args: any): Promise<TToolHandlerResponse> => {
+export const handleMosMetroInfo = async (args: any): Promise<TToolHandlerResponse> => {
   const first = String(args?.first_metro_station ?? '').trim();
   const second = String(args?.second_metro_station ?? '').trim();
   const action = args?.action;
@@ -112,7 +118,7 @@ const handleMosMetroInfo = async (args: any): Promise<TToolHandlerResponse> => {
   if (fromOpt.clusterId === toOpt.clusterId) {
     return asTextContent(
       `# Маршрут не требуется
-      
+
 Станции отправления и прибытия совпадают: **${fromOpt.name}**. Это один и тот же пересадочный узел.`,
     );
   }
