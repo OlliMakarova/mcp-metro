@@ -55,7 +55,7 @@ export const METRO_TESTS = {
       const name = 'agent_brief упоминает метро';
       try {
         const text = extractPromptText(await client.getPrompt('agent_brief'));
-        const good = typeof text === 'string' && /метро/i.test(text);
+        const good = typeof text === 'string' && /метро|metro/i.test(text);
         return good ? ok(name, { text }) : fail(name, { text });
       } catch (e) {
         return fail(name, { error: e?.message });

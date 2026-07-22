@@ -230,6 +230,45 @@ const renderVariant = (v: IRouteVariant, n: number): string => {
   return out.join('\n');
 };
 
+/** Extra margin (min) on top of the travel time when warning about the upcoming closure */
+const ENTRY_CLOSING_SOON_MIN = 30;
+
+/**
+ * Warning about the metro operating hours relative to the current Moscow time.
+ * The hard deadline is the ENTRY: passengers already inside finish their trip normally
+ * (nobody is taken off a train, vestibules keep working for exit after closing). What does
+ * close together with the entry are the interline transfer passages — hence the extra note
+ * for routes with transfers that end after the closing time.
+ */
+const operatingWarning = (result: IFindRoutesResult): string | undefined => {
+  const op = result.operating;
+  if (!op.isOpen) {
+    const opensAt = op.opensAt ? ` Вход откроется в ${op.opensAt}.` : '';
+    return `⛔ **Внимание: метро сейчас закрыто.** Сейчас ${op.moscowTime} по московскому времени, а станция отправления работает по графику ${op.window}.${opensAt} Указанное ниже время в пути — чистое время поездки, ожидание открытия метро в него не входит.`;
+  }
+  if (op.minutesToClose === undefined) {
+    return undefined;
+  }
+  const fastest = result.variants[0];
+  const transfersMayClose =
+    fastest !== undefined && fastest.transfersCount > 0 && op.minutesToClose < fastest.totalTimeMin;
+  if (op.minutesToClose > ENTRY_CLOSING_SOON_MIN && !transfersMayClose) {
+    return undefined;
+  }
+  const parts = [
+    `⚠️ **Внимание: вход в метро скоро закрывается.** Сейчас ${op.moscowTime
+  } по московскому времени, вход на станцию отправления закроется примерно через ${op.minutesToClose
+  } мин (график работы: ${op.window}) — постарайтесь войти до закрытия.`,
+  ];
+  if (transfersMayClose && op.closesAt) {
+    parts.push(
+      `Маршрут занимает около ${fastest.totalTimeMin} мин и включает пересадки: переходы между линиями закрываются в ${
+        op.closesAt}, поэтому пересадка в конце поездки будет уже закрыта — доехать этим маршрутом до конца не получится. Выбирайте вариант без пересадок или наземный транспорт.`,
+    );
+  }
+  return parts.join(' ');
+};
+
 /** Full markdown response for the found routes */
 export const renderRoutes = (result: IFindRoutesResult, fromName: string, toName: string): string => {
   const sourceName = result.source === 'primary' ? 'основной' : 'резервный (сокращённый набор сведений)';
@@ -244,6 +283,11 @@ export const renderRoutes = (result: IFindRoutesResult, fromName: string, toName
     `Найдено вариантов: **${result.variants.length}** (по возрастанию времени в пути).`,
     '',
   ];
+  const opWarning = operatingWarning(result);
+  if (opWarning) {
+    head.push(opWarning);
+    head.push('');
+  }
   if (!result.variants.length) {
     head.push('Не удалось построить ни одного маршрута между указанными станциями.');
     return head.join('\n');

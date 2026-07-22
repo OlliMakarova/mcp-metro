@@ -12,6 +12,7 @@ import {
 } from '../metro-data/types.js';
 import { TPublicDataSource, toPublicSource } from '../metro-data/public-source.js';
 import { IGraphEdge, IRouteGraph, getRouteGraph } from './graph.js';
+import { IOperatingStatus, getOperatingStatus } from './operating-hours.js';
 import { yenKShortestPaths } from './yen.js';
 
 export interface IRouteStationInfo {
@@ -105,6 +106,8 @@ export interface IFindRoutesResult {
   schemaFetchedAt: string;
   /** Whether closures and repairs are applied (true only with fresh mosmetro notifications) */
   closuresApplied: boolean;
+  /** Entry status of the departure hub at the requested moment (Moscow time) */
+  operating: IOperatingStatus;
   variants: IRouteVariant[];
 }
 
@@ -298,6 +301,7 @@ export const findRoutes = (
     source: toPublicSource(dataset.source),
     schemaFetchedAt: dataset.schemaFetchedAt,
     closuresApplied: !!dataset.notifications,
+    operating: getOperatingStatus(dataset, [fromId], at),
     variants,
   };
 };
@@ -356,5 +360,7 @@ export const findBestRoutes = (
     })
     .slice(0, k);
 
-  return { ...base, variants };
+  // Recompute the entry status over ALL vestibules of the departure hub (base covers one)
+  const operating = getOperatingStatus(dataset, fromIds, opts.at ?? new Date());
+  return { ...base, operating, variants };
 };
