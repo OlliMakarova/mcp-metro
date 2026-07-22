@@ -55,6 +55,12 @@ interface IRawStation {
   workTime?: Array<{ open?: string | null; close?: string | null } | null> | null;
   mcd?: boolean | null;
   mcc?: boolean | null;
+  perspective?: boolean | null;
+  outside?: boolean | null;
+  typhloHtmlFile?: string | null;
+  schemes?: string[] | null;
+  audios?: string[] | null;
+  history?: string | null;
 }
 
 interface IRawLine {
@@ -219,6 +225,12 @@ const normalizeStation = (s: IRawStation): IMetroStation => {
     ...(s.services?.length ? { services: s.services } : {}),
     ...(s.scheduleTrains && Object.keys(s.scheduleTrains).length ? { scheduleTrains: s.scheduleTrains } : {}),
     ...(workTime.length ? { workTime } : {}),
+    ...(s.perspective === true ? { isPerspective: true } : {}),
+    ...(s.outside === true ? { isOutside: true } : {}),
+    ...(s.typhloHtmlFile ? { typhloHtmlUrl: s.typhloHtmlFile } : {}),
+    ...(s.schemes?.length ? { schemeImageUrls: s.schemes.filter(Boolean) } : {}),
+    ...(s.audios?.length ? { audioUrls: s.audios.filter(Boolean) } : {}),
+    ...(s.history?.trim() ? { history: s.history.trim() } : {}),
   };
 };
 
