@@ -29,7 +29,7 @@
 #> ========================================================================
 adminPanel:
   #> Enable/disable admin panel. false — /admin is not mounted at all.
-  enabled: true
+  enabled: false
   #> Authentication type: 'permanentServerTokens' | 'basic' | 'jwtToken' | 'ntlm' | 'none'
   #> Accepts a single type (string) or multiple types (array):
   #>   authType: 'basic'
@@ -73,10 +73,10 @@ agentTester:
   #> Enables the Agent Tester UI at /agent-tester
   enabled: true
   #> true (default) — show Agent Tester link in home page footer; false — hide link without disabling tester
-  showFooterLink: true
+  showFooterLink: false
   #> true — protect Agent Tester with full multi-auth (permanentTokens/basic/JWT/custom);
   #> browser users see a login dialog, headless clients pass Authorization header
-  useAuth: false
+  useAuth: true
   #> Browser login session lifetime in milliseconds. Default: 28800000 (8 hours).
   #> Applies only when useAuth is true. Sessions are in-memory on the server — lost on restart.
   sessionTtlMs: 28800000
@@ -248,6 +248,21 @@ logger:
 #> Daily download of Moscow metro data: primary source mosmetro.ru,
 #> fallback metrobook.ru, disk cache in `dataDir` (outside version control).
 #> ========================================================================
+#> ========================================================================
+#> TELEGRAM NOTIFICATIONS
+#> Alerts about metro data source state changes (mosmetro.ru down / recovered,
+#> fallback to metrobook.ru or disk copy, no data at all). A message is sent only
+#> on state TRANSITIONS, not on every failed refresh.
+#> Real botToken/chatId belong in config/local.yaml (gitignored) or ENV.
+#> ========================================================================
+telegram:
+  #> Master switch. false — no messages are sent even if token/chat are set.
+  enabled: false
+  #> Bot token from @BotFather (secret!)
+  botToken: '***'
+  #> Target chat id: personal chat, group or channel the bot was added to
+  chatId: ''
+
 #> Disk cache folder (data-cache/) and source URLs are hardcoded in src/lib/metro-data/metro-config.ts
 metro:
   #> Scheduled refresh period, hours
@@ -448,7 +463,7 @@ webServer:
       #> HS256 signing secret — used ONLY by legacyAesCtr mode (minimum 8 chars).
       encryptKey: '***'
       #> If webServer.auth.enabled and the parameter true, the service name and the service specified in the token will be checked
-      checkMCPName: true
+      checkMCPName: false
       #> If true and JWT token contains non-empty 'ip' field,
       #> the client IP will be checked against the allowed list in the token
       isCheckIP: false

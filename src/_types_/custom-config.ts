@@ -50,9 +50,24 @@ export interface IMetroSectionConfig {
 }
 
 /**
+ * Оповещения в Telegram о смене состояния источников данных метро
+ * (секция `telegram` в config/*.yaml; токен — секрет, хранить в local.yaml или ENV).
+ */
+export interface ITelegramSectionConfig {
+  telegram?: {
+    /** Включить оповещения (по умолчанию false) */
+    enabled?: boolean;
+    /** Токен бота от @BotFather */
+    botToken?: string;
+    /** Идентификатор чата (личный, группа или канал, куда добавлен бот) */
+    chatId?: string;
+  };
+}
+
+/**
  * Extended app config with group checking settings
  */
-export interface CustomAppConfig extends AppConfig, IGroupAccessConfig, IMetroSectionConfig {}
+export interface CustomAppConfig extends AppConfig, IGroupAccessConfig, IMetroSectionConfig, ITelegramSectionConfig {}
 
 // ========================================================================
 // YAML CONFIGURATION EXAMPLE (config/default.yaml)

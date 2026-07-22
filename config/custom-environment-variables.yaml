@@ -125,6 +125,13 @@ mcp:
       __name: MCP_SSE_MAX_STORED_EVENTS
       __format: number
 
+telegram:
+  enabled:
+    __name: TELEGRAM_NOTIFY_ENABLED
+    __format: boolean
+  botToken: TELEGRAM_BOT_TOKEN
+  chatId: TELEGRAM_CHAT_ID
+
 uiColor:
   primary: UI_COLOR_PRIMARY
 

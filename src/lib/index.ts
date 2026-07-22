@@ -26,6 +26,12 @@ export {
   parseMetrobookHtml,
 } from './metro-data/fetch-metrobook.js';
 
+// Состояние источников и оповещения в Telegram
+export { buildStateChangeMessage, stateFromOrigin } from './metro-data/source-state.js';
+export type { TMetroDataState } from './metro-data/source-state.js';
+export { isTelegramConfigured, sendTelegramMessage } from './telegram-notify.js';
+export type { ITelegramConfig, ITelegramSendOpts } from './telegram-notify.js';
+
 // Маршрутизация
 export { buildRouteGraph, getRouteGraph } from './routing/graph.js';
 export type { IGraphEdge, IRouteGraph, IStationWarning } from './routing/graph.js';
