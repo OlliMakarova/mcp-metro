@@ -103,6 +103,8 @@
     }
   ],
   "ignorePatterns": [
+    "data/**",
+    "data-cache/**",
     "node_modules/**",
     "**/dist/**",
     "coverage/**",

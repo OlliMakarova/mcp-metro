@@ -13,6 +13,8 @@
   "insertFinalNewline": true,
   "proseWrap": "preserve",
   "ignorePatterns": [
+    "data/**",
+    "data-cache/**",
     "node_modules/**",
     "**/dist/**",
     "coverage/**",

@@ -34,9 +34,25 @@ export interface IGroupAccessConfig {
 }
 
 /**
+ * Настройки слоя данных метро (секция `metro` в config/*.yaml).
+ * Все поля необязательны — значения по умолчанию подставляет getMetroConfig()
+ * в src/lib/metro-data/metro-config.ts.
+ */
+export interface IMetroSectionConfig {
+  metro?: {
+    /** Период планового обновления данных, часы (по умолчанию 24) */
+    refreshIntervalHours?: number;
+    /** Срок жизни файла уведомлений о закрытиях, часы (по умолчанию 24) */
+    notificationsTtlHours?: number;
+    /** Тайм-аут одного HTTP-запроса к источнику, миллисекунды (по умолчанию 30000) */
+    requestTimeoutMs?: number;
+  };
+}
+
+/**
  * Extended app config with group checking settings
  */
-export interface CustomAppConfig extends AppConfig, IGroupAccessConfig {}
+export interface CustomAppConfig extends AppConfig, IGroupAccessConfig, IMetroSectionConfig {}
 
 // ========================================================================
 // YAML CONFIGURATION EXAMPLE (config/default.yaml)

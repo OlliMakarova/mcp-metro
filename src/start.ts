@@ -3,6 +3,7 @@ import { appConfig, initMcpServer, McpServerData, getAsset } from 'fa-mcp-sdk';
 
 import { apiRouter } from './api/router.js';
 import { customResources } from './custom-resources.js';
+import { initMetroData } from './lib/metro-data/init.js';
 import { AGENT_BRIEF } from './prompts/agent-brief.js';
 import { AGENT_PROMPT } from './prompts/agent-prompt.js';
 import { customPrompts } from './prompts/custom-prompts.js';
@@ -16,6 +17,10 @@ const isConsulProd = (process.env.NODE_CONSUL_ENV || process.env.NODE_ENV) === '
  * Main function that assembles all project data and starts the MCP server
  */
 const startProject = async (): Promise<void> => {
+  // Слой данных метро: загрузка дисковой копии, фоновое обновление из сети,
+  // плановое обновление раз в сутки (mosmetro.ru с откатом на metrobook.ru)
+  await initMetroData();
+
   // Read logo from assets
   const logoSvg = getAsset('logo.svg')!;
 

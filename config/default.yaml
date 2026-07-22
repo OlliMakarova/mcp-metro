@@ -46,27 +46,27 @@ adminPanel:
 
 #> Active Directory / LDAP settings.
 #> Used for authentication/authorization (e.g., NTLM in admin panel) and checking user membership in AD groups.
-ad:
-  #> Map of domains. Key is a domain name
-  domains:
-    MYDOMAIN:
-      #> Marks this domain as default one
-      default: true
-      #> List of LDAP controllers (can be multiple for failover).
-      #> Use ldap:// for plain LDAP or ldaps:// for LDAP over TLS.
-      controllers:
-        - 'ldap://c1.corp.com'
-        - 'ldap://c2.corp.com'
-      #> Service account (bind DN or username) used to connect to LDAP.
-      username: '***'
-      #> Service account password.
-      password: '***'
-      #> Base DN for LDAP searches. Auto-derived from controller URL if not set.
-      # baseDn: 'DC=corp,DC=com'
-  #> Cache TTL for group membership checks (default: 600000 = 10 min)
-  # groupCacheTtlMs: 600000
-  #> Cache TTL for user/group DN lookups (default: 86400000 = 24 hours)
-  # dnCacheTtlMs: 86400000
+#ad:
+#  #> Map of domains. Key is a domain name
+#  domains:
+#    MYDOMAIN:
+#      #> Marks this domain as default one
+#      default: true
+#      #> List of LDAP controllers (can be multiple for failover).
+#      #> Use ldap:// for plain LDAP or ldaps:// for LDAP over TLS.
+#      controllers:
+#        - 'ldap://c1.corp.com'
+#        - 'ldap://c2.corp.com'
+#      #> Service account (bind DN or username) used to connect to LDAP.
+#      username: '***'
+#      #> Service account password.
+#      password: '***'
+#      #> Base DN for LDAP searches. Auto-derived from controller URL if not set.
+#      # baseDn: 'DC=corp,DC=com'
+#  #> Cache TTL for group membership checks (default: 600000 = 10 min)
+#  # groupCacheTtlMs: 600000
+#  #> Cache TTL for user/group DN lookups (default: 86400000 = 24 hours)
+#  # dnCacheTtlMs: 86400000
 
 #> Built-in chat UI for testing MCP tools with an LLM.
 agentTester:
@@ -195,27 +195,27 @@ consul:
     dev: 'edev'
 
 #> Database connections used by the service
-db:
-  #> PostgreSQL connection pool definitions
-  postgres:
-    #> Map of named PostgreSQL databases (key is a logical alias used in code)
-    dbs:
-      main:
-        #> Human-readable label shown in diagnostics and admin pages
-        label: 'Your Database Label'
-        #> To exclude the use of the database, you need to set host = ''
-        host: ''
-        #> PostgreSQL server port
-        port: 5432
-        #> Database name
-        database: <database>
-        #> Database user
-        user: <user>
-        #> Database password
-        password: <password>
-        #> List of PostgreSQL extensions required by the service (e.g., 'pgvector', 'uuid-ossp')
-        usedExtensions: []
-        #  - pgvector
+#db:
+#  #> PostgreSQL connection pool definitions
+#  postgres:
+#    #> Map of named PostgreSQL databases (key is a logical alias used in code)
+#    dbs:
+#      main:
+#        #> Human-readable label shown in diagnostics and admin pages
+#        label: 'Your Database Label'
+#        #> To exclude the use of the database, you need to set host = ''
+#        host: ''
+#        #> PostgreSQL server port
+#        port: 5432
+#        #> Database name
+#        database: <database>
+#        #> Database user
+#        user: <user>
+#        #> Database password
+#        password: <password>
+#        #> List of PostgreSQL extensions required by the service (e.g., 'pgvector', 'uuid-ossp')
+#        usedExtensions: []
+#        #  - pgvector
 
 #> Service home page (`/`) customization
 homePage:
@@ -241,7 +241,22 @@ logger:
   #> Absolute path to the folder where logs will be written. Default <proj_root>/../logs
   dir: ''
   #> Disable built-in secret/email/URL masking (maskValuesRegEx becomes []). Default: false.
-  disableMasking: false
+  disableMasking: true
+
+#> ========================================================================
+#> METRO DATA LAYER
+#> Daily download of Moscow metro data: primary source mosmetro.ru,
+#> fallback metrobook.ru, disk cache in `dataDir` (outside version control).
+#> ========================================================================
+#> Disk cache folder (data-cache/) and source URLs are hardcoded in src/lib/metro-data/metro-config.ts
+metro:
+  #> Scheduled refresh period, hours
+  refreshIntervalHours: 24
+  #> Closures/repairs notifications time-to-live, hours. If the next refresh cannot
+  #> fetch fresh notifications from mosmetro.ru, the stale file is deleted from disk.
+  notificationsTtlHours: 24
+  #> Per-request HTTP timeout, milliseconds
+  requestTimeoutMs: 30000
 
 #> MCP (Model Context Protocol) server settings
 mcp:
