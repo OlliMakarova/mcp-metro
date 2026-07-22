@@ -72,23 +72,27 @@ const wagonAdvice = (wagons: IWagonHint[] | undefined): string | undefined => {
   return kinds.size ? [...kinds].join(' или ') : undefined;
 };
 
-/** Расшифровка кодов услуг станции */
+/** Расшифровка кодов услуг станции — официальные подписи сайта mosmetro.ru */
 const SERVICE_LABELS: Record<string, string> = {
-  BANK: 'банкомат',
-  VENDING: 'торговый автомат',
-  ELEVATOR: 'лифт для маломобильных пассажиров',
-  TOILET: 'туалет',
-  WIFI: 'Wi-Fi',
-  POLICE: 'пункт полиции',
-  MEDICINE: 'медпункт',
-  INFO: 'информационный центр',
-  PHARMACY: 'аптека',
-  CAFE: 'кафе',
-  COFFEE: 'кофейный автомат',
-  BATTERY: 'зарядка для устройств',
-  LIBRARY: 'библиотека',
-  GYM: 'спортзал',
+  BANK: 'банкоматы',
+  INFO: 'стойка «Живое общение»',
+  COFFEE: 'кофе',
   FLOWERS: 'цветы',
+  CANDY: 'продажа кондитерских изделий',
+  CARRIER: 'салон сотовой связи',
+  ELEVATOR: 'лифт на станции',
+  BATTERY: 'зарядка для мобильных устройств',
+  FOOD: 'общепит',
+  INVALID: 'поддержка маломобильных пассажиров',
+  OPTICS: 'салон оптики',
+  PARKING: 'перехватывающая парковка',
+  PRINT: 'печать',
+  SALES: 'торговые точки',
+  THEATRE: 'продажа билетов в театры',
+  VENDING: 'вендинг',
+  TOILET: 'туалет',
+  AEROEXPRESS: 'аэроэкспресс',
+  GIFT_SHOP: 'сувенирный магазин',
 };
 const serviceLabel = (code: string): string => SERVICE_LABELS[code] ?? code;
 
@@ -262,6 +266,9 @@ export const renderStationInfo = (info: IStationInfo): string => {
   }
   out.push('');
   out.push(`**Линии станции:** ${info.lines.map((l) => lineName(l)).join('; ') || '—'}`);
+  if (info.location) {
+    out.push(`**Координаты станции:** ${info.location.lat}, ${info.location.lon}`);
+  }
   if (info.interchanges.length) {
     out.push(`**Пересадки на другие линии узла:** ${info.interchanges.map((l) => lineName(l)).join('; ')}`);
   }
@@ -290,8 +297,8 @@ export const renderStationInfo = (info: IStationInfo): string => {
       out.push('');
       out.push('**Выходы в город:**');
       out.push('');
-      out.push('| № | Куда ведёт | Наземный транспорт |');
-      out.push('|---|-----------|--------------------|');
+      out.push('| № | Куда ведёт | Наземный транспорт | Координаты |');
+      out.push('|---|-----------|--------------------|------------|');
       for (const e of p.exits) {
         const transport = [
           e.bus && `авт. ${e.bus}`,
@@ -300,7 +307,10 @@ export const renderStationInfo = (info: IStationInfo): string => {
         ]
           .filter(Boolean)
           .join('; ');
-        out.push(`| ${e.exitNumber ?? '—'} | ${(e.title ?? '—').replace(/\|/g, '/')} | ${transport || '—'} |`);
+        const coords = e.location ? `${e.location.lat}, ${e.location.lon}` : '—';
+        out.push(
+          `| ${e.exitNumber ?? '—'} | ${(e.title ?? '—').replace(/\|/g, '/')} | ${transport || '—'} | ${coords} |`,
+        );
       }
     }
     if (p.schedule?.length) {
