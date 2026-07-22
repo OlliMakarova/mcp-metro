@@ -57,7 +57,7 @@ const rateLimitMW = async (req: Request, res: Response, next: (err?: unknown) =>
     res.setHeader('Retry-After', String(retryAfterSec));
     res.status(429).json({
       success: false,
-      error: 'Превышен лимит частоты запросов. Повторите позже.',
+      error: 'Rate limit exceeded. Please retry later.',
       retryAfterSec,
     });
   }
@@ -71,7 +71,7 @@ const requireDataset = (res: Response) => {
   if (!dataset) {
     res.status(503).json({
       success: false,
-      error: 'Данные метро временно недоступны: источники не отвечают и локальной копии нет.',
+      error: 'Metro data is temporarily unavailable.',
     });
     return null;
   }
@@ -92,7 +92,7 @@ apiRouter.get('/stations/search', rateLimitMW, authMW, (req: Request, res: Respo
   try {
     const q = String(req.query.q ?? '').trim();
     if (!q) {
-      res.status(400).json({ success: false, error: 'Не задан параметр q (название станции).' });
+      res.status(400).json({ success: false, error: 'Missing query parameter q (station name).' });
       return;
     }
     const dataset = requireDataset(res);
@@ -124,7 +124,7 @@ apiRouter.get('/stations/info', rateLimitMW, authMW, (req: Request, res: Respons
   try {
     const q = String(req.query.q ?? '').trim();
     if (!q) {
-      res.status(400).json({ success: false, error: 'Не задан параметр q (название станции).' });
+      res.status(400).json({ success: false, error: 'Missing query parameter q (station name).' });
       return;
     }
     const dataset = requireDataset(res);
@@ -158,7 +158,7 @@ apiRouter.get('/routes', rateLimitMW, authMW, (req: Request, res: Response) => {
     const from = String(req.query.from ?? '').trim();
     const to = String(req.query.to ?? '').trim();
     if (!from || !to) {
-      res.status(400).json({ success: false, error: 'Нужны параметры from и to (названия станций).' });
+      res.status(400).json({ success: false, error: 'Missing query parameters from and to (station names).' });
       return;
     }
     const dataset = requireDataset(res);
@@ -182,7 +182,7 @@ apiRouter.get('/routes', rateLimitMW, authMW, (req: Request, res: Response) => {
     if (r1.option.clusterId === r2.option.clusterId) {
       res
         .status(400)
-        .json({ success: false, error: 'Станции отправления и прибытия совпадают.', station: r1.option.name });
+        .json({ success: false, error: 'The departure and arrival stations are the same.', station: r1.option.name });
       return;
     }
     const result = findBestRoutes(dataset, r1.option.ids, r2.option.ids, { k });

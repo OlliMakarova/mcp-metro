@@ -69,7 +69,7 @@ export const buildRouteGraph = (dataset: IMetroDataset, at: Date = new Date()): 
         continue; // notification references a station missing from the schema
       }
       if (s.status === 'CLOSED') {
-        closedStations.set(s.stationId, s.description ?? n.title ?? 'Станция закрыта');
+        closedStations.set(s.stationId, s.description ?? n.title ?? 'Station is closed');
       } else {
         const list = warnings.get(s.stationId) ?? [];
         list.push({

@@ -21,7 +21,7 @@ import { getStationClusters } from './station-search/station-clusters.js';
 
 export interface IStationLineRef {
   id: number;
-  name?: string;
+  name?: ILocalizedName;
   color?: string;
   kind: TLineKind;
   /** Line belongs to the Moscow Central Diameters */
@@ -32,11 +32,12 @@ export interface IStationLineRef {
 
 /** First and last train per direction (the data contains no service intervals) */
 export interface IStationScheduleDir {
-  toName?: string;
+  /** Direction terminal station name (localized when the station is present in the data) */
+  toName?: ILocalizedName;
   /**
-   * Which days the times apply to: "чётные"/"нечётные" (even/odd dates of the month — trains
-   * run on two alternating timetables), optionally refined with "будни"/"выходные"
-   * (weekdays/weekends). Absent when the direction's times are the same on all days.
+   * Which days the times apply to: "even dates"/"odd dates" (trains run on two alternating
+   * timetables), optionally refined with "weekdays"/"weekends". Absent when the direction's
+   * times are the same on all days.
    */
   days?: string;
   first?: string;
@@ -119,14 +120,14 @@ const groundTransport = (exits: IStationExit[] | undefined): IStationGroundTrans
   return { bus: [...bus], trolleybus: [...trolleybus], tram: [...tram] };
 };
 
-const DAY_TYPE_LABEL: Record<string, string> = { EVEN: 'чётные', ODD: 'нечётные' };
+const DAY_TYPE_LABEL: Record<string, string> = { EVEN: 'even dates', ODD: 'odd dates' };
 
 const comboKey = (e: ITrainScheduleEntry): string => `${e.dayType ?? ''}|${e.weekend ?? ''}`;
 
 /**
  * "Which days the times apply to" label for a group of same-direction entries with identical
  * times. The covered "date parity × weekday/weekend" combinations are reduced to a short
- * description: "чётные" (even), "будни" (weekdays), "нечётные, выходные" (odd, weekends), etc.
+ * description: "even dates", "weekdays", "odd dates, weekends", etc.
  * If the group covers all combinations seen for the direction (the times are the same on all
  * days) — no label is needed and undefined is returned.
  */
@@ -138,10 +139,10 @@ const scheduleDaysLabel = (group: ITrainScheduleEntry[], directionComboCount: nu
   const has = (dayType: string, weekend: boolean): boolean => combos.has(`${dayType}|${weekend}`);
   // Both parities, but only weekdays or only weekends
   if (has('EVEN', false) && has('ODD', false) && !has('EVEN', true) && !has('ODD', true)) {
-    return 'будни';
+    return 'weekdays';
   }
   if (has('EVEN', true) && has('ODD', true) && !has('EVEN', false) && !has('ODD', false)) {
-    return 'выходные';
+    return 'weekends';
   }
   const parts: string[] = [];
   for (const dayType of ['EVEN', 'ODD']) {
@@ -149,9 +150,9 @@ const scheduleDaysLabel = (group: ITrainScheduleEntry[], directionComboCount: nu
     if (has(dayType, false) && has(dayType, true)) {
       parts.push(label);
     } else if (has(dayType, false)) {
-      parts.push(`${label}, будни`);
+      parts.push(`${label}, weekdays`);
     } else if (has(dayType, true)) {
-      parts.push(`${label}, выходные`);
+      parts.push(`${label}, weekends`);
     }
   }
   return parts.length ? parts.join('; ') : undefined;
@@ -159,6 +160,7 @@ const scheduleDaysLabel = (group: ITrainScheduleEntry[], directionComboCount: nu
 
 const scheduleSummary = (
   scheduleTrains: Record<string, ITrainScheduleEntry[]> | undefined,
+  nameById: (id: number) => ILocalizedName | undefined,
 ): IStationScheduleDir[] | undefined => {
   if (!scheduleTrains) {
     return undefined;
@@ -171,7 +173,7 @@ const scheduleSummary = (
   for (const entries of Object.values(scheduleTrains)) {
     const groups = new Map<string, ITrainScheduleEntry[]>();
     for (const e of entries) {
-      const key = `${e.stationToName ?? ''}|${e.first ?? ''}|${e.last ?? ''}`;
+      const key = `${e.stationToId}|${e.first ?? ''}|${e.last ?? ''}`;
       const group = groups.get(key);
       if (group) {
         group.push(e);
@@ -184,8 +186,11 @@ const scheduleSummary = (
     for (const group of rows) {
       const e = group[0]!;
       const days = scheduleDaysLabel(group, directionComboCount);
+      // The direction terminal is localized via the dataset when present there; the plain
+      // Russian name from the schedule entry serves as the fallback
+      const toName = nameById(e.stationToId) ?? (e.stationToName ? { ru: e.stationToName } : undefined);
       result.push({
-        ...(e.stationToName ? { toName: e.stationToName } : {}),
+        ...(toName ? { toName } : {}),
         ...(days ? { days } : {}),
         ...(e.first ? { first: e.first } : {}),
         ...(e.last ? { last: e.last } : {}),
@@ -208,7 +213,7 @@ const lineRef = (
   }
   return {
     id: l.id,
-    ...(l.name?.ru ? { name: l.name.ru } : {}),
+    ...(l.name ? { name: l.name } : {}),
     ...(l.color ? { color: l.color } : {}),
     kind: l.kind,
     isMcd: l.kind === 'mcd',
@@ -227,17 +232,18 @@ export const buildStationInfo = (dataset: IMetroDataset, stationIds: number[], a
 
   const ids = stationIds.filter((id) => graph.stations.has(id));
   if (!ids.length) {
-    throw new Error('Станция не найдена в данных');
+    throw new Error('Station not found in the data');
   }
 
   const first = graph.stations.get(ids[0]!)!;
   const idSet = new Set(ids);
+  const nameById = (id: number): ILocalizedName | undefined => graph.stations.get(id)?.name;
 
   const platforms: IStationPlatform[] = ids.map((id) => {
     const s = graph.stations.get(id)!;
     const line = lineRef(lines, s.lineId);
     const gt = groundTransport(s.exits);
-    const sched = scheduleSummary(s.scheduleTrains);
+    const sched = scheduleSummary(s.scheduleTrains, nameById);
     return {
       stationId: id,
       ...(line ? { line } : {}),

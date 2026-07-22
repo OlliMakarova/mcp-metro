@@ -15,7 +15,7 @@
 // of DIFFERENT hubs with no transfer between them ("Смоленская" of the dark-blue and
 // light-blue lines) yield the ambiguous outcome.
 
-import { IMetroDataset, TLineKind } from '../metro-data/types.js';
+import { ILocalizedName, IMetroDataset, TLineKind } from '../metro-data/types.js';
 import { fuzzySearchStations, IFuzzySearchOpts } from './search-stations.js';
 import { getStationClusters } from './station-clusters.js';
 
@@ -25,7 +25,7 @@ const EXACT_EPS = 1e-9;
 /** One line present at the option's station */
 export interface IResolveLineRef {
   id: number;
-  name?: string;
+  name?: ILocalizedName;
   color?: string;
   kind: TLineKind;
 }
@@ -34,8 +34,8 @@ export interface IResolveLineRef {
 export interface IStationOption {
   /** Cluster (interchange hub) identifier */
   clusterId: number;
-  /** Display name of the station (in Russian) */
-  name: string;
+  /** Display name of the station in all languages present in the data */
+  name: ILocalizedName;
   /** Ids of the hub's platforms among the matches — entry/exit points for a route */
   ids: number[];
   /** Lines the matched hub platforms belong to */
@@ -79,26 +79,26 @@ export const resolveStation = (
     const clusterId = clusters.clusterOf(m.station.id);
     let option = byCluster.get(clusterId);
     if (!option) {
-      option = { clusterId, name: m.station.name.ru, ids: [], lines: [], score: m.score };
+      option = { clusterId, name: m.station.name, ids: [], lines: [], score: m.score };
       byCluster.set(clusterId, option);
     }
     option.ids.push(m.station.id);
     option.score = Math.max(option.score, m.score);
     // The representative name comes from the match with the highest similarity
     if (m.score >= option.score) {
-      option.name = m.station.name.ru;
+      option.name = m.station.name;
     }
     if (m.line && !option.lines.some((l) => l.id === m.line!.id)) {
       option.lines.push({
         id: m.line.id,
-        ...(m.line.name?.ru ? { name: m.line.name.ru } : {}),
+        ...(m.line.name ? { name: m.line.name } : {}),
         ...(m.line.color ? { color: m.line.color } : {}),
         kind: m.line.kind,
       });
     }
   }
 
-  const options = [...byCluster.values()].sort((a, b) => b.score - a.score || a.name.localeCompare(b.name));
+  const options = [...byCluster.values()].sort((a, b) => b.score - a.score || a.name.ru.localeCompare(b.name.ru));
 
   if (options.length === 1) {
     return { kind: 'resolved', option: options[0]! };

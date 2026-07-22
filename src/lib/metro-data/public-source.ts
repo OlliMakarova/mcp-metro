@@ -13,4 +13,4 @@ const SOURCE_NAMES_RE = /(?:https?:\/\/)?(?:[a-z0-9-]+\.)*(?:mosmetro|metrobook)
  * Safety net at the output boundary: strips real source names from text (primarily from
  * internal error messages) before the text goes out to an MCP or REST client.
  */
-export const hideSourceNames = (text: string): string => text.replace(SOURCE_NAMES_RE, '[источник данных]');
+export const hideSourceNames = (text: string): string => text.replace(SOURCE_NAMES_RE, '[data source]');

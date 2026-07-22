@@ -80,7 +80,7 @@ export interface IRouteEndpoint {
 /** Warning for a station along the route (escalator repair, closed exits, etc.) */
 export interface IRouteWarning {
   stationId: number;
-  stationName: string;
+  stationName: ILocalizedName;
   status: TNotificationStatus;
   title?: string;
   description?: string;
@@ -129,7 +129,7 @@ export interface IFindRoutesOpts {
 const stationInfo = (graph: IRouteGraph, id: number): IRouteStationInfo => {
   const s = graph.stations.get(id);
   if (!s) {
-    throw new Error(`Станция с id=${id} отсутствует в данных`);
+    throw new Error(`Station with id=${id} is missing from the data`);
   }
   return { id: s.id, name: s.name, lineId: s.lineId };
 };
@@ -234,7 +234,7 @@ const collectWarnings = (graph: IRouteGraph, edges: IGraphEdge[]): IRouteWarning
     for (const w of graph.warnings.get(id) ?? []) {
       result.push({
         stationId: id,
-        stationName: graph.stations.get(id)?.name.ru ?? String(id),
+        stationName: graph.stations.get(id)?.name ?? { ru: String(id) },
         status: w.status,
         ...(w.title ? { title: w.title } : {}),
         ...(w.description ? { description: w.description } : {}),
@@ -260,16 +260,16 @@ export const findRoutes = (
   const graph = getRouteGraph(dataset, at);
 
   if (!graph.stations.has(fromId)) {
-    throw new Error(`Станция отправления с id=${fromId} отсутствует в данных`);
+    throw new Error(`Departure station with id=${fromId} is missing from the data`);
   }
   if (!graph.stations.has(toId)) {
-    throw new Error(`Станция назначения с id=${toId} отсутствует в данных`);
+    throw new Error(`Destination station with id=${toId} is missing from the data`);
   }
   if (graph.closedStations.has(fromId)) {
-    throw new Error(`Станция отправления закрыта: ${graph.closedStations.get(fromId)}`);
+    throw new Error(`The departure station is closed: ${graph.closedStations.get(fromId)}`);
   }
   if (graph.closedStations.has(toId)) {
-    throw new Error(`Станция назначения закрыта: ${graph.closedStations.get(toId)}`);
+    throw new Error(`The destination station is closed: ${graph.closedStations.get(toId)}`);
   }
 
   // Expected train wait per line at the moment `at` — priced into transfer edges so that
@@ -360,7 +360,7 @@ export const findBestRoutes = (
   }
 
   if (!base) {
-    throw firstError ?? new Error('Не удалось построить маршрут: не заданы станции отправления/назначения');
+    throw firstError ?? new Error('Failed to build a route: departure/destination stations are not specified');
   }
 
   // Drop duplicates (identical station sequences) and take the k fastest

@@ -28,19 +28,19 @@ describe('Ответы инструмента не содержат имён и�
   it('карточка станции и маршруты по полным данным', () => {
     const ds = getMosmetroDataset();
     const info = buildStationInfo(ds, stationIdsByName(ds, 'Киевская'));
-    expect(renderStationInfo(info)).not.toMatch(LEAK_RE);
+    expect(renderStationInfo(info, 'ru')).not.toMatch(LEAK_RE);
 
     const res = findBestRoutes(ds, stationIdsByName(ds, 'Ховрино'), stationIdsByName(ds, 'Тёплый Стан'), { k: 2 });
-    expect(renderRoutes(res, 'Ховрино', 'Тёплый Стан')).not.toMatch(LEAK_RE);
+    expect(renderRoutes(res, 'Ховрино', 'Тёплый Стан', 'ru')).not.toMatch(LEAK_RE);
   });
 
   it('карточка станции и маршруты по резервным данным', () => {
     const ds = getMetrobookDataset();
     const fromIds = stationIdsByName(ds, 'Ховрино');
     const info = buildStationInfo(ds, fromIds);
-    expect(renderStationInfo(info)).not.toMatch(LEAK_RE);
+    expect(renderStationInfo(info, 'ru')).not.toMatch(LEAK_RE);
 
     const res = findBestRoutes(ds, fromIds, stationIdsByName(ds, 'Речной вокзал'), { k: 1 });
-    expect(renderRoutes(res, 'Ховрино', 'Речной вокзал')).not.toMatch(LEAK_RE);
+    expect(renderRoutes(res, 'Ховрино', 'Речной вокзал', 'ru')).not.toMatch(LEAK_RE);
   });
 });

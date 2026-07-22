@@ -1,6 +1,7 @@
 import { IResourceData } from 'fa-mcp-sdk';
 
 import { getMetroDatasetOrNull } from './lib/metro-data/cache.js';
+import { pickName } from './lib/metro-data/localized-name.js';
 
 /**
  * Resources of the metro MCP server. Content is generated dynamically from the active dataset,
@@ -8,26 +9,31 @@ import { getMetroDatasetOrNull } from './lib/metro-data/cache.js';
  */
 
 const LINE_KIND_LABEL: Record<string, string> = {
-  metro: 'линия метро',
-  mcc: 'МЦК (Московское центральное кольцо)',
-  mcd: 'МЦД (Московские центральные диаметры)',
+  metro: 'metro line',
+  mcc: 'MCC (Moscow Central Circle)',
+  mcd: 'MCD (Moscow Central Diameters)',
 };
 
 /** List of metro lines in markdown format */
 const renderLines = (): string => {
   const dataset = getMetroDatasetOrNull();
   if (!dataset) {
-    return '# Линии Московского метро\n\nДанные метро временно недоступны.';
+    return `# Moscow Metro lines
+    
+Metro data is temporarily unavailable.`;
   }
   const rows = dataset.lines
-    .map((l) => `| ${l.id} | ${l.name?.ru ?? '—'} | ${LINE_KIND_LABEL[l.kind] ?? l.kind} | ${l.color ?? '—'} |`)
+    .map(
+      (l) =>
+        `| ${l.id} | ${pickName(l.name, 'en') || '—'} | ${LINE_KIND_LABEL[l.kind] ?? l.kind} | ${l.color ?? '—'} |`,
+    )
     .join('\n');
-  return `# Линии Московского метро (метро, МЦК, МЦД)
+  return `# Moscow Metro lines (metro, MCC, MCD)
 
-Всего линий: ${dataset.lines.length}.
+Total lines: ${dataset.lines.length}.
 
-| Код | Название | Тип | Цвет |
-|-----|----------|-----|------|
+| Id | Name | Kind | Color |
+|----|------|------|-------|
 ${rows}`;
 };
 
@@ -35,30 +41,30 @@ ${rows}`;
 const renderStatus = (): string => {
   const dataset = getMetroDatasetOrNull();
   if (!dataset) {
-    return `# Состояние данных метро
+    return `# Metro data status
 
-Данные метро временно недоступны.`;
+Metro data is temporarily unavailable.`;
   }
-  return `# Состояние данных метро
+  return `# Metro data status
 
-- Станций: ${dataset.stations.length}
-- Линий: ${dataset.lines.length}
-- Перегонов и переходов: ${dataset.edges.length}
-- Действующих уведомлений о ремонтах/закрытиях: ${dataset.notifications?.length ?? 0}`;
+- Stations: ${dataset.stations.length}
+- Lines: ${dataset.lines.length}
+- Track segments and transfers: ${dataset.edges.length}
+- Active repair/closure notifications: ${dataset.notifications?.length ?? 0}`;
 };
 
 export const customResources: IResourceData[] = [
   {
     uri: 'metro://lines',
-    name: 'Линии Московского метро',
-    description: 'Список всех линий метрополитена, МЦК и МЦД с названиями, типом и цветом.',
+    name: 'Moscow Metro lines',
+    description: 'List of all metro, MCC and MCD lines with names, kind and color.',
     mimeType: 'text/markdown',
     content: () => renderLines(),
   },
   {
     uri: 'metro://status',
-    name: 'Состояние данных метро',
-    description: 'Сводка загруженных данных: число станций, линий, перегонов и действующих уведомлений.',
+    name: 'Metro data status',
+    description: 'Summary of the loaded data: number of stations, lines, track segments and active notifications.',
     mimeType: 'text/markdown',
     content: () => renderStatus(),
   },

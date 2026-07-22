@@ -99,7 +99,7 @@ describe('Маршрутизация по данным mosmetro', () => {
 
     // During the closure period no route from the closed station is possible
     const [anyToId] = stationIdsByName(ds, 'Тёплый Стан');
-    expect(() => findRoutes(ds, closedId!, anyToId!, { at: AT_FIXTURE_DATE })).toThrow(/закрыта/i);
+    expect(() => findRoutes(ds, closedId!, anyToId!, { at: AT_FIXTURE_DATE })).toThrow(/is closed/i);
 
     // After the period ends the station is available again
     const graphAfter = buildRouteGraph(ds, AT_AFTER_CLOSURE);
@@ -161,6 +161,6 @@ describe('Маршрутизация по данным mosmetro', () => {
   });
 
   test('неизвестная станция даёт понятную ошибку', () => {
-    expect(() => findRoutes(ds, 999_999, 1, { at: AT_FIXTURE_DATE })).toThrow(/отсутствует в данных/);
+    expect(() => findRoutes(ds, 999_999, 1, { at: AT_FIXTURE_DATE })).toThrow(/missing from the data/);
   });
 });

@@ -1,9 +1,11 @@
 // Rendering of mos_metro_info tool responses as markdown (lists and tables).
 //
-// All responses the agent sees are formatted as human-readable markdown: routes and
-// station details as tables and numbered lists, clarification requests as an option
-// list. Structured data arrives ready-made from the library layer (src/lib).
+// All responses the agent sees are formatted as human-readable English markdown: routes and
+// station details as tables and numbered lists, clarification requests as an option list.
+// Station and line names are given in the requested response language (`lang`) when the data
+// provides them. Structured data arrives ready-made from the library layer (src/lib).
 
+import { pickName, TLang } from '../../lib/metro-data/localized-name.js';
 import { IStationWorkTimeDay, IWagonHint } from '../../lib/metro-data/types.js';
 import {
   IFindRoutesResult,
@@ -17,35 +19,34 @@ import { IStationInfo, IStationLineRef } from '../../lib/station-info.js';
 
 // ─── Small formatters ────────────────────────────────────────────────────────
 
-/** Seconds to a human-readable duration: «25 мин», «1 ч 05 мин» */
+/** Seconds to a human-readable duration: «25 min», «1 h 05 min» */
 export const fmtDuration = (totalSec: number): string => {
   const min = Math.round(totalSec / 60);
   if (min < 60) {
-    return `${min} мин`;
+    return `${min} min`;
   }
   const h = Math.floor(min / 60);
   const m = min % 60;
-  return m ? `${h} ч ${String(m).padStart(2, '0')} мин` : `${h} ч`;
+  return m ? `${h} h ${String(m).padStart(2, '0')} min` : `${h} h`;
 };
 
 /** Line kind tag for MCD/MCC lines */
 const lineKindTag = (line: { isMcd?: boolean; isMcc?: boolean; kind?: string }): string => {
   const kind = 'kind' in line ? line.kind : undefined;
   if (line.isMcd || kind === 'mcd') {
-    return ' (МЦД — Московские центральные диаметры)';
+    return ' (MCD — Moscow Central Diameters)';
   }
   if (line.isMcc || kind === 'mcc') {
-    return ' (МЦК — Московское центральное кольцо)';
+    return ' (MCC — Moscow Central Circle)';
   }
   return '';
 };
 
-const lineName = (line: ILineInfo | IStationLineRef | IResolveLineRef | undefined): string => {
+const lineName = (line: ILineInfo | IStationLineRef | IResolveLineRef | undefined, lang: TLang): string => {
   if (!line) {
-    return 'линия неизвестна';
+    return 'unknown line';
   }
-  const nm =
-    'name' in line && line.name ? (typeof line.name === 'string' ? line.name : line.name.ru) : `линия №${line.id}`;
+  const nm = line.name ? pickName(line.name, lang) : `line #${line.id}`;
   return `${nm}${lineKindTag(line)}`;
 };
 
@@ -55,9 +56,9 @@ const wagonAdvice = (wagons: IWagonHint[] | undefined): string | undefined => {
     return undefined;
   }
   const map: Record<string, string> = {
-    NEAR_FIRST: 'первые вагоны (голова поезда)',
-    NEAR_END: 'последние вагоны (хвост поезда)',
-    CENTER: 'средние вагоны',
+    NEAR_FIRST: 'front cars (head of the train)',
+    NEAR_END: 'rear cars (tail of the train)',
+    CENTER: 'middle cars',
   };
   const kinds = new Set<string>();
   for (const w of wagons) {
@@ -65,48 +66,48 @@ const wagonAdvice = (wagons: IWagonHint[] | undefined): string | undefined => {
       kinds.add(map[t] ?? t);
     }
   }
-  return kinds.size ? [...kinds].join(' или ') : undefined;
+  return kinds.size ? [...kinds].join(' or ') : undefined;
 };
 
-/** Station service code labels — official captions from the mosmetro.ru website */
+/** Station service code labels — translated captions of the mosmetro.ru website dictionary */
 const SERVICE_LABELS: Record<string, string> = {
-  BANK: 'банкоматы',
-  INFO: 'стойка «Живое общение»',
-  COFFEE: 'кофе',
-  FLOWERS: 'цветы',
-  CANDY: 'продажа кондитерских изделий',
-  CARRIER: 'салон сотовой связи',
-  ELEVATOR: 'лифт на станции',
-  BATTERY: 'зарядка для мобильных устройств',
-  FOOD: 'общепит',
-  INVALID: 'поддержка маломобильных пассажиров',
-  OPTICS: 'салон оптики',
-  PARKING: 'перехватывающая парковка',
-  PRINT: 'печать',
-  SALES: 'торговые точки',
-  THEATRE: 'продажа билетов в театры',
-  VENDING: 'вендинг',
-  TOILET: 'туалет',
-  AEROEXPRESS: 'аэроэкспресс',
-  GIFT_SHOP: 'сувенирный магазин',
+  BANK: 'ATMs',
+  INFO: '«Live communication» information desk',
+  COFFEE: 'coffee',
+  FLOWERS: 'flowers',
+  CANDY: 'confectionery',
+  CARRIER: 'mobile operator store',
+  ELEVATOR: 'elevator',
+  BATTERY: 'mobile device charging',
+  FOOD: 'food outlets',
+  INVALID: 'assistance for passengers with reduced mobility',
+  OPTICS: 'optics store',
+  PARKING: 'park-and-ride parking',
+  PRINT: 'printing services',
+  SALES: 'retail kiosks',
+  THEATRE: 'theater ticket sales',
+  VENDING: 'vending machines',
+  TOILET: 'toilet',
+  AEROEXPRESS: 'Aeroexpress',
+  GIFT_SHOP: 'gift shop',
   // Missing from the website's dictionary; the meaning is confirmed by Deptrans news
   // (transport.mos.ru): service windows of the «Московский транспорт» service centers —
   // travel card replacement, transferring tickets from a faulty «Тройка» card, fare advice
-  WINDOW: 'сервисный центр «Московский транспорт» (окна обслуживания проездных)',
+  WINDOW: '«Moscow Transport» service center (travel card service windows)',
 };
 const serviceLabel = (code: string): string => SERVICE_LABELS[code] ?? code;
 
 const NOTE_STATUS: Record<string, string> = {
-  CLOSED: '⛔ закрытие',
-  EMERGENCY: '⚠️ ограничение/ремонт',
-  INFO: 'ℹ️ информация',
+  CLOSED: '⛔ closure',
+  EMERGENCY: '⚠️ restriction/repair',
+  INFO: 'ℹ️ information',
 };
 
-const WEEK_DAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+const WEEK_DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 /**
- * Vestibule working hours in one line: «05:30–01:00 (ежедневно)», and when hours differ
- * by day — with grouping of consecutive identical days: «Пн–Пт 04:38–00:48, Сб–Вс 04:38–01:00».
+ * Vestibule working hours in one line: «05:30–01:00 (daily)», and when hours differ
+ * by day — with grouping of consecutive identical days: «Mon–Fri 04:38–00:48, Sat–Sun 04:38–01:00».
  */
 const workTimeText = (workTime: IStationWorkTimeDay[] | undefined): string | undefined => {
   if (!workTime?.length) {
@@ -117,7 +118,7 @@ const workTimeText = (workTime: IStationWorkTimeDay[] | undefined): string | und
     return undefined;
   }
   if (new Set(ranges).size === 1) {
-    return `${ranges[0]} (ежедневно)`;
+    return `${ranges[0]} (daily)`;
   }
   if (ranges.length !== 7) {
     return [...new Set(ranges)].join(', ');
@@ -136,36 +137,36 @@ const workTimeText = (workTime: IStationWorkTimeDay[] | undefined): string | und
 
 // ─── Route rendering ─────────────────────────────────────────────────────────
 
-const renderRideLeg = (leg: Extract<TRouteLeg, { kind: 'ride' }>, index: number): string => {
-  const path = leg.stations.map((s) => s.name.ru).join(' → ');
+const renderRideLeg = (leg: Extract<TRouteLeg, { kind: 'ride' }>, index: number, lang: TLang): string => {
+  const path = leg.stations.map((s) => pickName(s.name, lang)).join(' → ');
   const stops = leg.stations.length - 1;
-  return `${index}. 🚇 **${lineName(leg.line)}** — ${fmtDuration(leg.timeSec)}, перегонов: ${stops}\n   Станции: ${path}`;
+  return `${index}. 🚇 **${lineName(leg.line, lang)}** — ${fmtDuration(leg.timeSec)}, stops: ${stops}\n   Stations: ${path}`;
 };
 
-const renderTransferLeg = (leg: Extract<TRouteLeg, { kind: 'transfer' }>, index: number): string => {
-  const kind = leg.isGround ? 'переход по улице' : 'пересадка';
+const renderTransferLeg = (leg: Extract<TRouteLeg, { kind: 'transfer' }>, index: number, lang: TLang): string => {
+  const kind = leg.isGround ? 'street-level transfer' : 'transfer';
   const parts = [
-    `${index}. 🔁 **${kind}**: ${leg.fromStation.name.ru} → ${leg.toStation.name.ru} — ${fmtDuration(leg.timeSec)}`,
+    `${index}. 🔁 **${kind}**: ${pickName(leg.fromStation.name, lang)} → ${pickName(leg.toStation.name, lang)} — ${fmtDuration(leg.timeSec)}`,
   ];
   const advice = wagonAdvice(leg.wagons);
   if (advice) {
-    parts.push(`   Для удобной пересадки садитесь в ${advice}.`);
+    parts.push(`   For a convenient transfer, board the ${advice}.`);
   }
   if (leg.isAlternative) {
-    parts.push('   (временный обходной путь из-за закрытия участка)');
+    parts.push('   (temporary detour due to a closed section)');
   }
   return parts.join('\n');
 };
 
-const renderEndpoint = (role: string, ep: IRouteEndpoint): string => {
-  const lines: string[] = [`**${role}: ${ep.station.name.ru}** (${lineName(ep.line)})`];
+const renderEndpoint = (role: string, ep: IRouteEndpoint, lang: TLang): string => {
+  const lines: string[] = [`**${role}: ${pickName(ep.station.name, lang)}** (${lineName(ep.line, lang)})`];
   if (ep.enterTimeSec !== undefined || ep.exitTimeSec !== undefined) {
     const bits: string[] = [];
     if (ep.enterTimeSec !== undefined) {
-      bits.push(`вход с улицы до платформы ~${fmtDuration(ep.enterTimeSec)}`);
+      bits.push(`street entrance to platform ~${fmtDuration(ep.enterTimeSec)}`);
     }
     if (ep.exitTimeSec !== undefined) {
-      bits.push(`платформа до выхода в город ~${fmtDuration(ep.exitTimeSec)}`);
+      bits.push(`platform to city exit ~${fmtDuration(ep.exitTimeSec)}`);
     }
     lines.push(`- ${bits.join(', ')}`);
   }
@@ -173,60 +174,62 @@ const renderEndpoint = (role: string, ep: IRouteEndpoint): string => {
     const gt = ep.groundTransport;
     const parts: string[] = [];
     if (gt.bus.length) {
-      parts.push(`автобусы: ${gt.bus.join(', ')}`);
+      parts.push(`buses: ${gt.bus.join(', ')}`);
     }
     if (gt.trolleybus.length) {
-      parts.push(`троллейбусы: ${gt.trolleybus.join(', ')}`);
+      parts.push(`trolleybuses: ${gt.trolleybus.join(', ')}`);
     }
     if (gt.tram.length) {
-      parts.push(`трамваи: ${gt.tram.join(', ')}`);
+      parts.push(`trams: ${gt.tram.join(', ')}`);
     }
     if (parts.length) {
-      lines.push(`- Наземный транспорт у выходов: ${parts.join('; ')}`);
+      lines.push(`- Surface transport at the exits: ${parts.join('; ')}`);
     }
   }
   if (ep.services?.length) {
-    lines.push(`- Услуги на станции: ${ep.services.map(serviceLabel).join(', ')}`);
+    lines.push(`- Station services: ${ep.services.map(serviceLabel).join(', ')}`);
   }
   return lines.join('\n');
 };
 
-const renderVariant = (v: IRouteVariant, n: number): string => {
+const renderVariant = (v: IRouteVariant, n: number, lang: TLang): string => {
   const extraEnter = v.departure.enterTimeSec ?? 0;
   const extraExit = v.arrival.exitTimeSec ?? 0;
   const doorToDoor = v.totalTimeSec + extraEnter + extraExit;
 
   const out: string[] = [];
-  out.push(`## Вариант ${n} — ${fmtDuration(v.totalTimeSec)} в пути, пересадок: ${v.transfersCount}`);
+  out.push(`## Option ${n} — ${fmtDuration(v.totalTimeSec)} in transit, transfers: ${v.transfersCount}`);
   out.push('');
   out.push(
-    `- **Время в пути:** ${fmtDuration(v.totalTimeSec)} (в поездах ${fmtDuration(v.rideTimeSec)}, на переходах ${fmtDuration(
+    `- **Travel time:** ${fmtDuration(v.totalTimeSec)} (on trains ${fmtDuration(v.rideTimeSec)}, on transfers ${fmtDuration(
       v.transferTimeSec,
-    )}, ожидание поездов ~${fmtDuration(v.waitTimeSec)}).`,
+    )}, expected train wait ~${fmtDuration(v.waitTimeSec)}).`,
   );
   if (extraEnter || extraExit) {
     out.push(
-      `- **С учётом входа и выхода:** ~${fmtDuration(doorToDoor)} (дополнительно вход ~${fmtDuration(extraEnter)}, выход ~${fmtDuration(extraExit)}).`,
+      `- **Including station entry and exit:** ~${fmtDuration(doorToDoor)} (entry ~${fmtDuration(extraEnter)} and exit ~${fmtDuration(extraExit)} extra).`,
     );
   }
   out.push('');
-  out.push('**Этапы маршрута:**');
+  out.push('**Route legs:**');
   out.push('');
   let i = 1;
   for (const leg of v.legs) {
-    out.push(leg.kind === 'ride' ? renderRideLeg(leg, i) : renderTransferLeg(leg, i));
+    out.push(leg.kind === 'ride' ? renderRideLeg(leg, i, lang) : renderTransferLeg(leg, i, lang));
     i += 1;
   }
   out.push('');
-  out.push(renderEndpoint('Отправление', v.departure));
+  out.push(renderEndpoint('Departure', v.departure, lang));
   out.push('');
-  out.push(renderEndpoint('Прибытие', v.arrival));
+  out.push(renderEndpoint('Arrival', v.arrival, lang));
   if (v.warnings.length) {
     out.push('');
-    out.push('**Предупреждения на маршруте:**');
+    out.push('**Warnings along the route:**');
     for (const w of v.warnings) {
       const status = NOTE_STATUS[w.status] ?? w.status;
-      out.push(`- ${status} — ${w.stationName}: ${w.title ?? ''}${w.description ? ` — ${w.description}` : ''}`);
+      out.push(
+        `- ${status} — ${pickName(w.stationName, lang)}: ${w.title ?? ''}${w.description ? ` — ${w.description}` : ''}`,
+      );
     }
   }
   return out.join('\n');
@@ -245,8 +248,8 @@ const ENTRY_CLOSING_SOON_MIN = 30;
 const operatingWarning = (result: IFindRoutesResult): string | undefined => {
   const op = result.operating;
   if (!op.isOpen) {
-    const opensAt = op.opensAt ? ` Вход откроется в ${op.opensAt}.` : '';
-    return `⛔ **Внимание: метро сейчас закрыто.** Сейчас ${op.moscowTime} по московскому времени, а станция отправления работает по графику ${op.window}.${opensAt} Указанное ниже время в пути — чистое время поездки, ожидание открытия метро в него не входит.`;
+    const opensAt = op.opensAt ? ` The entry opens at ${op.opensAt}.` : '';
+    return `⛔ **Note: the metro is currently closed.** It is now ${op.moscowTime} Moscow time, and the departure station operates on the ${op.window} schedule.${opensAt} The travel times below are pure trip times and do not include waiting for the metro to open.`;
   }
   if (op.minutesToClose === undefined) {
     return undefined;
@@ -258,36 +261,36 @@ const operatingWarning = (result: IFindRoutesResult): string | undefined => {
     return undefined;
   }
   const parts = [
-    `⚠️ **Внимание: вход в метро скоро закрывается.** Сейчас ${
+    `⚠️ **Note: the metro entry closes soon.** It is now ${
       op.moscowTime
-    } по московскому времени, вход на станцию отправления закроется примерно через ${
+    } Moscow time; the entry to the departure station closes in about ${
       op.minutesToClose
-    } мин (график работы: ${op.window}) — постарайтесь войти до закрытия.`,
+    } min (operating hours: ${op.window}) — try to enter before it closes.`,
   ];
   if (transfersMayClose && op.closesAt) {
     parts.push(
-      `Маршрут занимает около ${fastest.totalTimeMin} мин и включает пересадки: переходы между линиями закрываются в ${
+      `The route takes about ${fastest.totalTimeMin} min and includes transfers: interline transfer passages close at ${
         op.closesAt
-      }, поэтому пересадка в конце поездки будет уже закрыта — доехать этим маршрутом до конца не получится. Выбирайте вариант без пересадок или наземный транспорт.`,
+      }, so the transfer at the end of the trip will already be closed — this route cannot be completed. Choose an option without transfers or use surface transport.`,
     );
   }
   return parts.join(' ');
 };
 
 /** Full markdown response for the found routes */
-export const renderRoutes = (result: IFindRoutesResult, fromName: string, toName: string): string => {
-  const closures = result.closuresApplied ? ' Учтены действующие закрытия и ремонты.' : '';
+export const renderRoutes = (result: IFindRoutesResult, fromName: string, toName: string, lang: TLang): string => {
+  const closures = result.closuresApplied ? ' Active closures and repairs are taken into account.' : '';
 
   const head = [
-    `# Маршруты: ${fromName} → ${toName}`,
+    `# Routes: ${fromName} → ${toName}`,
     '',
-    `Найдено вариантов: **${result.variants.length}**.${closures} Во время в пути заложено ожидание поездов на станции посадки и на каждой пересадке — по типичным интервалам движения для текущего времени суток.`,
+    `Route options found: **${result.variants.length}**.${closures} Travel times include the expected wait for trains at the boarding station and at every transfer, based on typical service intervals for the current time of day.`,
     '',
   ];
   const hasMcd = result.variants.some((v) => v.legs.some((l) => l.kind === 'ride' && l.line?.isMcd));
   if (hasMcd) {
     head.push(
-      'ℹ️ Часть маршрутов проходит по МЦД: интервалы там зависят от конкретного рейса и его конечной станции, поэтому фактическое ожидание может отличаться — при возможности сверяйтесь с расписанием электричек.',
+      'ℹ️ Some routes use the MCD: intervals there depend on the specific train and its terminal station, so the actual wait may differ — check the suburban train timetable when possible.',
     );
     head.push('');
   }
@@ -297,64 +300,67 @@ export const renderRoutes = (result: IFindRoutesResult, fromName: string, toName
     head.push('');
   }
   if (!result.variants.length) {
-    head.push('Не удалось построить ни одного маршрута между указанными станциями.');
+    head.push('No route could be built between the given stations.');
     return head.join('\n');
   }
-  const body = result.variants.map((v, idx) => renderVariant(v, idx + 1));
+  const body = result.variants.map((v, idx) => renderVariant(v, idx + 1, lang));
   return [...head, body.join('\n\n')].join('\n');
 };
 
 // ─── Station details rendering ───────────────────────────────────────────────
 
 /** Full markdown response with station details */
-export const renderStationInfo = (info: IStationInfo): string => {
+export const renderStationInfo = (info: IStationInfo, lang: TLang): string => {
   const out: string[] = [];
-  out.push(`# Станция: ${info.name.ru}`);
-  const otherNames = [info.name.en, info.name.ar, info.name.cn].filter(Boolean);
+  const shownName = pickName(info.name, lang);
+  out.push(`# Station: ${shownName}`);
+  const otherNames = [info.name.ru, info.name.en, info.name.ar, info.name.cn].filter(
+    (n): n is string => !!n && n !== shownName,
+  );
   if (otherNames.length) {
     out.push('');
-    out.push(`Названия на других языках: ${otherNames.join(' · ')}`);
+    out.push(`Names in other languages: ${otherNames.join(' · ')}`);
   }
   out.push('');
-  out.push(`**Линии станции:** ${info.lines.map((l) => lineName(l)).join('; ') || '—'}`);
+  out.push(`**Station lines:** ${info.lines.map((l) => lineName(l, lang)).join('; ') || '—'}`);
   if (info.location) {
-    out.push(`**Координаты станции:** ${info.location.lat}, ${info.location.lon}`);
+    out.push(`**Station coordinates:** ${info.location.lat}, ${info.location.lon}`);
   }
   if (info.interchanges.length) {
-    out.push(`**Пересадки на другие линии узла:** ${info.interchanges.map((l) => lineName(l)).join('; ')}`);
+    out.push(`**Transfers to other lines of the hub:** ${info.interchanges.map((l) => lineName(l, lang)).join('; ')}`);
   }
 
   for (const p of info.platforms) {
     out.push('');
-    out.push(`## Платформа — ${lineName(p.line)}`);
+    out.push(`## Platform — ${lineName(p.line, lang)}`);
     const timing: string[] = [];
     if (p.enterTimeSec !== undefined) {
-      timing.push(`вход с улицы до платформы ~${fmtDuration(p.enterTimeSec)}`);
+      timing.push(`street entrance to platform ~${fmtDuration(p.enterTimeSec)}`);
     }
     if (p.exitTimeSec !== undefined) {
-      timing.push(`платформа до выхода в город ~${fmtDuration(p.exitTimeSec)}`);
+      timing.push(`platform to city exit ~${fmtDuration(p.exitTimeSec)}`);
     }
     if (timing.length) {
-      out.push(`- Время прохода: ${timing.join(', ')}.`);
+      out.push(`- Walk times: ${timing.join(', ')}.`);
     }
     const workTime = workTimeText(p.workTime);
     if (workTime) {
-      out.push(`- Режим работы станции: ${workTime}.`);
+      out.push(`- Station opening hours: ${workTime}.`);
     }
     if (p.services?.length) {
-      out.push(`- Услуги: ${p.services.map(serviceLabel).join(', ')}.`);
+      out.push(`- Services: ${p.services.map(serviceLabel).join(', ')}.`);
     }
     if (p.exits?.length) {
       out.push('');
-      out.push('**Выходы в город:**');
+      out.push('**Exits to the city:**');
       out.push('');
-      out.push('| № | Куда ведёт | Наземный транспорт | Координаты |');
-      out.push('|---|-----------|--------------------|------------|');
+      out.push('| # | Leads to | Surface transport | Coordinates |');
+      out.push('|---|----------|-------------------|-------------|');
       for (const e of p.exits) {
         const transport = [
-          e.bus && `авт. ${e.bus}`,
-          e.trolleybus && `трол. ${e.trolleybus}`,
-          e.tram && `трам. ${e.tram}`,
+          e.bus && `bus ${e.bus}`,
+          e.trolleybus && `trolleybus ${e.trolleybus}`,
+          e.tram && `tram ${e.tram}`,
         ]
           .filter(Boolean)
           .join('; ');
@@ -366,23 +372,24 @@ export const renderStationInfo = (info: IStationInfo): string => {
     }
     if (p.schedule?.length) {
       out.push('');
-      out.push('**Первый и последний поезд по направлениям:**');
+      out.push('**First and last trains by direction:**');
       out.push('');
       if (p.schedule.some((s) => s.days)) {
-        out.push('_«Чётные»/«нечётные» — числа месяца: поезда ходят по двум чередующимся графикам._');
+        out.push('_«Even»/«odd» refer to dates of the month: trains run on two alternating timetables._');
         out.push('');
       }
-      out.push('| Направление | Дни | Первый | Последний |');
-      out.push('|-------------|-----|--------|-----------|');
+      out.push('| Direction | Days | First | Last |');
+      out.push('|-----------|------|-------|------|');
       for (const s of p.schedule) {
-        out.push(`| ${s.toName ?? '—'} | ${s.days ?? 'все дни'} | ${s.first ?? '—'} | ${s.last ?? '—'} |`);
+        const toName = s.toName ? pickName(s.toName, lang) : '—';
+        out.push(`| ${toName} | ${s.days ?? 'all days'} | ${s.first ?? '—'} | ${s.last ?? '—'} |`);
       }
     }
   }
 
   if (info.warnings.length) {
     out.push('');
-    out.push('## Предупреждения (действуют сейчас)');
+    out.push('## Warnings (currently active)');
     for (const w of info.warnings) {
       const status = NOTE_STATUS[w.status] ?? w.status;
       out.push(`- ${status} — ${w.title ?? ''}${w.description ? `: ${w.description}` : ''}`);
@@ -394,24 +401,29 @@ export const renderStationInfo = (info: IStationInfo): string => {
 
 // ─── Clarification request rendering ─────────────────────────────────────────
 
-const optionLine = (opt: IStationOption, n: number): string => {
-  const lines = opt.lines.map((l) => lineName(l)).join('; ') || 'линия неизвестна';
-  return `${n}. **${opt.name}** — ${lines}`;
+const optionLine = (opt: IStationOption, n: number, lang: TLang): string => {
+  const lines = opt.lines.map((l) => lineName(l, lang)).join('; ') || 'unknown line';
+  return `${n}. **${pickName(opt.name, lang)}** — ${lines}`;
 };
 
 /**
  * Clarification block for a single station: an option list (ambiguous) or a request to check
- * the spelling (not_found). `label` is the station role, e.g. «станцию отправления».
+ * the spelling (not_found). `label` is the station role, e.g. «the departure station».
  */
-export const renderResolutionAsk = (label: string, query: string, resolution: TStationResolution): string => {
+export const renderResolutionAsk = (
+  label: string,
+  query: string,
+  resolution: TStationResolution,
+  lang: TLang,
+): string => {
   if (resolution.kind === 'not_found') {
-    return `### Уточните ${label}: «${query}»
-Не удалось распознать название станции. Проверьте написание и укажите станцию заново — можно на русском, английском, арабском или китайском языке.`;
+    return `### Clarify ${label}: «${query}»
+The station name could not be recognized. Check the spelling and specify the station again — Russian, English, Arabic and Chinese are supported.`;
   }
   if (resolution.kind === 'ambiguous') {
-    const list = resolution.options.map((o, i) => optionLine(o, i + 1)).join('\n');
-    return `### Уточните ${label}: «${query}»
-Найдено несколько подходящих станций. Пожалуйста, выберите нужную:
+    const list = resolution.options.map((o, i) => optionLine(o, i + 1, lang)).join('\n');
+    return `### Clarify ${label}: «${query}»
+Several matching stations were found. Please pick the right one:
 ${list}`;
   }
   return '';
