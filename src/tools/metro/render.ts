@@ -13,6 +13,7 @@ import {
   IStationInfo,
   IStationLineRef,
   IStationOption,
+  IStationWorkTimeDay,
   IWagonHint,
   TStationResolution,
   TRouteLeg,
@@ -97,15 +98,44 @@ const NOTE_STATUS: Record<string, string> = {
   INFO: 'ℹ️ информация',
 };
 
+const WEEK_DAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+
+/**
+ * Режим работы вестибюлей одной строкой: «05:30–01:00 (ежедневно)», а при разных часах
+ * по дням — с группировкой подряд идущих одинаковых дней: «Пн–Пт 04:38–00:48, Сб–Вс 04:38–01:00».
+ */
+const workTimeText = (workTime: IStationWorkTimeDay[] | undefined): string | undefined => {
+  if (!workTime?.length) {
+    return undefined;
+  }
+  const ranges = workTime.map((w) => (w.open && w.close ? `${w.open}–${w.close}` : undefined));
+  if (ranges.some((r) => !r)) {
+    return undefined;
+  }
+  if (new Set(ranges).size === 1) {
+    return `${ranges[0]} (ежедневно)`;
+  }
+  if (ranges.length !== 7) {
+    return [...new Set(ranges)].join(', ');
+  }
+  const parts: string[] = [];
+  let start = 0;
+  for (let i = 1; i <= ranges.length; i++) {
+    if (i === ranges.length || ranges[i] !== ranges[start]) {
+      const days = start === i - 1 ? WEEK_DAYS[start] : `${WEEK_DAYS[start]}–${WEEK_DAYS[i - 1]}`;
+      parts.push(`${days} ${ranges[start]}`);
+      start = i;
+    }
+  }
+  return parts.join(', ');
+};
+
 // ─── Отрисовка маршрутов ─────────────────────────────────────────────────────
 
 const renderRideLeg = (leg: Extract<TRouteLeg, { kind: 'ride' }>, index: number): string => {
   const path = leg.stations.map((s) => s.name.ru).join(' → ');
   const stops = leg.stations.length - 1;
-  return (
-    `${index}. 🚇 **${lineName(leg.line)}** — ${fmtDuration(leg.timeSec)}, перегонов: ${stops}\n` +
-    `   Станции: ${path}`
-  );
+  return `${index}. 🚇 **${lineName(leg.line)}** — ${fmtDuration(leg.timeSec)}, перегонов: ${stops}\n   Станции: ${path}`;
 };
 
 const renderTransferLeg = (leg: Extract<TRouteLeg, { kind: 'transfer' }>, index: number): string => {
@@ -166,13 +196,11 @@ const renderVariant = (v: IRouteVariant, n: number): string => {
   out.push(`## Вариант ${n} — ${fmtDuration(v.totalTimeSec)} в пути, пересадок: ${v.transfersCount}`);
   out.push('');
   out.push(
-    `- **Время в пути:** ${fmtDuration(v.totalTimeSec)} ` +
-      `(в поездах ${fmtDuration(v.rideTimeSec)}, на переходах ${fmtDuration(v.transferTimeSec)}).`,
+    `- **Время в пути:** ${fmtDuration(v.totalTimeSec)} (в поездах ${fmtDuration(v.rideTimeSec)}, на переходах ${fmtDuration(v.transferTimeSec)}).`,
   );
   if (extraEnter || extraExit) {
     out.push(
-      `- **С учётом входа и выхода:** ~${fmtDuration(doorToDoor)} ` +
-        `(дополнительно вход ~${fmtDuration(extraEnter)}, выход ~${fmtDuration(extraExit)}).`,
+      `- **С учётом входа и выхода:** ~${fmtDuration(doorToDoor)} (дополнительно вход ~${fmtDuration(extraEnter)}, выход ~${fmtDuration(extraExit)}).`,
     );
   }
   out.push('');
@@ -251,6 +279,10 @@ export const renderStationInfo = (info: IStationInfo): string => {
     if (timing.length) {
       out.push(`- Время прохода: ${timing.join(', ')}.`);
     }
+    const workTime = workTimeText(p.workTime);
+    if (workTime) {
+      out.push(`- Режим работы станции: ${workTime}.`);
+    }
     if (p.services?.length) {
       out.push(`- Услуги: ${p.services.map(serviceLabel).join(', ')}.`);
     }
@@ -275,10 +307,14 @@ export const renderStationInfo = (info: IStationInfo): string => {
       out.push('');
       out.push('**Первый и последний поезд по направлениям:**');
       out.push('');
-      out.push('| Направление | Первый | Последний |');
-      out.push('|-------------|--------|-----------|');
+      if (p.schedule.some((s) => s.days)) {
+        out.push('_«Чётные»/«нечётные» — числа месяца: поезда ходят по двум чередующимся графикам._');
+        out.push('');
+      }
+      out.push('| Направление | Дни | Первый | Последний |');
+      out.push('|-------------|-----|--------|-----------|');
       for (const s of p.schedule) {
-        out.push(`| ${s.toName ?? '—'} | ${s.first ?? '—'} | ${s.last ?? '—'} |`);
+        out.push(`| ${s.toName ?? '—'} | ${s.days ?? 'все дни'} | ${s.first ?? '—'} | ${s.last ?? '—'} |`);
       }
     }
   }
@@ -310,18 +346,14 @@ const optionLine = (opt: IStationOption, n: number): string => {
  */
 export const renderResolutionAsk = (label: string, query: string, resolution: TStationResolution): string => {
   if (resolution.kind === 'not_found') {
-    return (
-      `### Уточните ${label}: «${query}»\n` +
-      `Не удалось распознать название станции. Проверьте написание и укажите станцию заново — ` +
-      `можно на русском, английском, арабском или китайском языке.`
-    );
+    return `### Уточните ${label}: «${query}»
+Не удалось распознать название станции. Проверьте написание и укажите станцию заново — можно на русском, английском, арабском или китайском языке.`;
   }
   if (resolution.kind === 'ambiguous') {
     const list = resolution.options.map((o, i) => optionLine(o, i + 1)).join('\n');
-    return (
-      `### Уточните ${label}: «${query}»\n` +
-      `Найдено несколько подходящих станций. Пожалуйста, выберите нужную:\n${list}`
-    );
+    return `### Уточните ${label}: «${query}»
+Найдено несколько подходящих станций. Пожалуйста, выберите нужную:
+${list}`;
   }
   return '';
 };

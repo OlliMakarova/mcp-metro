@@ -34,7 +34,7 @@ const formatDate = (iso: string | undefined): string => {
     return 'неизвестной даты';
   }
   const d = new Date(iso);
-  return Number.isNaN(d.getTime()) ? 'неизвестной даты' : d.toISOString().slice(0, 16).replace('T', ' ') + ' UTC';
+  return Number.isNaN(d.getTime()) ? 'неизвестной даты' : `${d.toISOString().slice(0, 16).replace('T', ' ')} UTC`;
 };
 
 /**
@@ -52,25 +52,12 @@ export const buildStateChangeMessage = (
   }
   switch (next) {
     case 'ok':
-      return (
-        `✅ ${serviceName}: источник mosmetro.ru снова доступен — данные метро полные, ` +
-        `закрытия и ремонты учитываются.`
-      );
+      return `✅ ${serviceName}: источник mosmetro.ru снова доступен — данные метро полные, закрытия и ремонты учитываются.`;
     case 'backup':
-      return (
-        `⚠️ ${serviceName}: источник mosmetro.ru недоступен. Данные обновлены с резервного ` +
-        `metrobook.ru: маршруты строятся, но закрытия станций, вагоны и наземный транспорт недоступны.`
-      );
+      return `⚠️ ${serviceName}: источник mosmetro.ru недоступен. Данные обновлены с резервного metrobook.ru: маршруты строятся, но закрытия станций, вагоны и наземный транспорт недоступны.`;
     case 'disk':
-      return (
-        `⚠️ ${serviceName}: оба источника (mosmetro.ru и metrobook.ru) недоступны. ` +
-        `Используется дисковая копия (${dataset?.source ?? '?'}) от ${formatDate(dataset?.schemaFetchedAt)}; ` +
-        `устаревшие сведения о закрытиях удалены.`
-      );
+      return `⚠️ ${serviceName}: оба источника (mosmetro.ru и metrobook.ru) недоступны. Используется дисковая копия (${dataset?.source ?? '?'}) от ${formatDate(dataset?.schemaFetchedAt)}; устаревшие сведения о закрытиях удалены.`;
     case 'none':
-      return (
-        `🛑 ${serviceName}: данные метро получить не удалось — оба источника недоступны, ` +
-        `дисковой копии нет. Построение маршрутов будет возвращать ошибку до восстановления источников.`
-      );
+      return `🛑 ${serviceName}: данные метро получить не удалось — оба источника недоступны, дисковой копии нет. Построение маршрутов будет возвращать ошибку до восстановления источников.`;
   }
 };

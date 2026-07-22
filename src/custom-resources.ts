@@ -22,32 +22,34 @@ const renderLines = (): string => {
   const rows = dataset.lines
     .map((l) => `| ${l.id} | ${l.name?.ru ?? '—'} | ${LINE_KIND_LABEL[l.kind] ?? l.kind} | ${l.color ?? '—'} |`)
     .join('\n');
-  return (
-    '# Линии Московского метро (метро, МЦК, МЦД)\n\n' +
-    `Всего линий: ${dataset.lines.length}.\n\n` +
-    '| Код | Название | Тип | Цвет |\n|-----|----------|-----|------|\n' +
-    rows
-  );
+  return `# Линии Московского метро (метро, МЦК, МЦД)
+
+Всего линий: ${dataset.lines.length}.
+
+| Код | Название | Тип | Цвет |
+|-----|----------|-----|------|
+${rows}`;
 };
 
 /** Состояние и свежесть данных метро в формате markdown */
 const renderStatus = (): string => {
   const dataset = getMetroDatasetOrNull();
   if (!dataset) {
-    return '# Состояние данных метро\n\nДанные метро временно недоступны (источники не отвечают, локальной копии нет).';
+    return `# Состояние данных метро
+
+Данные метро временно недоступны (источники не отвечают, локальной копии нет).`;
   }
   const sourceName =
     dataset.source === 'mosmetro' ? 'mosmetro.ru (полный набор сведений)' : 'metrobook.ru (базовый набор)';
-  return (
-    '# Состояние данных метро\n\n' +
-    `- Источник: ${sourceName}\n` +
-    `- Схема скачана: ${dataset.schemaFetchedAt}\n` +
-    `- Уведомления скачаны: ${dataset.notificationsFetchedAt ?? 'нет'}\n` +
-    `- Станций: ${dataset.stations.length}\n` +
-    `- Линий: ${dataset.lines.length}\n` +
-    `- Перегонов и переходов: ${dataset.edges.length}\n` +
-    `- Действующих уведомлений о ремонтах/закрытиях: ${dataset.notifications?.length ?? 0}`
-  );
+  return `# Состояние данных метро
+
+- Источник: ${sourceName}
+- Схема скачана: ${dataset.schemaFetchedAt}
+- Уведомления скачаны: ${dataset.notificationsFetchedAt ?? 'нет'}
+- Станций: ${dataset.stations.length}
+- Линий: ${dataset.lines.length}
+- Перегонов и переходов: ${dataset.edges.length}
+- Действующих уведомлений о ремонтах/закрытиях: ${dataset.notifications?.length ?? 0}`;
 };
 
 export const customResources: IResourceData[] = [

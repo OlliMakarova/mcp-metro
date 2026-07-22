@@ -41,8 +41,16 @@ export interface ITrainScheduleEntry {
   stationToName?: string;
   first?: string;
   last?: string;
+  /** EVEN/ODD — чётные/нечётные числа месяца: поезда ходят по двум чередующимся графикам */
   dayType?: string;
+  /** true — график выходного дня, false — будний */
   weekend?: boolean;
+}
+
+/** Часы работы вестибюлей станции в один день недели ("05:30" — "01:00") */
+export interface IStationWorkTimeDay {
+  open?: string;
+  close?: string;
 }
 
 export interface IMetroStation {
@@ -60,6 +68,8 @@ export interface IMetroStation {
   services?: string[];
   /** Расписание первых/последних поездов по направлениям (ключ — id направления в источнике) */
   scheduleTrains?: Record<string, ITrainScheduleEntry[]>;
+  /** Часы работы вестибюлей по дням недели: 7 записей, понедельник — воскресенье (только mosmetro) */
+  workTime?: IStationWorkTimeDay[];
   /**
    * Дополнительные названия для неточного поиска. Используется при работе от metrobook:
    * у пересадочного узла там одна подпись («Пушкинская»), и «вторые» имена узла

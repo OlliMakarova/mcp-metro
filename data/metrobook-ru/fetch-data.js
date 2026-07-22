@@ -94,9 +94,7 @@ await writeFile(outPath, JSON.stringify(graph, null, 1), 'utf8');
 
 console.log(`Сохранено: ${outPath}`);
 console.log(
-  `Станций: ${Object.keys(graph.stations).length}, вершин (станция×линия): ` +
-    `${Object.keys(graph.stationInstances).length}, перегонов: ${graph.edges.length}, ` +
-    `пересадок: ${graph.transfers.length}`,
+  `Станций: ${Object.keys(graph.stations).length}, вершин (станция×линия): ${Object.keys(graph.stationInstances).length}, перегонов: ${graph.edges.length}, пересадок: ${graph.transfers.length}`,
 );
 const unnamed = Object.values(graph.stationInstances).filter((s) => !s.name).length;
 if (unnamed) {

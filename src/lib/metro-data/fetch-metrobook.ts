@@ -111,8 +111,7 @@ export const validateMetrobookGraph = (g: IMetrobookGraphFile): void => {
   const named = Object.values(g.stations).filter((s) => s.name).length;
   if (instances < 300 || edges < 300 || named < 250) {
     throw new Error(
-      `metrobook.ru: извлечённый граф неправдоподобен (вершин ${instances}, перегонов ${edges}, ` +
-        `названных станций ${named}) — вёрстка сайта изменилась`,
+      `metrobook.ru: извлечённый граф неправдоподобен (вершин ${instances}, перегонов ${edges}, названных станций ${named}) — вёрстка сайта изменилась`,
     );
   }
 };

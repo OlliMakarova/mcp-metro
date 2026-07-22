@@ -98,7 +98,7 @@ const logError = (msg) => {
   fs.appendFileSync(cumulativeLogFile, `${msg2}\n`);
 };
 
-const nowPretty = () => new Date().toISOString().replace('T', ' ').substring(0, 19) + 'Z';
+const nowPretty = () => `${new Date().toISOString().replace('T', ' ').substring(0, 19)}Z`;
 
 /**
  * Truncate cumulative log file if it exceeds 2MB, keeping last 10KB

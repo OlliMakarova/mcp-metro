@@ -158,8 +158,9 @@ export const refreshMetroData = async (deps: IRefreshDeps): Promise<IRefreshResu
       ...(notificationsRaw && notificationsFetchedAt ? { notificationsFetchedAt } : {}),
     });
     log.info(
-      `Данные метро обновлены с mosmetro.ru: станций ${dataset.stations.length}, ` +
-        `уведомлений ${dataset.notifications?.length ?? 0}`,
+      `Данные метро обновлены с mosmetro.ru: станций ${dataset.stations.length}, уведомлений ${
+        dataset.notifications?.length ?? 0
+      }`,
     );
     return { dataset, origin: 'mosmetro-fresh' };
   }

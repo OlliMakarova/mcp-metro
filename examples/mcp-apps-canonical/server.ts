@@ -40,9 +40,7 @@ const tools: Tool[] = [
   {
     name: 'get-time',
     title: 'Get current server time',
-    description:
-      'Returns the current server timestamp. When the host supports MCP Apps, the response ' +
-      'is rendered by an interactive widget; otherwise the agent sees the timestamp as plain text.',
+    description: `Returns the current server timestamp. When the host supports MCP Apps, the response is rendered by an interactive widget; otherwise the agent sees the timestamp as plain text.`,
     inputSchema: {
       type: 'object',
       properties: {},
@@ -82,10 +80,7 @@ const serverData: McpServerData = {
   tools,
   toolHandler,
   agentBrief: 'Canonical MCP Apps example — returns server time with an interactive widget.',
-  agentPrompt:
-    'You are the demo agent for the canonical MCP Apps example. ' +
-    'When the user asks about time, call the get-time tool. The host renders the response in a widget; ' +
-    'briefly acknowledge the result without restating the timestamp verbatim.',
+  agentPrompt: `You are the demo agent for the canonical MCP Apps example. When the user asks about time, call the get-time tool. The host renders the response in a widget; briefly acknowledge the result without restating the timestamp verbatim.`,
   customResources,
 };
 

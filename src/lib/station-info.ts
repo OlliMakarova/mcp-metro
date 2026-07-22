@@ -11,6 +11,8 @@ import {
   IGeoPoint,
   ILocalizedName,
   IStationExit,
+  IStationWorkTimeDay,
+  ITrainScheduleEntry,
   TLineKind,
   TNotificationStatus,
 } from './metro-data/types.js';
@@ -31,6 +33,12 @@ export interface IStationLineRef {
 /** Первый и последний поезд по одному направлению (интервалов движения в данных нет) */
 export interface IStationScheduleDir {
   toName?: string;
+  /**
+   * В какие дни действует время: «чётные»/«нечётные» (числа месяца — поезда ходят по двум
+   * чередующимся графикам), при необходимости с уточнением «будни»/«выходные».
+   * Отсутствует, если время по направлению одинаково во все дни.
+   */
+  days?: string;
   first?: string;
   last?: string;
 }
@@ -54,6 +62,8 @@ export interface IStationPlatform {
   exits?: IStationExit[];
   groundTransport?: IStationGroundTransport;
   schedule?: IStationScheduleDir[];
+  /** Часы работы вестибюлей по дням недели: 7 записей, понедельник — воскресенье */
+  workTime?: IStationWorkTimeDay[];
 }
 
 /** Предупреждение по станции из уведомлений (ремонт эскалатора, закрытие выхода, лифта и т. п.) */
@@ -113,25 +123,73 @@ const groundTransport = (exits: IStationExit[] | undefined): IStationGroundTrans
   return { bus: [...bus], trolleybus: [...trolleybus], tram: [...tram] };
 };
 
+const DAY_TYPE_LABEL: Record<string, string> = { EVEN: 'чётные', ODD: 'нечётные' };
+
+const comboKey = (e: ITrainScheduleEntry): string => `${e.dayType ?? ''}|${e.weekend ?? ''}`;
+
+/**
+ * Пометка «в какие дни действует время» для группы записей одного направления с одинаковыми
+ * временами. Покрытые комбинации «чётность даты × будни/выходные» сводятся к краткому описанию:
+ * «чётные», «будни», «нечётные, выходные» и т. п. Если группа покрывает все встречающиеся
+ * по направлению комбинации (время едино во все дни) — пометка не нужна, возвращается undefined.
+ */
+const scheduleDaysLabel = (group: ITrainScheduleEntry[], directionComboCount: number): string | undefined => {
+  const combos = new Set(group.map(comboKey));
+  if (combos.size >= directionComboCount) {
+    return undefined;
+  }
+  const has = (dayType: string, weekend: boolean): boolean => combos.has(`${dayType}|${weekend}`);
+  // Обе чётности, но только будни или только выходные
+  if (has('EVEN', false) && has('ODD', false) && !has('EVEN', true) && !has('ODD', true)) {
+    return 'будни';
+  }
+  if (has('EVEN', true) && has('ODD', true) && !has('EVEN', false) && !has('ODD', false)) {
+    return 'выходные';
+  }
+  const parts: string[] = [];
+  for (const dayType of ['EVEN', 'ODD']) {
+    const label = DAY_TYPE_LABEL[dayType]!;
+    if (has(dayType, false) && has(dayType, true)) {
+      parts.push(label);
+    } else if (has(dayType, false)) {
+      parts.push(`${label}, будни`);
+    } else if (has(dayType, true)) {
+      parts.push(`${label}, выходные`);
+    }
+  }
+  return parts.length ? parts.join('; ') : undefined;
+};
+
 const scheduleSummary = (
-  scheduleTrains: Record<string, { stationToName?: string; first?: string; last?: string }[]> | undefined,
+  scheduleTrains: Record<string, ITrainScheduleEntry[]> | undefined,
 ): IStationScheduleDir[] | undefined => {
   if (!scheduleTrains) {
     return undefined;
   }
-  // Записи повторяются по типу дня (чётный/нечётный, будни/выходные) с одинаковыми
-  // временами — схлопываем до уникальных сочетаний «направление + первый + последний».
-  const seen = new Set<string>();
+  // По направлению до четырёх записей: комбинации «чётные/нечётные даты × будни/выходные».
+  // Времена в них нередко различаются (в текущих данных — у 228 станций из 443), поэтому
+  // записи с одинаковыми временами схлопываются в одну строку, а различающиеся получают
+  // пометку days, в какие дни это время действует.
   const result: IStationScheduleDir[] = [];
   for (const entries of Object.values(scheduleTrains)) {
+    const groups = new Map<string, ITrainScheduleEntry[]>();
     for (const e of entries) {
       const key = `${e.stationToName ?? ''}|${e.first ?? ''}|${e.last ?? ''}`;
-      if (seen.has(key)) {
-        continue;
+      const group = groups.get(key);
+      if (group) {
+        group.push(e);
+      } else {
+        groups.set(key, [e]);
       }
-      seen.add(key);
+    }
+    const directionComboCount = new Set(entries.map(comboKey)).size;
+    const rows = [...groups.values()].sort((a, b) => (a[0]!.first ?? '').localeCompare(b[0]!.first ?? ''));
+    for (const group of rows) {
+      const e = group[0]!;
+      const days = scheduleDaysLabel(group, directionComboCount);
       result.push({
         ...(e.stationToName ? { toName: e.stationToName } : {}),
+        ...(days ? { days } : {}),
         ...(e.first ? { first: e.first } : {}),
         ...(e.last ? { last: e.last } : {}),
       });
@@ -192,6 +250,7 @@ export const buildStationInfo = (dataset: IMetroDataset, stationIds: number[], a
       ...(s.exits?.length ? { exits: s.exits } : {}),
       ...(gt ? { groundTransport: gt } : {}),
       ...(sched ? { schedule: sched } : {}),
+      ...(s.workTime?.length ? { workTime: s.workTime } : {}),
     };
   });
 

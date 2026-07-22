@@ -52,6 +52,7 @@ interface IRawStation {
   exits?: IRawExit[] | null;
   services?: string[] | null;
   scheduleTrains?: Record<string, ITrainScheduleEntry[]> | null;
+  workTime?: Array<{ open?: string | null; close?: string | null } | null> | null;
   mcd?: boolean | null;
   mcc?: boolean | null;
 }
@@ -193,6 +194,12 @@ const toLocalizedName = (raw: IRawName | null | undefined): ILocalizedName => ({
 });
 
 const normalizeStation = (s: IRawStation): IMetroStation => {
+  const workTime = (s.workTime ?? [])
+    .filter((w) => !!w)
+    .map((w) => ({
+      ...(w.open ? { open: w.open } : {}),
+      ...(w.close ? { close: w.close } : {}),
+    }));
   const exits: IStationExit[] = (s.exits ?? []).filter(Boolean).map((e) => ({
     ...(e.title?.ru ? { title: e.title.ru } : {}),
     ...(typeof e.exitNumber === 'number' ? { exitNumber: e.exitNumber } : {}),
@@ -211,6 +218,7 @@ const normalizeStation = (s: IRawStation): IMetroStation => {
     ...(exits.length ? { exits } : {}),
     ...(s.services?.length ? { services: s.services } : {}),
     ...(s.scheduleTrains && Object.keys(s.scheduleTrains).length ? { scheduleTrains: s.scheduleTrains } : {}),
+    ...(workTime.length ? { workTime } : {}),
   };
 };
 

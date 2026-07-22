@@ -111,8 +111,7 @@ for (const [i, r] of best.routes.entries()) {
     if (leg.kind === 'ride') {
       const line = graph.lines.get(leg.lineId)?.name?.ru ?? `линия ${leg.lineId}`;
       console.log(
-        `  ${line}: ${stName(leg.fromId)} → ${stName(leg.toId)}` +
-          ` (${leg.stationsCount} перегон${leg.stationsCount === 1 ? '' : leg.stationsCount < 5 ? 'а' : 'ов'}, ${min(leg.time)})`,
+        `  ${line}: ${stName(leg.fromId)} → ${stName(leg.toId)} (${leg.stationsCount} перегон${leg.stationsCount === 1 ? '' : leg.stationsCount < 5 ? 'а' : 'ов'}, ${min(leg.time)})`,
       );
     } else {
       const where = leg.ground ? ' по улице' : '';
@@ -123,8 +122,7 @@ for (const [i, r] of best.routes.entries()) {
     console.log(`  выход в город: ${min(r.exitTime)}`);
   }
   console.log(
-    `  итого: в пути ${min(r.rideTime)}, пересадки ${min(r.transferTime)},` +
-      ` вход/выход ${min(r.enterTime + r.exitTime)}`,
+    `  итого: в пути ${min(r.rideTime)}, пересадки ${min(r.transferTime)}, вход/выход ${min(r.enterTime + r.exitTime)}`,
   );
 }
 
