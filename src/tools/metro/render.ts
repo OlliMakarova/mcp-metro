@@ -200,8 +200,9 @@ const renderVariant = (v: IRouteVariant, n: number): string => {
   out.push(`## Вариант ${n} — ${fmtDuration(v.totalTimeSec)} в пути, пересадок: ${v.transfersCount}`);
   out.push('');
   out.push(
-    `- **Время в пути:** ${fmtDuration(v.totalTimeSec)} (в поездах ${fmtDuration(v.rideTimeSec)}, на переходах ${
-      fmtDuration(v.transferTimeSec)}, ожидание поездов ~${fmtDuration(v.waitTimeSec)}).`,
+    `- **Время в пути:** ${fmtDuration(v.totalTimeSec)} (в поездах ${fmtDuration(v.rideTimeSec)}, на переходах ${fmtDuration(
+      v.transferTimeSec,
+    )}, ожидание поездов ~${fmtDuration(v.waitTimeSec)}).`,
   );
   if (extraEnter || extraExit) {
     out.push(

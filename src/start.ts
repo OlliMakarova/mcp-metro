@@ -6,7 +6,6 @@ import { customResources } from './custom-resources.js';
 import { initMetroData } from './lib/metro-data/init.js';
 import { AGENT_BRIEF } from './prompts/agent-brief.js';
 import { AGENT_PROMPT } from './prompts/agent-prompt.js';
-import { toolPrompt } from './prompts/tool-prompts.js';
 import { handleToolCall } from './tools/handle-tool-call.js';
 import { tools } from './tools/tools.js';
 
@@ -32,7 +31,6 @@ const startProject = async (): Promise<void> => {
     // Prompts
     agentBrief: AGENT_BRIEF,
     agentPrompt: AGENT_PROMPT,
-    toolPrompt,
     usedHttpHeaders: [
       { name: 'Authorization', description: 'JWT Token issued on request' },
       { name: 'x-test-header', description: 'Any custom header', isOptional: true },
