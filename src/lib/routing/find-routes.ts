@@ -15,6 +15,12 @@ import { IOperatingStatus, getOperatingStatus } from './operating-hours.js';
 import { getExpectedWaitSec } from './train-intervals.js';
 import { yenKShortestPaths } from './yen.js';
 
+/**
+ * A variant is dropped when it is more than this fraction slower than the fastest one. Keeps the
+ * result to genuinely competitive alternatives (the fastest variant is always kept). 1.3 = +30%.
+ */
+const MAX_SLOWER_RATIO = 1.3;
+
 export interface IRouteStationInfo {
   id: number;
   name: ILocalizedName;
@@ -347,13 +353,19 @@ export const findBestRoutes = (
   let firstError: Error | null = null;
   let base: IFindRoutesResult | null = null;
 
+  // Over-fetch raw paths from Yen's algorithm: it returns near-duplicate paths that differ only by
+  // an intra-hub transfer, and these collapse in the dedup below. Requesting a larger pool per pair
+  // keeps enough genuinely-different routes to fill k distinct variants after deduplication.
+  const poolK = Math.max(k * 4, 12);
+  const poolOpts: IFindRoutesOpts = { ...opts, k: poolK };
+
   for (const fromId of fromIds) {
     for (const toId of toIds) {
       if (fromId === toId) {
         continue;
       }
       try {
-        const res = findRoutes(dataset, fromId, toId, opts);
+        const res = findRoutes(dataset, fromId, toId, poolOpts);
         base = base ?? res;
         allVariants.push(...res.variants);
       } catch (e) {
@@ -366,23 +378,35 @@ export const findBestRoutes = (
     throw firstError ?? new Error('Failed to build a route: departure/destination stations are not specified');
   }
 
-  // Drop duplicates (identical station sequences) and take the k fastest
+  // Deduplicate, drop far-slower variants, and take the k fastest.
+  //
+  // Variant identity is the sequence of RIDE legs only (line + station ids): which lines you ride
+  // and between which stations. Transfer legs are walks INSIDE an interchange hub and do NOT
+  // distinguish routes — two variants with the same rides but a different or extra hub transfer
+  // (at the start, an intermediate hub, or the end) are the same route. Variants are sorted by
+  // total time first, so the surviving one is the fastest: when a hub offers several transfers,
+  // only the quickest is kept. Routes differ as variants only when their rides differ (different
+  // lines or different boarding/alighting hubs).
   const seen = new Set<string>();
-  const variants = allVariants
+  const deduped = allVariants
     .sort((a, b) => a.totalTimeSec - b.totalTimeSec)
     .filter((v) => {
       const key = v.legs
-        .map((l) =>
-          l.kind === 'ride' ? l.stations.map((s) => s.id).join('-') : `T${l.fromStation.id}-${l.toStation.id}`,
-        )
+        .filter((l): l is IRouteLegRide => l.kind === 'ride')
+        .map((l) => `${l.line?.id ?? '?'}:${l.stations.map((s) => s.id).join('-')}`)
         .join('|');
       if (seen.has(key)) {
         return false;
       }
       seen.add(key);
       return true;
-    })
-    .slice(0, k);
+    });
+
+  // Keep only variants within MAX_SLOWER_RATIO of the fastest one (the fastest is always kept).
+  const fastestSec = deduped[0]?.totalTimeSec;
+  const variants = (
+    fastestSec === undefined ? deduped : deduped.filter((v) => v.totalTimeSec <= fastestSec * MAX_SLOWER_RATIO)
+  ).slice(0, k);
 
   // Recompute the entry status over ALL vestibules of the departure hub (base covers one)
   const operating = getOperatingStatus(dataset, fromIds, opts.at ?? new Date());

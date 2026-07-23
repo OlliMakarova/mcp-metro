@@ -4,7 +4,7 @@
 
 import { describe, expect, test } from '@jest/globals';
 import { buildRouteGraph } from '../../src/lib/routing/graph.js';
-import { findBestRoutes, findRoutes } from '../../src/lib/routing/find-routes.js';
+import { findBestRoutes, findRoutes, IRouteVariant } from '../../src/lib/routing/find-routes.js';
 import { getExpectedWaitSec } from '../../src/lib/routing/train-intervals.js';
 import {
   AT_AFTER_CLOSURE,
@@ -162,5 +162,47 @@ describe('Маршрутизация по данным mosmetro', () => {
 
   test('неизвестная станция даёт понятную ошибку', () => {
     expect(() => findRoutes(ds, 999_999, 1, { at: AT_FIXTURE_DATE })).toThrow(/missing from the data/);
+  });
+
+  // Variant identity is the sequence of RIDE legs only: which lines you ride and between which
+  // stations. Extra/alternative transfers inside an interchange hub (start, intermediate or end) do
+  // not create separate variants — the fastest way through each hub is kept.
+  const rideKey = (v: IRouteVariant) =>
+    v.legs
+      .map((l) => (l.kind === 'ride' ? `${l.line?.id ?? '?'}:${l.stations.map((s) => s.id).join('-')}` : ''))
+      .filter(Boolean)
+      .join('|');
+
+  test('варианты, отличающиеся лишь переходом в узле, считаются одним (Савёловская → Черкизовская)', () => {
+    const res = findBestRoutes(ds, stationIdsByName(ds, 'Савёловская'), stationIdsByName(ds, 'Черкизовская'), {
+      k: 3,
+      at: AT_FIXTURE_DATE,
+    });
+    // The three ways to reach the БКЛ platform at the Савёловская hub ride the identical route —
+    // they collapse into a single variant (the fastest entry).
+    expect(res.variants).toHaveLength(1);
+    const v = res.variants[0]!;
+    expect(v.transfersCount).toBe(1); // only the Сокольники street transfer remains
+  });
+
+  test('разные варианты имеют разные основные поездки (нет дублей по переходам)', () => {
+    const res = findBestRoutes(ds, stationIdsByName(ds, 'Ховрино'), stationIdsByName(ds, 'Тёплый Стан'), {
+      k: 3,
+      at: AT_FIXTURE_DATE,
+    });
+    const keys = res.variants.map((v) => rideKey(v));
+    expect(new Set(keys).size).toBe(keys.length);
+  });
+
+  test('варианты медленнее самого быстрого более чем на 30% не показываются', () => {
+    // Request a large k; the +30% cap, not k, must bound the slowest kept variant.
+    const res = findBestRoutes(ds, stationIdsByName(ds, 'Ховрино'), stationIdsByName(ds, 'Тёплый Стан'), {
+      k: 20,
+      at: AT_FIXTURE_DATE,
+    });
+    const fastest = res.variants[0]!.totalTimeSec;
+    for (const v of res.variants) {
+      expect(v.totalTimeSec).toBeLessThanOrEqual(fastest * 1.3);
+    }
   });
 });
