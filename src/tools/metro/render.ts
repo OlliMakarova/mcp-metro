@@ -77,6 +77,10 @@ const wagonAdvice = (wagons: IWagonHint[] | undefined): string | undefined => {
   if (!kinds.size) {
     return undefined;
   }
+  // «front / middle / rear» all at once means any car works — that carries no information, skip it
+  if (WAGON_ORDER.every((k) => kinds.has(k))) {
+    return undefined;
+  }
   // Stable head-to-tail order regardless of the order in the data; unknown codes go last
   const rank = (v: string): number => (WAGON_ORDER.includes(v) ? WAGON_ORDER.indexOf(v) : WAGON_ORDER.length);
   return [...kinds].sort((a, b) => rank(a) - rank(b)).join(' / ');
@@ -151,58 +155,58 @@ const workTimeText = (workTime: IStationWorkTimeDay[] | undefined): string | und
 // ─── Route rendering ─────────────────────────────────────────────────────────
 
 const renderRideLeg = (leg: Extract<TRouteLeg, { kind: 'ride' }>, index: number, lang: TLang): string => {
-  const path = leg.stations.map((s) => pickName(s.name, lang)).join(' → ');
+  // Boarding and alighting stations only: intermediate stops add nothing to route choice
+  // (all transfer points are already named in the transfer legs) and bloat the response
+  const first = pickName(leg.stations[0]!.name, lang);
+  const last = pickName(leg.stations[leg.stations.length - 1]!.name, lang);
   const stops = leg.stations.length - 1;
-  return `${index}. 🚇 **${lineName(leg.line, lang)}** — ${fmtDuration(leg.timeSec)}, stops: ${stops}\n   Stations: ${path}`;
+  return `${index}. 🚇 ${lineName(leg.line, lang)}: ${first} → ${last} — ${fmtDuration(leg.timeSec)}, ${stops} ${stops === 1 ? 'stop' : 'stops'}`;
 };
 
 const renderTransferLeg = (leg: Extract<TRouteLeg, { kind: 'transfer' }>, index: number, lang: TLang): string => {
-  const kind = leg.isGround ? 'street-level transfer' : 'transfer';
-  const parts = [
-    `${index}. 🔁 **${kind}**: ${pickName(leg.fromStation.name, lang)} → ${pickName(leg.toStation.name, lang)} — ${fmtDuration(leg.timeSec)}`,
-  ];
+  const kind = leg.isGround ? 'street-level transfer: ' : 'transfer: ';
   const advice = wagonAdvice(leg.wagons);
-  if (advice) {
-    parts.push(`   Recommended cars: ${advice}.`);
-  }
-  if (leg.isAlternative) {
-    parts.push('   (temporary detour due to a closed section)');
-  }
-  return parts.join('\n');
+  const cars = advice ? ` (best cars: ${advice})` : '';
+  const alt = leg.isAlternative ? ' — temporary detour due to a closed section' : '';
+  return `${index}. 🔁 ${kind}${pickName(leg.fromStation.name, lang)} → ${pickName(
+    leg.toStation.name,
+    lang,
+  )} — ${fmtDuration(leg.timeSec)}${cars}${alt}`;
 };
 
 const renderEndpoint = (role: string, ep: IRouteEndpoint, lang: TLang): string => {
-  const lines: string[] = [`**${role}: ${pickName(ep.station.name, lang)}** (${lineName(ep.line, lang)})`];
+  const bits: string[] = [];
   if (ep.enterTimeSec !== undefined || ep.exitTimeSec !== undefined) {
-    const bits: string[] = [];
+    const walk: string[] = [];
     if (ep.enterTimeSec !== undefined) {
-      bits.push(`street entrance to platform ~${fmtDuration(ep.enterTimeSec)}`);
+      walk.push(`entry ~${fmtDuration(ep.enterTimeSec)}`);
     }
     if (ep.exitTimeSec !== undefined) {
-      bits.push(`platform to city exit ~${fmtDuration(ep.exitTimeSec)}`);
+      walk.push(`exit ~${fmtDuration(ep.exitTimeSec)}`);
     }
-    lines.push(`- ${bits.join(', ')}`);
+    bits.push(walk.join(', '));
   }
   if (ep.groundTransport) {
     const gt = ep.groundTransport;
     const parts: string[] = [];
     if (gt.bus.length) {
-      parts.push(`buses: ${gt.bus.join(', ')}`);
+      parts.push(`buses ${gt.bus.join(', ')}`);
     }
     if (gt.trolleybus.length) {
-      parts.push(`trolleybuses: ${gt.trolleybus.join(', ')}`);
+      parts.push(`trolleybuses ${gt.trolleybus.join(', ')}`);
     }
     if (gt.tram.length) {
-      parts.push(`trams: ${gt.tram.join(', ')}`);
+      parts.push(`trams ${gt.tram.join(', ')}`);
     }
     if (parts.length) {
-      lines.push(`- Surface transport at the exits: ${parts.join('; ')}`);
+      bits.push(`surface transport: ${parts.join('; ')}`);
     }
   }
   if (ep.services?.length) {
-    lines.push(`- Station services: ${ep.services.map(serviceLabel).join(', ')}`);
+    bits.push(`services: ${ep.services.map(serviceLabel).join(', ')}`);
   }
-  return lines.join('\n');
+  const tail = bits.length ? ` — ${bits.join('; ')}` : '';
+  return `- **${role}: ${pickName(ep.station.name, lang)}** (${lineName(ep.line, lang)})${tail}`;
 };
 
 const renderVariant = (v: IRouteVariant, n: number, lang: TLang): string => {
@@ -211,30 +215,16 @@ const renderVariant = (v: IRouteVariant, n: number, lang: TLang): string => {
   const doorToDoor = v.totalTimeSec + extraEnter + extraExit;
 
   const out: string[] = [];
-  out.push(`## Option ${n} — ${fmtDuration(v.totalTimeSec)} in transit, transfers: ${v.transfersCount}`);
-  out.push('');
-  out.push(
-    `- **Travel time:** ${fmtDuration(v.totalTimeSec)} (on trains ${fmtDuration(v.rideTimeSec)}, on transfers ${fmtDuration(
-      v.transferTimeSec,
-    )}, expected train wait ~${fmtDuration(v.waitTimeSec)}).`,
-  );
-  if (extraEnter || extraExit) {
-    out.push(
-      `- **Including station entry and exit:** ~${fmtDuration(doorToDoor)} (entry ~${fmtDuration(extraEnter)} and exit ~${fmtDuration(extraExit)} extra).`,
-    );
-  }
-  out.push('');
-  out.push('**Route legs:**');
-  out.push('');
+  // Per-leg times already show the ride/transfer split; only the wait share and the
+  // door-to-door total are not derivable from the legs
+  const extras = extraEnter || extraExit ? `; ~${fmtDuration(doorToDoor)} door-to-door` : '';
+  out.push(`## Option ${n} — ${fmtDuration(v.totalTimeSec)}, transfers: ${v.transfersCount}`);
+  out.push(`(incl. expected train wait ~${fmtDuration(v.waitTimeSec)}${extras})`);
   let i = 1;
   for (const leg of v.legs) {
     out.push(leg.kind === 'ride' ? renderRideLeg(leg, i, lang) : renderTransferLeg(leg, i, lang));
     i += 1;
   }
-  out.push('');
-  out.push(renderEndpoint('Departure', v.departure, lang));
-  out.push('');
-  out.push(renderEndpoint('Arrival', v.arrival, lang));
   return out.join('\n');
 };
 
@@ -281,8 +271,8 @@ const ENTRY_CLOSING_SOON_MIN = 30;
 const operatingWarning = (result: IFindRoutesResult): string | undefined => {
   const op = result.operating;
   if (!op.isOpen) {
-    const opensAt = op.opensAt ? ` The entry opens at ${op.opensAt}.` : '';
-    return `⛔ **Note: the metro is currently closed.** It is now ${op.moscowTime} Moscow time, and the departure station operates on the ${op.window} schedule.${opensAt} The travel times below are pure trip times and do not include waiting for the metro to open.`;
+    const opensAt = op.opensAt ? `, entry opens at ${op.opensAt}` : '';
+    return `⛔ **Metro is closed now** (${op.moscowTime} Moscow time; departure station hours ${op.window}${opensAt}). Times below exclude the wait for opening.`;
   }
   if (op.minutesToClose === undefined) {
     return undefined;
@@ -294,17 +284,11 @@ const operatingWarning = (result: IFindRoutesResult): string | undefined => {
     return undefined;
   }
   const parts = [
-    `⚠️ **Note: the metro entry closes soon.** It is now ${
-      op.moscowTime
-    } Moscow time; the entry to the departure station closes in about ${
-      op.minutesToClose
-    } min (operating hours: ${op.window}) — try to enter before it closes.`,
+    `⚠️ **Metro entry closes in ~${op.minutesToClose} min** (${op.moscowTime} Moscow time, hours ${op.window}) — enter before closing.`,
   ];
   if (transfersMayClose && op.closesAt) {
     parts.push(
-      `The route takes about ${fastest.totalTimeMin} min and includes transfers: interline transfer passages close at ${
-        op.closesAt
-      }, so the transfer at the end of the trip will already be closed — this route cannot be completed. Choose an option without transfers or use surface transport.`,
+      `Interline transfer passages close at ${op.closesAt}; a ~${fastest.totalTimeMin} min route with transfers cannot be completed — pick a no-transfer option or surface transport.`,
     );
   }
   return parts.join(' ');
@@ -312,19 +296,15 @@ const operatingWarning = (result: IFindRoutesResult): string | undefined => {
 
 /** Full markdown response for the found routes */
 export const renderRoutes = (result: IFindRoutesResult, fromName: string, toName: string, lang: TLang): string => {
-  const closures = result.closuresApplied ? ' Active closures and repairs are taken into account.' : '';
-
   const head = [
     `# Routes: ${fromName} → ${toName}`,
     '',
-    `Route options found: **${result.variants.length}**.${closures} Travel times include the expected wait for trains at the boarding station and at every transfer, based on typical service intervals for the current time of day.`,
+    `**${result.variants.length}** options${result.closuresApplied ? ' (closures/repairs applied)' : ''}. Times include expected train waits.`,
     '',
   ];
   const hasMcd = result.variants.some((v) => v.legs.some((l) => l.kind === 'ride' && l.line?.isMcd));
   if (hasMcd) {
-    head.push(
-      'ℹ️ Some routes use the MCD: intervals there depend on the specific train and its terminal station, so the actual wait may differ — check the suburban train timetable when possible.',
-    );
+    head.push('ℹ️ MCD intervals depend on the specific train — check the suburban timetable when possible.');
     head.push('');
   }
   const opWarning = operatingWarning(result);
@@ -338,8 +318,17 @@ export const renderRoutes = (result: IFindRoutesResult, fromName: string, toName
   }
   const body = result.variants.map((v, idx) => renderVariant(v, idx + 1, lang));
 
+  // Departure/arrival details are identical across variants in the common case — render each
+  // distinct block once at the end instead of repeating it under every option
+  const tail: string[] = ['', '**Stations:**'];
+  const epBlocks = new Set<string>();
+  for (const v of result.variants) {
+    epBlocks.add(renderEndpoint('Departure', v.departure, lang));
+    epBlocks.add(renderEndpoint('Arrival', v.arrival, lang));
+  }
+  tail.push(...epBlocks);
+
   // Single warnings block at the very end: unique, endpoint stations only
-  const tail: string[] = [];
   const warnings = endpointWarnings(result.variants);
   if (warnings.length) {
     tail.push('');
