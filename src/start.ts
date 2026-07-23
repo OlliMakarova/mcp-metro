@@ -30,10 +30,6 @@ const startProject = async (): Promise<void> => {
     // Prompts
     agentBrief: AGENT_BRIEF,
     agentPrompt: AGENT_PROMPT,
-    usedHttpHeaders: [
-      { name: 'Authorization', description: 'JWT Token issued on request' },
-      { name: 'x-test-header', description: 'Any custom header', isOptional: true },
-    ],
     // Resources
     customResources,
 

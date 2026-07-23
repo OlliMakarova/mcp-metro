@@ -2,12 +2,13 @@ import { Tool } from '@modelcontextprotocol/sdk/types.js';
 
 import { asTextContent, asTextError, TToolHandlerResponse } from 'fa-mcp-sdk';
 
+import { debugFuzzySearch } from '../debug.js';
 import { getMetroDatasetOrNull } from '../lib/metro-data/cache.js';
 import { pickName, toLang } from '../lib/metro-data/localized-name.js';
 import { hideSourceNames } from '../lib/metro-data/public-source.js';
 import { findBestRoutes } from '../lib/routing/find-routes.js';
 import { buildStationInfo } from '../lib/station-info.js';
-import { resolveStation } from '../lib/station-search/resolve-station.js';
+import { IStationOption, resolveStation, TStationResolution } from '../lib/station-search/resolve-station.js';
 import { renderResolutionAsk, renderRoutes, renderStationInfo } from './metro/render.js';
 
 /** How many route variants to request (per the task statement: from 1 to 4) */
@@ -64,6 +65,40 @@ Pass station names exactly as the user writes them.
   },
 };
 
+// ─── DEBUG=fuzzy-search: console tables of clarification alternatives ────────
+
+/** Aligned text table of station alternatives: name, cluster id, platform ids, similarity */
+const optionsTable = (options: IStationOption[]): string => {
+  const header = ['#', 'Station', 'Cluster', 'Station ids', 'Score'];
+  const rows = options.map((o, i) => [
+    String(i + 1),
+    o.name.en && o.name.en !== o.name.ru ? `${o.name.ru} / ${o.name.en}` : o.name.ru,
+    String(o.clusterId),
+    o.ids.join(', '),
+    o.score.toFixed(4),
+  ]);
+  const all = [header, ...rows];
+  const widths = header.map((_, c) => Math.max(...all.map((r) => r[c]!.length)));
+  return all.map((r) => r.map((cell, c) => cell.padEnd(widths[c]!)).join('  ')).join('\n');
+};
+
+/**
+ * DEBUG=fuzzy-search: prints the clarification alternatives the tool is about to return
+ * (ambiguous resolution), or a note that nothing matched (not_found).
+ */
+const debugStationResolution = (query: string, resolution: TStationResolution): void => {
+  if (!debugFuzzySearch.enabled) {
+    return;
+  }
+  if (resolution.kind === 'ambiguous') {
+    debugFuzzySearch(
+      `Ambiguous «${query}» — ${resolution.options.length} alternatives:\n${optionsTable(resolution.options)}`,
+    );
+  } else if (resolution.kind === 'not_found') {
+    debugFuzzySearch(`Not found: «${query}» — no sufficiently similar station names`);
+  }
+};
+
 /**
  * Universal tool: station details or shortest routes between two stations.
  * All responses are returned as ready-made English markdown text (lists and tables);
@@ -91,6 +126,7 @@ export const handleMosMetroInfo = async (args: any): Promise<TToolHandlerRespons
   if (action === 'get_station_info') {
     const resolution = resolveStation(dataset, first);
     if (resolution.kind !== 'resolved') {
+      debugStationResolution(first, resolution);
       return asTextContent(renderResolutionAsk('the station', first, resolution, lang));
     }
     const info = buildStationInfo(dataset, resolution.option.ids);
@@ -111,9 +147,11 @@ export const handleMosMetroInfo = async (args: any): Promise<TToolHandlerRespons
   if (need1 || need2) {
     const blocks: string[] = [];
     if (need1) {
+      debugStationResolution(first, r1);
       blocks.push(renderResolutionAsk('the departure station', first, r1, lang));
     }
     if (need2) {
+      debugStationResolution(second, r2);
       blocks.push(renderResolutionAsk('the arrival station', second, r2, lang));
     }
     return asTextContent(`# Station clarification needed\n\n${blocks.join('\n\n')}`);
