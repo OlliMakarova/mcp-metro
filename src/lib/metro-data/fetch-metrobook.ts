@@ -139,10 +139,12 @@ const LINE_KIND_BY_TYPE: Record<number, TLineKind> = { 0: 'metro', 1: 'mcc', 2: 
  */
 export const normalizeMetrobook = (g: IMetrobookGraphFile): IMetroDataset => {
   const stations: IMetroStation[] = Object.entries(g.stationInstances).map(([sdid, inst]) => {
-    const groupName = g.stations[String(inst.stationId)]?.name ?? null;
+    const ruName = inst.name ?? g.stations[String(inst.stationId)]?.name ?? null;
     return {
       id: Number(sdid),
-      name: { ru: inst.name ?? groupName ?? `Станция ${sdid}` },
+      // Last-resort placeholder when the source has no name at all: each locale field
+      // gets the placeholder in its own language
+      name: ruName ? { ru: ruName } : { ru: `Станция ${sdid}`, en: `Station ${sdid}` },
       lineId: inst.lineId,
     };
   });
