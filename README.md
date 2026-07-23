@@ -10,7 +10,7 @@ rate-limited REST API. Works over STDIO (Claude Desktop) or HTTP/SSE.
 
 ## What it can do
 
-- **Route search** — from 1 to 4 shortest route variants between two stations, each with:
+- **Route search** — from 1 to 3 shortest route variants between two stations, each with:
   - total travel time (including transfer walking time) plus a door-to-door estimate with street-to-platform
     enter/exit time;
   - the full station sequence of every ride leg;

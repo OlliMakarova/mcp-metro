@@ -10,7 +10,7 @@
   },
   "scripts": {
     "start": "node dist/src/start.js",
-    "build": "tsc",
+    "build": "tsc && node scripts/copy-assets.js",
     "clean": "rimraf dist",
     "cb": "npm run clean && npm run build",
     "ci": "node --no-deprecation ./scripts/npm/run.js",
@@ -22,7 +22,7 @@
     "format:fix": "oxfmt .",
     "quality": "npm run lint && npm run format",
     "quality:fix": "npm run lint:fix && npm run format:fix",
-    "lint-fix-build": "oxlint --fix . && oxfmt . && rimraf dist && tsc",
+    "lint-fix-build": "oxlint --fix . && oxfmt . && rimraf dist && tsc && node scripts/copy-assets.js",
     "generate-token": "node node_modules/fa-mcp-sdk/dist/core/auth/token-generator/server.js",
     "agents:link": "node scripts/claude-2-agents-symlink.js setup",
     "agents:link:status": "node scripts/claude-2-agents-symlink.js status",

@@ -68,6 +68,7 @@ interface IRawLine {
   id: number;
   name?: IRawName | null;
   color?: string | null;
+  ordering?: number | null;
 }
 
 interface IRawConnection {
@@ -338,6 +339,7 @@ export const normalizeMosmetro = (
     name: toLocalizedName(l.name),
     ...(l.color ? { color: l.color } : {}),
     kind: deriveLineKind(l, stationsByLine.get(l.id) ?? []),
+    ...(typeof l.ordering === 'number' ? { ordering: l.ordering } : {}),
   }));
 
   const edges: IMetroEdge[] = [

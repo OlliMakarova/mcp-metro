@@ -8,7 +8,7 @@ import { handleMosMetroInfo, mosMetroInfoTool } from './mos-metro-info.js';
 
 const logger = lgr.getSubLogger({ name: chalk.bgGrey('tools') });
 
-type TToolHandler = (args: any) => Promise<TToolHandlerResponse>;
+type TToolHandler = (params: IToolHandlerParams) => Promise<TToolHandlerResponse>;
 
 /**
  * Tool registry of the metro MCP server: one file per tool (definition + schema + handler),
@@ -27,7 +27,7 @@ export const tools: Tool[] = [mosMetroInfoTool];
  * (see init-mcp-server.ts) and is enabled via the DEBUG=mcp:tool environment variable.
  */
 export const handleToolCall = async (params: IToolHandlerParams): Promise<TToolHandlerResponse> => {
-  const { name, arguments: args } = params;
+  const { name } = params;
   logger.info(`Tool called: ${name}`);
 
   try {
@@ -35,7 +35,7 @@ export const handleToolCall = async (params: IToolHandlerParams): Promise<TToolH
     if (!handler) {
       throw new ToolExecutionError(name, `Unknown tool: ${name}`);
     }
-    return await handler(args);
+    return await handler(params);
   } catch (error: Error | any) {
     logger.error(`Tool execution failed for ${name}:`, error);
     error.printed = true;

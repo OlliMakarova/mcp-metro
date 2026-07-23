@@ -88,6 +88,26 @@ export const METRO_TESTS = {
         return fail(name, { error: e?.message });
       }
     },
+    async (client) => {
+      const name = 'Чтение ui://mos-metro/routes.html возвращает HTML-виджет MCP Apps';
+      try {
+        const resp = await client.readResource('ui://mos-metro/routes.html');
+        const r = resp?.result || resp;
+        const content = r?.contents?.[0];
+        const good =
+          content?.mimeType === 'text/html;profile=mcp-app' &&
+          typeof content?.text === 'string' &&
+          content.text.includes('<!doctype html>') &&
+          content.text.includes('ui/notifications/tool-result');
+        return good
+          ? ok(name, { mimeType: content.mimeType, bytes: content.text.length })
+          : fail(name, {
+              content: content && { mimeType: content.mimeType, sample: String(content.text).slice(0, 80) },
+            });
+      } catch (e) {
+        return fail(name, { error: e?.message });
+      }
+    },
   ],
 
   tools: [

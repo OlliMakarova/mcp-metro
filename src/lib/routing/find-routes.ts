@@ -30,6 +30,8 @@ export interface ILineInfo {
   isMcd: boolean;
   /** Line belongs to the Moscow Central Circle */
   isMcc: boolean;
+  /** Display ordering from the source (see IMetroLine.ordering) */
+  ordering?: number;
 }
 
 /** "Ride" leg: consecutive segments along a single line */
@@ -149,6 +151,7 @@ const lineInfo = (graph: IRouteGraph, lineId: number | undefined): ILineInfo | u
     kind: l.kind,
     isMcd: l.kind === 'mcd',
     isMcc: l.kind === 'mcc',
+    ...(l.ordering !== undefined ? { ordering: l.ordering } : {}),
   };
 };
 

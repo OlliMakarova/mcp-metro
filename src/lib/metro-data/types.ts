@@ -97,6 +97,12 @@ export interface IMetroLine {
   name?: ILocalizedName;
   color?: string;
   kind: TLineKind;
+  /**
+   * Display ordering from the mosmetro API — matches the public line number for regular
+   * metro lines (1..15). Exceptions are handled by consumers (80 = «8А», 75 = «16»);
+   * MCD/MCC display labels are derived from the line name/kind instead. Absent for metrobook.
+   */
+  ordering?: number;
 }
 
 /** Recommendation which wagon to board for the most convenient exit to a transfer */

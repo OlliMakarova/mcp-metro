@@ -1,0 +1,701 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Moscow Metro routes</title>
+  <style>
+    /* Host style variables with fallbacks (MCP Apps standardized custom properties).
+       When the host provides --color-* variables they win; otherwise the fallback chain
+       below keeps the widget readable, including a dark-theme set of fallbacks. */
+    :root {
+      --w-bg: var(--color-background-secondary, #f2f3f5);
+      --w-card: var(--color-background-primary, #ffffff);
+      --w-card2: var(--color-background-tertiary, #f7f7f9);
+      --w-text: var(--color-text-primary, #18181c);
+      --w-text2: var(--color-text-secondary, #75757d);
+      --w-border: var(--color-border-primary, #e4e4e9);
+      --w-danger-bg: var(--color-background-danger, #fdeaea);
+      --w-danger-tx: var(--color-text-danger, #b42318);
+      --w-warn-bg: var(--color-background-warning, #fff4e0);
+      --w-warn-tx: var(--color-text-warning, #8a5a00);
+      --w-accent: #d6dbe8;
+      --w-radius: var(--border-radius-lg, 14px);
+      --w-radius-sm: var(--border-radius-md, 10px);
+      --w-font: var(--font-sans, -apple-system, "Segoe UI", system-ui, "Noto Sans", sans-serif);
+    }
+    html[data-theme="dark"] {
+      --w-bg: var(--color-background-secondary, #202024);
+      --w-card: var(--color-background-primary, #2b2b31);
+      --w-card2: var(--color-background-tertiary, #34343b);
+      --w-text: var(--color-text-primary, #ececf1);
+      --w-text2: var(--color-text-secondary, #9c9ca6);
+      --w-border: var(--color-border-primary, #3d3d45);
+      --w-danger-bg: var(--color-background-danger, #45211f);
+      --w-danger-tx: var(--color-text-danger, #ff9e94);
+      --w-warn-bg: var(--color-background-warning, #453518);
+      --w-warn-tx: var(--color-text-warning, #ffce7a);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: transparent; }
+    body {
+      font-family: var(--w-font);
+      color: var(--w-text);
+      font-size: 14px;
+      line-height: 1.45;
+    }
+    .panel {
+      background: var(--w-bg);
+      border-radius: var(--w-radius);
+      padding: 14px;
+      max-width: 560px;
+    }
+    .hidden { display: none !important; }
+
+    /* ── Header: from → to chips ─────────────────────────────────────────── */
+    .od { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+    .od-chip {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--w-accent);
+      color: #3d4657;
+      border-radius: var(--w-radius-sm);
+      padding: 9px 12px;
+      font-weight: 600;
+    }
+    html[data-theme="dark"] .od-chip { background: #3a4152; color: #dfe4ee; }
+
+    /* ── Line badge ──────────────────────────────────────────────────────── */
+    .badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 20px; height: 20px; padding: 0 4px;
+      border-radius: 999px;
+      background: var(--bc, #999);
+      color: #fff;
+      font-size: 11px; font-weight: 700;
+      flex: none;
+    }
+    .badge.dot { min-width: 12px; height: 12px; padding: 0; }
+
+    /* ── Banners ─────────────────────────────────────────────────────────── */
+    .banner { border-radius: var(--w-radius-sm); padding: 10px 12px; margin-bottom: 12px; font-size: 13px; }
+    .banner.danger { background: var(--w-danger-bg); color: var(--w-danger-tx); }
+    .banner.warn { background: var(--w-warn-bg); color: var(--w-warn-tx); }
+
+    /* ── Section titles ──────────────────────────────────────────────────── */
+    .sect { font-size: 17px; font-weight: 700; margin: 14px 2px 8px; }
+    .sect:first-child { margin-top: 0; }
+
+    /* ── Variant summary cards ───────────────────────────────────────────── */
+    .variants { display: flex; flex-direction: column; gap: 8px; }
+    .vcard {
+      background: var(--w-card);
+      border: 2px solid transparent;
+      border-radius: var(--w-radius-sm);
+      padding: 10px 12px;
+      cursor: pointer;
+      transition: border-color .15s;
+    }
+    .vcard:hover { border-color: var(--w-border); }
+    .vcard.active { border-color: #6d7fa8; }
+    .vrow { display: flex; align-items: baseline; gap: 8px; }
+    .vtime { font-size: 16px; font-weight: 700; }
+    .varr { color: var(--w-text2); font-size: 13px; }
+    .vtransfers { margin-inline-start: auto; color: var(--w-text2); font-size: 13px; }
+    .vlines { display: flex; align-items: center; gap: 5px; margin-top: 6px; }
+    .vlines .sep { width: 4px; height: 4px; border-radius: 999px; background: var(--w-text2); opacity: .55; }
+
+    /* ── Details timeline ────────────────────────────────────────────────── */
+    .tl { background: var(--w-card); border-radius: var(--w-radius-sm); padding: 12px 12px 12px 8px; }
+    .trow { display: grid; grid-template-columns: 44px 22px 1fr; column-gap: 6px; }
+    .tt { color: var(--w-text2); font-size: 12px; text-align: end; padding-top: 2px; font-variant-numeric: tabular-nums; }
+    .rail { position: relative; display: flex; justify-content: center; }
+    .rail .bar { position: absolute; top: 0; bottom: 0; width: 4px; border-radius: 2px; background: var(--rc, var(--w-border)); }
+    .rail .bar.walkbar {
+      width: 0; border-inline-start: 2px dotted var(--w-text2);
+      background: none; border-radius: 0; opacity: .6;
+    }
+    .rail .node {
+      position: relative; z-index: 1;
+      width: 12px; height: 12px; margin-top: 3px;
+      border-radius: 999px;
+      background: var(--w-card);
+      border: 3px solid var(--rc, var(--w-text2));
+    }
+    .rail .walker { position: relative; z-index: 1; font-size: 13px; line-height: 1; margin-top: 3px; }
+    .tc { padding: 0 0 14px 2px; min-width: 0; }
+    .trow:last-child .tc { padding-bottom: 2px; }
+    .tname { font-weight: 700; }
+    .tline { color: var(--w-text2); font-size: 12.5px; margin-top: 1px; }
+    .tdur { float: inline-end; color: var(--w-text2); font-size: 12.5px; margin-inline-start: 8px; }
+    .twalk { color: var(--w-text); }
+    .twalk .note { color: var(--w-text2); font-size: 12.5px; margin-top: 1px; }
+
+    /* Wagon recommendation box */
+    .wagons {
+      background: var(--w-card2);
+      border-radius: var(--w-radius-sm);
+      padding: 10px 12px;
+      margin-top: 8px;
+      font-size: 12.5px;
+      color: var(--w-text2);
+    }
+    .train { display: flex; align-items: flex-end; gap: 3px; margin-bottom: 6px; }
+    .car {
+      width: 30px; height: 12px;
+      border-radius: 3px;
+      background: color-mix(in srgb, var(--w-text2) 28%, transparent);
+      position: relative;
+    }
+    .car.hl { background: var(--w-text); }
+    .car.hl::after {
+      content: ""; position: absolute; left: 50%; bottom: -7px;
+      transform: translateX(-50%);
+      border-left: 4px solid transparent; border-right: 4px solid transparent;
+      border-bottom: 5px solid var(--w-text);
+    }
+    .train.pad { margin-bottom: 10px; }
+
+    /* Collapsible intermediate stations */
+    details.stops { margin-top: 6px; }
+    details.stops summary {
+      display: inline-flex; align-items: center; gap: 6px;
+      list-style: none; cursor: pointer;
+      background: var(--w-card2);
+      border-radius: 999px;
+      padding: 4px 12px;
+      font-size: 12.5px; color: var(--w-text2);
+      user-select: none;
+    }
+    details.stops summary::-webkit-details-marker { display: none; }
+    details.stops summary::after { content: "⌄"; font-size: 12px; transition: transform .15s; }
+    details.stops[open] summary::after { transform: rotate(180deg); }
+    details.stops ul { margin: 6px 0 0; padding: 0 0 0 2px; list-style: none; }
+    details.stops li { color: var(--w-text2); font-size: 12.5px; padding: 2px 0 2px 14px; position: relative; }
+    details.stops li::before {
+      content: ""; position: absolute; left: 2px; top: 50%; transform: translateY(-50%);
+      width: 6px; height: 6px; border-radius: 999px;
+      background: var(--rc, var(--w-text2));
+    }
+
+    /* Breakdown line under the timeline */
+    .breakdown { color: var(--w-text2); font-size: 12.5px; margin: 8px 2px 0; }
+
+    /* Ground transport + warnings */
+    .gt { background: var(--w-card); border-radius: var(--w-radius-sm); padding: 10px 12px; margin-top: 8px; font-size: 13px; }
+    .gt .gt-title { font-weight: 700; margin-bottom: 4px; }
+    .gt .gt-row { color: var(--w-text2); }
+    .warns { margin-top: 8px; display: flex; flex-direction: column; gap: 6px; }
+    .warn-item { border-radius: var(--w-radius-sm); padding: 9px 12px; font-size: 13px; }
+    .warn-item.CLOSED { background: var(--w-danger-bg); color: var(--w-danger-tx); }
+    .warn-item.EMERGENCY { background: var(--w-warn-bg); color: var(--w-warn-tx); }
+    .warn-item.INFO { background: var(--w-card); color: var(--w-text2); }
+    .warn-item b { display: block; }
+
+    /* ── Markdown fallback (station info / clarifications) ───────────────── */
+    .md { background: var(--w-bg); border-radius: var(--w-radius); padding: 14px 16px; max-width: 640px; }
+    .md h1 { font-size: 18px; margin: 0 0 10px; }
+    .md h2 { font-size: 15px; margin: 14px 0 6px; }
+    .md h3 { font-size: 14px; margin: 12px 0 6px; }
+    .md p, .md ul, .md ol { margin: 6px 0; }
+    .md ul, .md ol { padding-inline-start: 20px; }
+    .md li { margin: 2px 0; }
+    .md em { color: var(--w-text2); }
+    .md table { border-collapse: collapse; margin: 8px 0; font-size: 13px; max-width: 100%; }
+    .md th, .md td { border: 1px solid var(--w-border); padding: 4px 8px; text-align: start; }
+    .md th { background: var(--w-card2); }
+    .md.error { background: var(--w-danger-bg); color: var(--w-danger-tx); }
+
+    .loading { color: var(--w-text2); font-size: 13px; padding: 10px 2px; }
+  </style>
+</head>
+<body>
+  <div id="loading" class="loading hidden">…</div>
+  <div id="app"></div>
+
+  <script>
+    'use strict';
+    // ─── MCP Apps view: postMessage JSON-RPC with the host (SEP-1865) ────────
+    // Lifecycle: ui/initialize → ui/notifications/initialized → wait for
+    // ui/notifications/tool-result → render. The widget also answers
+    // ui/resource-teardown and ping requests and reports its size to the host.
+    const host = window.parent;
+    let nextId = 1;
+    const pending = new Map();
+
+    function rpcRequest(method, params) {
+      const id = nextId++;
+      const p = new Promise((resolve, reject) => pending.set(id, { resolve, reject }));
+      host.postMessage({ jsonrpc: '2.0', id, method, params }, '*');
+      return p;
+    }
+    function rpcNotify(method, params) {
+      host.postMessage({ jsonrpc: '2.0', method, params }, '*');
+    }
+    function rpcRespond(id, result) {
+      host.postMessage({ jsonrpc: '2.0', id, result }, '*');
+    }
+
+    // ─── i18n ────────────────────────────────────────────────────────────────
+    const ruPlural = (n, forms) => {
+      const a = Math.abs(n) % 100;
+      const b = a % 10;
+      if (a > 10 && a < 20) return forms[2];
+      if (b > 1 && b < 5) return forms[1];
+      if (b === 1) return forms[0];
+      return forms[2];
+    };
+    const DICT = {
+      ru: {
+        routes: 'Маршруты', details: 'Детали маршрута',
+        min: 'мин', hour: 'ч',
+        transfers: (n) => n === 0 ? 'без пересадок' : `${n} ${ruPlural(n, ['пересадка', 'пересадки', 'пересадок'])}`,
+        stations: (n) => `${n} ${ruPlural(n, ['станция', 'станции', 'станций'])}`,
+        walkToStation: 'Пройдите на станцию', makeTransfer: 'Сделайте пересадку',
+        streetTransfer: 'пересадка по улице', detour: 'временный обход закрытого участка',
+        forTransfer: 'Для пересадки:', wagonFront: 'первый вагон', wagonMiddle: 'центр состава', wagonRear: 'последний вагон',
+        exitToCity: 'Выход в город', noRoutes: 'Маршрут между указанными станциями построить не удалось.',
+        ride: 'в пути', transferTime: 'пересадки', wait: 'ожидание поездов', entry: 'вход', exit: 'выход',
+        closedNow: (o) => `Метро закрыто (московское время ${o.moscowTime}, режим работы ${o.window}${o.opensAt ? `, вход откроется в ${o.opensAt}` : ''}).`,
+        closesSoon: (o) => `Вход в метро закроется через ~${o.minutesToClose} мин (${o.moscowTime} по Москве, режим ${o.window}).`,
+        closures: 'учтены перекрытия и ремонты', warnings: 'Предупреждения',
+        buses: 'автобусы', trolleybuses: 'троллейбусы', trams: 'трамваи', nearStation: 'У станции',
+        mcd: 'МЦД', mcc: 'МЦК',
+      },
+      en: {
+        routes: 'Routes', details: 'Route details',
+        min: 'min', hour: 'h',
+        transfers: (n) => n === 0 ? 'no transfers' : `${n} transfer${n === 1 ? '' : 's'}`,
+        stations: (n) => `${n} station${n === 1 ? '' : 's'}`,
+        walkToStation: 'Walk to the station', makeTransfer: 'Make a transfer',
+        streetTransfer: 'street-level transfer', detour: 'temporary detour around a closed section',
+        forTransfer: 'For the transfer:', wagonFront: 'front car', wagonMiddle: 'middle of the train', wagonRear: 'rear car',
+        exitToCity: 'Exit to the city', noRoutes: 'No route could be built between the given stations.',
+        ride: 'ride', transferTime: 'transfers', wait: 'train wait', entry: 'entry', exit: 'exit',
+        closedNow: (o) => `The metro is closed now (${o.moscowTime} Moscow time, hours ${o.window}${o.opensAt ? `, entry opens at ${o.opensAt}` : ''}).`,
+        closesSoon: (o) => `Metro entry closes in ~${o.minutesToClose} min (${o.moscowTime} Moscow time, hours ${o.window}).`,
+        closures: 'closures and repairs applied', warnings: 'Warnings',
+        buses: 'buses', trolleybuses: 'trolleybuses', trams: 'trams', nearStation: 'At the station',
+        mcd: 'MCD', mcc: 'MCC',
+      },
+      ar: {
+        routes: 'المسارات', details: 'تفاصيل المسار',
+        min: 'د', hour: 'س',
+        transfers: (n) => n === 0 ? 'بدون تبديل' : `${n} تبديل`,
+        stations: (n) => `${n} محطات`,
+        walkToStation: 'امشِ إلى المحطة', makeTransfer: 'قم بالتبديل',
+        streetTransfer: 'تبديل عبر الشارع', detour: 'التفاف مؤقت حول قسم مغلق',
+        forTransfer: 'للتبديل:', wagonFront: 'العربة الأولى', wagonMiddle: 'منتصف القطار', wagonRear: 'العربة الأخيرة',
+        exitToCity: 'الخروج إلى المدينة', noRoutes: 'تعذّر إنشاء مسار بين المحطتين المحددتين.',
+        ride: 'الرحلة', transferTime: 'التبديلات', wait: 'انتظار القطارات', entry: 'الدخول', exit: 'الخروج',
+        closedNow: (o) => `المترو مغلق الآن (توقيت موسكو ${o.moscowTime}، ساعات العمل ${o.window}${o.opensAt ? `، يفتح الدخول في ${o.opensAt}` : ''}).`,
+        closesSoon: (o) => `يُغلق الدخول إلى المترو خلال ~${o.minutesToClose} دقيقة (${o.moscowTime} بتوقيت موسكو، ساعات العمل ${o.window}).`,
+        closures: 'مع مراعاة الإغلاقات والإصلاحات', warnings: 'تنبيهات',
+        buses: 'حافلات', trolleybuses: 'ترولّي باص', trams: 'ترام', nearStation: 'عند المحطة',
+        mcd: 'MCD', mcc: 'MCC',
+      },
+      cn: {
+        routes: '路线', details: '路线详情',
+        min: '分钟', hour: '小时',
+        transfers: (n) => n === 0 ? '无需换乘' : `${n} 次换乘`,
+        stations: (n) => `${n} 站`,
+        walkToStation: '步行至车站', makeTransfer: '换乘',
+        streetTransfer: '地面换乘', detour: '临时绕行关闭区段',
+        forTransfer: '换乘建议：', wagonFront: '头节车厢', wagonMiddle: '列车中部', wagonRear: '尾节车厢',
+        exitToCity: '出站', noRoutes: '无法在所选车站之间规划路线。',
+        ride: '乘车', transferTime: '换乘', wait: '候车', entry: '进站', exit: '出站',
+        closedNow: (o) => `地铁目前已停运（莫斯科时间 ${o.moscowTime}，运营时间 ${o.window}${o.opensAt ? `，${o.opensAt} 恢复进站` : ''}）。`,
+        closesSoon: (o) => `地铁将于约 ${o.minutesToClose} 分钟后停止进站（莫斯科时间 ${o.moscowTime}，运营时间 ${o.window}）。`,
+        closures: '已考虑封闭与维修', warnings: '注意事项',
+        buses: '公交', trolleybuses: '无轨电车', trams: '有轨电车', nearStation: '车站附近',
+        mcd: 'MCD', mcc: 'MCC',
+      },
+    };
+    let L = DICT.en;
+
+    // ─── Helpers ─────────────────────────────────────────────────────────────
+    const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+    }[c]));
+
+    const fmtDur = (sec) => {
+      const min = Math.max(1, Math.round(sec / 60));
+      if (min < 60) return `${min} ${L.min}`;
+      const h = Math.floor(min / 60);
+      const m = min % 60;
+      return m ? `${h} ${L.hour} ${String(m).padStart(2, '0')} ${L.min}` : `${h} ${L.hour}`;
+    };
+
+    /** «HH:MM» plus seconds → «HH:MM» wrapped over midnight; null when base is unknown */
+    const addToClock = (hhmm, sec) => {
+      const m = /^(\d{1,2}):(\d{2})$/.exec(hhmm || '');
+      if (!m) return null;
+      const total = ((+m[1] * 60 + +m[2]) + Math.round(sec / 60)) % (24 * 60);
+      const t = (total + 24 * 60) % (24 * 60);
+      return `${String(Math.floor(t / 60)).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`;
+    };
+
+    const badgeHtml = (line) => {
+      if (!line) return '';
+      const color = esc(line.color || '#999');
+      if (line.badge) {
+        return `<span class="badge" style="--bc:${color}">${esc(line.badge)}</span>`;
+      }
+      return `<span class="badge dot" style="--bc:${color}"></span>`;
+    };
+
+    const WALK_SVG = `<svg width="12" height="14" viewBox="0 0 12 14" fill="currentColor" aria-hidden="true"><circle cx="6.5" cy="1.8" r="1.6"/><path d="M6 4.2c-.6 0-1.2.3-1.6.8L2.9 6.9l1 .9 1.3-1.6.6 2.4-2.2 3.9 1.2.7 2-3.5.5 1.9-.4 2.4 1.3.2.5-2.8-.8-2.9.9.8 1.9 1 .6-1.1-1.8-1-1.3-3c-.2-.5-.7-.8-1.2-.8z"/></svg>`;
+
+    // ─── Routes rendering ────────────────────────────────────────────────────
+    let data = null;
+    let selected = 0;
+
+    function trainHtml(wagons) {
+      const hl = { front: 0, middle: 2, rear: 4 };
+      const on = new Set((wagons || []).map((w) => hl[w]).filter((v) => v !== undefined));
+      let cars = '';
+      for (let i = 0; i < 5; i++) cars += `<div class="car${on.has(i) ? ' hl' : ''}"></div>`;
+      return `<div class="train pad">${cars}</div>`;
+    }
+
+    function wagonText(wagons) {
+      const names = { front: L.wagonFront, middle: L.wagonMiddle, rear: L.wagonRear };
+      return `${L.forTransfer} ${(wagons || []).map((w) => names[w]).join(', ')}`;
+    }
+
+    function lineTitle(line) {
+      if (!line) return '';
+      let name = line.name || '';
+      if (!name && line.kind === 'mcc') name = L.mcc;
+      return name;
+    }
+
+    /** Summary card of one variant */
+    function variantCard(v, idx, startClock) {
+      const arr = startClock
+        ? addToClock(startClock, (v.departure.enterTimeSec || 0) + v.totalTimeSec + (v.arrival.exitTimeSec || 0))
+        : null;
+      const badges = v.legs.filter((l) => l.kind === 'ride').map((l) => badgeHtml(l.line))
+        .join('<span class="sep"></span>');
+      return `<div class="vcard${idx === selected ? ' active' : ''}" data-idx="${idx}" role="button" tabindex="0">
+        <div class="vrow">
+          <span class="vtime">${fmtDur(v.totalTimeSec)}</span>
+          ${arr ? `<span class="varr">~${arr}</span>` : ''}
+          <span class="vtransfers">${L.transfers(v.transfersCount)}</span>
+        </div>
+        <div class="vlines">${badges}</div>
+      </div>`;
+    }
+
+    const walkRow = (text, durSec, note) => `<div class="trow">
+      <div class="tt"></div>
+      <div class="rail"><div class="bar walkbar"></div><div class="walker">${WALK_SVG}</div></div>
+      <div class="tc twalk">
+        ${durSec != null ? `<span class="tdur">~${fmtDur(durSec)}</span>` : ''}
+        <div>${esc(text)}</div>
+        ${note ? `<div class="note">${esc(note)}</div>` : ''}
+      </div>
+    </div>`;
+
+    /** Timeline rows of the selected variant */
+    function timelineHtml(v, startClock) {
+      const rows = [];
+      // Average expected wait before each boarding — used only to shift clock marks
+      const rideLegs = v.legs.filter((l) => l.kind === 'ride');
+      const waitPerBoard = rideLegs.length ? v.waitTimeSec / rideLegs.length : 0;
+      let t = (v.departure.enterTimeSec || 0); // seconds since "now"
+
+      if (v.departure.enterTimeSec !== undefined) {
+        rows.push(walkRow(L.walkToStation, v.departure.enterTimeSec));
+      } else {
+        rows.push(walkRow(L.walkToStation, null));
+      }
+
+      v.legs.forEach((leg, i) => {
+        if (leg.kind === 'ride') {
+          t += waitPerBoard;
+          const color = esc((leg.line && leg.line.color) || '#999');
+          const boardClock = startClock ? addToClock(startClock, t) : null;
+          const alightClock = startClock ? addToClock(startClock, t + leg.timeSec) : null;
+          const next = v.legs[i + 1];
+          const wagons = next && next.kind === 'transfer' ? next.wagons : undefined;
+          const mid = leg.stations.slice(1, -1);
+          rows.push(`<div class="trow" style="--rc:${color}">
+            <div class="tt">${boardClock || ''}</div>
+            <div class="rail"><div class="bar"></div><div class="node"></div></div>
+            <div class="tc">
+              <span class="tdur">${fmtDur(leg.timeSec)}</span>
+              <div class="tname">${badgeHtml(leg.line)} ${esc(leg.stations[0])}</div>
+              <div class="tline">${esc(lineTitle(leg.line))}</div>
+              ${wagons ? `<div class="wagons">${trainHtml(wagons)}<div>${esc(wagonText(wagons))}</div></div>` : ''}
+              ${mid.length ? `<details class="stops"><summary>${L.stations(mid.length)}</summary>
+                <ul>${mid.map((s) => `<li>${esc(s)}</li>`).join('')}</ul></details>` : ''}
+            </div>
+          </div>
+          <div class="trow" style="--rc:${color}">
+            <div class="tt">${alightClock || ''}</div>
+            <div class="rail">${i === v.legs.length - 1 ? '' : '<div class="bar walkbar"></div>'}<div class="node"></div></div>
+            <div class="tc"><div class="tname">${esc(leg.stations[leg.stations.length - 1])}</div></div>
+          </div>`);
+          t += leg.timeSec;
+        } else {
+          const notes = [];
+          if (leg.isGround) notes.push(L.streetTransfer);
+          if (leg.isAlternative) notes.push(L.detour);
+          rows.push(walkRow(L.makeTransfer, leg.timeSec, notes.join(' · ') || null));
+          t += leg.timeSec;
+        }
+      });
+
+      if (v.arrival.exitTimeSec !== undefined) {
+        rows.push(walkRow(L.exitToCity, v.arrival.exitTimeSec));
+      }
+      return `<div class="tl">${rows.join('')}</div>`;
+    }
+
+    function breakdownHtml(v) {
+      const parts = [
+        `${L.ride} ${fmtDur(v.rideTimeSec)}`,
+        v.transfersCount ? `${L.transferTime} ${fmtDur(v.transferTimeSec)}` : null,
+        `${L.wait} ~${fmtDur(v.waitTimeSec)}`,
+        v.departure.enterTimeSec !== undefined ? `${L.entry} ~${fmtDur(v.departure.enterTimeSec)}` : null,
+        v.arrival.exitTimeSec !== undefined ? `${L.exit} ~${fmtDur(v.arrival.exitTimeSec)}` : null,
+      ].filter(Boolean);
+      return `<div class="breakdown">${parts.join(' · ')}</div>`;
+    }
+
+    function groundTransportHtml(v) {
+      const ep = v.arrival;
+      const rows = [
+        ep.buses && ep.buses.length ? `${L.buses}: ${ep.buses.join(', ')}` : null,
+        ep.trolleybuses && ep.trolleybuses.length ? `${L.trolleybuses}: ${ep.trolleybuses.join(', ')}` : null,
+        ep.trams && ep.trams.length ? `${L.trams}: ${ep.trams.join(', ')}` : null,
+      ].filter(Boolean);
+      if (!rows.length) return '';
+      return `<div class="gt">
+        <div class="gt-title">${L.nearStation} ${esc(ep.name)}</div>
+        ${rows.map((r) => `<div class="gt-row">${esc(r)}</div>`).join('')}
+      </div>`;
+    }
+
+    function warningsHtml(warnings) {
+      if (!warnings || !warnings.length) return '';
+      const items = warnings.map((w) => `<div class="warn-item ${esc(w.status)}">
+        <b>${esc(w.station)}${w.title ? ` — ${esc(w.title)}` : ''}</b>
+        ${w.description ? esc(w.description) : ''}
+      </div>`).join('');
+      return `<div class="sect">${L.warnings}</div><div class="warns">${items}</div>`;
+    }
+
+    function renderRoutes() {
+      const d = data;
+      L = DICT[d.lang] || DICT.en;
+      document.documentElement.lang = d.lang === 'cn' ? 'zh' : d.lang;
+      document.documentElement.dir = d.lang === 'ar' ? 'rtl' : 'ltr';
+
+      const op = d.operating || {};
+      // Clock marks only make sense while the metro is open: the search assumes boarding now
+      const startClock = op.isOpen ? op.moscowTime : null;
+
+      let banner = '';
+      if (op.isOpen === false) {
+        banner = `<div class="banner danger">⛔ ${esc(L.closedNow(op))}</div>`;
+      } else if (op.minutesToClose !== undefined && op.minutesToClose <= 30) {
+        banner = `<div class="banner warn">⚠️ ${esc(L.closesSoon(op))}</div>`;
+      }
+
+      const v = d.variants[selected];
+      const od = d.variants.length ? `<div class="od">
+          <div class="od-chip">${badgeHtml(d.variants[0].departure.line)}<span>${esc(d.from)}</span></div>
+          <div class="od-chip">${badgeHtml(d.variants[0].arrival.line)}<span>${esc(d.to)}</span></div>
+        </div>`
+        : `<div class="od"><div class="od-chip"><span>${esc(d.from)} → ${esc(d.to)}</span></div></div>`;
+
+      document.getElementById('app').innerHTML = `<div class="panel">
+        ${od}
+        ${banner}
+        <div class="sect">${L.routes}</div>
+        ${d.variants.length
+          ? `<div class="variants">${d.variants.map((x, i) => variantCard(x, i, startClock)).join('')}</div>
+             <div class="sect">${L.details}</div>
+             ${timelineHtml(v, startClock)}
+             ${breakdownHtml(v)}
+             ${groundTransportHtml(v)}`
+          : `<div class="banner warn">${esc(L.noRoutes)}</div>`}
+        ${warningsHtml(d.warnings)}
+        ${d.closuresApplied ? `<div class="breakdown">ℹ️ ${esc(L.closures)}</div>` : ''}
+      </div>`;
+
+      for (const el of document.querySelectorAll('.vcard')) {
+        el.addEventListener('click', () => {
+          selected = +el.dataset.idx;
+          renderRoutes();
+        });
+        el.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            selected = +el.dataset.idx;
+            renderRoutes();
+          }
+        });
+      }
+    }
+
+    // ─── Markdown-lite fallback (station info, clarifications, errors) ───────
+    // The tool's other responses are English/localized markdown; render the basics:
+    // headings, bold/italics, lists, tables, paragraphs.
+    function inlineMd(s) {
+      return esc(s)
+        .replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>')
+        .replace(/_([^_]+)_/g, '<em>$1</em>')
+        .replace(/«([^»]+)»/g, '«<b>$1</b>»');
+    }
+    function renderMarkdown(text, isError) {
+      const out = [];
+      const lines = String(text).split(/\r?\n/);
+      let list = null; // 'ul' | 'ol'
+      let table = null; // array of rows
+      const flushList = () => { if (list) { out.push(`</${list}>`); list = null; } };
+      const flushTable = () => {
+        if (!table) return;
+        const [head, ...body] = table;
+        out.push('<table><thead><tr>');
+        out.push(head.map((c) => `<th>${inlineMd(c)}</th>`).join(''));
+        out.push('</tr></thead><tbody>');
+        for (const row of body) {
+          out.push(`<tr>${row.map((c) => `<td>${inlineMd(c)}</td>`).join('')}</tr>`);
+        }
+        out.push('</tbody></table>');
+        table = null;
+      };
+      for (const raw of lines) {
+        const line = raw.trimEnd();
+        const cells = /^\|(.+)\|$/.exec(line.trim());
+        if (cells) {
+          flushList();
+          const row = cells[1].split('|').map((c) => c.trim());
+          if (row.every((c) => /^:?-{3,}:?$/.test(c))) continue; // separator row
+          (table = table || []).push(row);
+          continue;
+        }
+        flushTable();
+        const h = /^(#{1,3})\s+(.*)$/.exec(line);
+        if (h) { flushList(); out.push(`<h${h[1].length}>${inlineMd(h[2])}</h${h[1].length}>`); continue; }
+        const li = /^[-*]\s+(.*)$/.exec(line);
+        if (li) {
+          if (list !== 'ul') { flushList(); out.push('<ul>'); list = 'ul'; }
+          out.push(`<li>${inlineMd(li[1])}</li>`);
+          continue;
+        }
+        const oli = /^\d+\.\s+(.*)$/.exec(line);
+        if (oli) {
+          if (list !== 'ol') { flushList(); out.push('<ol>'); list = 'ol'; }
+          out.push(`<li>${inlineMd(oli[1])}</li>`);
+          continue;
+        }
+        flushList();
+        if (line.trim()) out.push(`<p>${inlineMd(line)}</p>`);
+      }
+      flushList();
+      flushTable();
+      document.getElementById('app').innerHTML = `<div class="md${isError ? ' error' : ''}">${out.join('')}</div>`;
+    }
+
+    // ─── Tool result dispatch ────────────────────────────────────────────────
+    function onToolResult(result) {
+      document.getElementById('loading').classList.add('hidden');
+      if (!result || typeof result !== 'object') return;
+      const sc = result.structuredContent;
+      if (sc && sc.widget === 'metro-routes') {
+        data = sc;
+        selected = 0;
+        renderRoutes();
+        return;
+      }
+      const textBlock = Array.isArray(result.content)
+        ? result.content.find((b) => b && b.type === 'text' && typeof b.text === 'string')
+        : null;
+      if (textBlock) {
+        renderMarkdown(textBlock.text, !!result.isError);
+      }
+    }
+
+    // ─── Host context (theme / style variables / fonts) ──────────────────────
+    function applyHostContext(ctx) {
+      if (!ctx) return;
+      if (ctx.theme) {
+        document.documentElement.dataset.theme = ctx.theme;
+        document.documentElement.style.colorScheme = ctx.theme;
+      }
+      const vars = ctx.styles && ctx.styles.variables;
+      if (vars) {
+        for (const [k, val] of Object.entries(vars)) {
+          if (k.startsWith('--') && typeof val === 'string') {
+            document.documentElement.style.setProperty(k, val);
+          }
+        }
+      }
+    }
+
+    // ─── Message loop ────────────────────────────────────────────────────────
+    window.addEventListener('message', (ev) => {
+      const m = ev.data;
+      if (!m || typeof m !== 'object' || m.jsonrpc !== '2.0') return;
+
+      if (m.id != null && !m.method && pending.has(m.id)) {
+        const { resolve, reject } = pending.get(m.id);
+        pending.delete(m.id);
+        m.error ? reject(m.error) : resolve(m.result);
+        return;
+      }
+      if (m.method === 'ui/notifications/tool-result') {
+        // Spec: params IS the CallToolResult; some hosts wrap it as { result }
+        onToolResult(m.params && m.params.result ? m.params.result : m.params);
+        return;
+      }
+      if (m.method === 'ui/notifications/tool-input' || m.method === 'ui/notifications/tool-input-partial') {
+        if (!data) document.getElementById('loading').classList.remove('hidden');
+        return;
+      }
+      if (m.method === 'ui/notifications/tool-cancelled') {
+        document.getElementById('loading').classList.add('hidden');
+        return;
+      }
+      if (m.method === 'ui/notifications/host-context-changed') {
+        applyHostContext(m.params || {});
+        return;
+      }
+      if (m.method === 'ui/resource-teardown' && m.id != null) {
+        rpcRespond(m.id, {});
+        return;
+      }
+      if (m.method === 'ping' && m.id != null) {
+        rpcRespond(m.id, {});
+      }
+    });
+
+    // ─── Auto-resize ─────────────────────────────────────────────────────────
+    let lastH = 0;
+    const reportSize = () => {
+      const h = document.documentElement.scrollHeight;
+      if (h !== lastH) {
+        lastH = h;
+        rpcNotify('ui/notifications/size-changed', { width: document.documentElement.scrollWidth, height: h });
+      }
+    };
+    new ResizeObserver(reportSize).observe(document.body);
+
+    // ─── Handshake ───────────────────────────────────────────────────────────
+    rpcRequest('ui/initialize', {
+      protocolVersion: '2026-01-26',
+      appInfo: { name: 'mos-metro-routes', version: '1.0.0' },
+      appCapabilities: { availableDisplayModes: ['inline'] },
+    }).then((res) => {
+      applyHostContext(res && res.hostContext);
+      rpcNotify('ui/notifications/initialized', {});
+    }).catch(() => {
+      // Keep listening anyway: a non-conforming host may skip the handshake response
+      rpcNotify('ui/notifications/initialized', {});
+    });
+  </script>
+</body>
+</html>

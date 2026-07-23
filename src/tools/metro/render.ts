@@ -234,7 +234,7 @@ const renderVariant = (v: IRouteVariant, n: number, lang: TLang): string => {
  * duplicates (same warning attached to several platforms of one hub, or repeated in every
  * variant) are collapsed by station name + status + text.
  */
-const endpointWarnings = (variants: IRouteVariant[]): IRouteWarning[] => {
+export const endpointWarnings = (variants: IRouteVariant[]): IRouteWarning[] => {
   const endpointIds = new Set<number>();
   for (const v of variants) {
     endpointIds.add(v.departure.station.id);

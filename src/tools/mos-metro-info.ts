@@ -1,6 +1,6 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
 
-import { asTextContent, asTextError, TToolHandlerResponse } from 'fa-mcp-sdk';
+import { asTextContent, asTextError, hostSupportsMcpApps, IToolHandlerParams, TToolHandlerResponse } from 'fa-mcp-sdk';
 
 import { debugFuzzySearch } from '../debug.js';
 import { getMetroDatasetOrNull } from '../lib/metro-data/cache.js';
@@ -10,9 +10,11 @@ import { findBestRoutes } from '../lib/routing/find-routes.js';
 import { buildStationInfo } from '../lib/station-info.js';
 import { IStationOption, resolveStation, TStationResolution } from '../lib/station-search/resolve-station.js';
 import { renderResolutionAsk, renderRoutes, renderStationInfo } from './metro/render.js';
+import { buildRoutesWidgetData } from './metro/widget-data.js';
+import { ROUTES_WIDGET_URI } from './metro/widget-resource.js';
 
-/** How many route variants to request (per the task statement: from 1 to 4) */
-const ROUTE_COUNT = 4;
+/** How many route variants to request (capped at 3 to keep the tool response compact) */
+const ROUTE_COUNT = 3;
 
 /** Single "metro data unavailable" error text in markdown (without real source names) */
 const DATA_UNAVAILABLE_MD = `## Moscow Metro data is temporarily unavailable. Please retry later.`;
@@ -27,7 +29,7 @@ export const mosMetroInfoTool: Tool = {
   name: 'mos_metro_info',
   title: 'Moscow Metro: routes and station details',
   description: `Finds routes between two stations of the Moscow Metro (including the MCC and MCD) and returns station details.
-In search_route mode it builds 1 to 4 shortest routes between two stations with the total travel time, stations, transfers, car recommendations, surface transport at the endpoint stations, and active restrictions (repairs, closures).
+In search_route mode it builds 1 to 3 shortest routes between two stations with the total travel time, stations, transfers, car recommendations, surface transport at the endpoint stations, and active restrictions (repairs, closures).
 In get_station_info mode it returns station details: lines, exits, surface transport, services, first/last train schedule, transfers and warnings.
 
 Pass station names exactly as the user writes them.
@@ -62,6 +64,11 @@ Pass station names exactly as the user writes them.
   annotations: {
     readOnlyHint: true,
     openWorldHint: false,
+  },
+  // MCP Apps (SEP-1865): hosts that support UI widgets fetch this ui:// resource and render
+  // tool responses in an iframe. Text-only hosts ignore the meta and keep the markdown answer.
+  _meta: {
+    ui: { resourceUri: ROUTES_WIDGET_URI },
   },
 };
 
@@ -103,8 +110,13 @@ const debugStationResolution = (query: string, resolution: TStationResolution): 
  * Universal tool: station details or shortest routes between two stations.
  * All responses are returned as ready-made English markdown text (lists and tables);
  * station and line names are localized to the requested `language`.
+ *
+ * When the client advertises MCP Apps support, route responses additionally carry
+ * `structuredContent` with the widget payload — the host renders it via the
+ * ui://mos-metro/routes.html resource; the markdown text stays as the model-facing fallback.
  */
-export const handleMosMetroInfo = async (args: any): Promise<TToolHandlerResponse> => {
+export const handleMosMetroInfo = async (params: IToolHandlerParams): Promise<TToolHandlerResponse> => {
+  const args = params.arguments;
   const first = String(args?.first_metro_station ?? '').trim();
   const second = String(args?.second_metro_station ?? '').trim();
   const action = args?.action;
@@ -173,7 +185,15 @@ The departure and arrival stations are the same: **${fromName}**. They belong to
 
   try {
     const result = findBestRoutes(dataset, fromOpt.ids, toOpt.ids, { k: ROUTE_COUNT });
-    return asTextContent(renderRoutes(result, fromName, toName, lang));
+    const markdown = renderRoutes(result, fromName, toName, lang);
+    // MCP Apps host: markdown stays as the model-facing text, the widget renders structuredContent
+    if (hostSupportsMcpApps(params.clientCapabilities)) {
+      return {
+        content: [{ type: 'text', text: markdown }],
+        structuredContent: buildRoutesWidgetData(result, fromName, toName, lang),
+      };
+    }
+    return asTextContent(markdown);
   } catch (e) {
     const msg = hideSourceNames(e instanceof Error ? e.message : String(e));
     return asTextError(`Failed to build a route ${fromName} → ${toName}: ${msg}`);
