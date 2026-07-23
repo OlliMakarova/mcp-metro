@@ -95,6 +95,35 @@ describe('Русский язык: опечатки и искажения', () =
   });
 });
 
+describe('Склонения русских названий', () => {
+  test.each([
+    ['Чеховской', 'Чеховская'], // genitive/dative/prepositional
+    ['Чеховскую', 'Чеховская'], // accusative
+    ['Пушкинской', 'Пушкинская'],
+    ['Университета', 'Университет'],
+    ['Кузнецкого моста', 'Кузнецкий мост'],
+    ['Октябрьского поля', 'Октябрьское поле'],
+    ['Проспекта мира', 'Проспект Мира'], // only the first word declines
+    ['Чистых прудов', 'Чистые пруды'],
+    ['Площади Революции', 'Площадь Революции'],
+    ['Речном вокзале', 'Речной вокзал'], // prepositional
+  ])('«%s» → %s (точное совпадение)', (query, expected) => {
+    const matches = fuzzySearchStations(ds, query);
+    expect(matches.length).toBeGreaterThanOrEqual(1);
+    expect(matches[0]!.station.name.ru).toBe(expected);
+    expect(matches[0]!.score).toBe(1);
+  });
+
+  test('склонение неоднозначного имени сохраняет неоднозначность: «Смоленской» → обе Смоленские', () => {
+    const matches = fuzzySearchStations(ds, 'Смоленской');
+    expect(matches.length).toBeGreaterThanOrEqual(2);
+    for (const m of matches) {
+      expect(m.score).toBe(1);
+      expect(m.station.name.ru).toBe('Смоленская');
+    }
+  });
+});
+
 describe('Английский язык и транслитерация', () => {
   test.each([
     ['Khovrino', 'Ховрино'], // official English name

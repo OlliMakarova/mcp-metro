@@ -12,6 +12,7 @@ import {
   ILineInfo,
   IRouteEndpoint,
   IRouteVariant,
+  IRouteWarning,
   TRouteLeg,
 } from '../../lib/routing/find-routes.js';
 import { IResolveLineRef, IStationOption, TStationResolution } from '../../lib/station-search/resolve-station.js';
@@ -50,23 +51,35 @@ const lineName = (line: ILineInfo | IStationLineRef | IResolveLineRef | undefine
   return `${nm}${lineKindTag(line)}`;
 };
 
-/** Human-readable car (wagon) recommendations for a transfer */
+/**
+ * Short car (wagon) recommendation for a transfer: «front / middle / rear».
+ * The data uses both NEAR_FIRST/NEAR_END and FIRST/END codes for the same positions.
+ */
+const WAGON_LABEL: Record<string, string> = {
+  NEAR_FIRST: 'front',
+  FIRST: 'front',
+  CENTER: 'middle',
+  NEAR_END: 'rear',
+  END: 'rear',
+};
+const WAGON_ORDER = ['front', 'middle', 'rear'];
+
 const wagonAdvice = (wagons: IWagonHint[] | undefined): string | undefined => {
   if (!wagons?.length) {
     return undefined;
   }
-  const map: Record<string, string> = {
-    NEAR_FIRST: 'front cars (head of the train)',
-    NEAR_END: 'rear cars (tail of the train)',
-    CENTER: 'middle cars',
-  };
   const kinds = new Set<string>();
   for (const w of wagons) {
     for (const t of w.types) {
-      kinds.add(map[t] ?? t);
+      kinds.add(WAGON_LABEL[t] ?? t.toLowerCase());
     }
   }
-  return kinds.size ? [...kinds].join(' or ') : undefined;
+  if (!kinds.size) {
+    return undefined;
+  }
+  // Stable head-to-tail order regardless of the order in the data; unknown codes go last
+  const rank = (v: string): number => (WAGON_ORDER.includes(v) ? WAGON_ORDER.indexOf(v) : WAGON_ORDER.length);
+  return [...kinds].sort((a, b) => rank(a) - rank(b)).join(' / ');
 };
 
 /** Station service code labels — translated captions of the mosmetro.ru website dictionary */
@@ -150,7 +163,7 @@ const renderTransferLeg = (leg: Extract<TRouteLeg, { kind: 'transfer' }>, index:
   ];
   const advice = wagonAdvice(leg.wagons);
   if (advice) {
-    parts.push(`   For a convenient transfer, board the ${advice}.`);
+    parts.push(`   Recommended cars: ${advice}.`);
   }
   if (leg.isAlternative) {
     parts.push('   (temporary detour due to a closed section)');
@@ -222,17 +235,37 @@ const renderVariant = (v: IRouteVariant, n: number, lang: TLang): string => {
   out.push(renderEndpoint('Departure', v.departure, lang));
   out.push('');
   out.push(renderEndpoint('Arrival', v.arrival, lang));
-  if (v.warnings.length) {
-    out.push('');
-    out.push('**Warnings along the route:**');
+  return out.join('\n');
+};
+
+/**
+ * Unique warnings for the departure and arrival stations only, gathered across all variants.
+ * Warnings for intermediate stations are noise for the passenger and are not rendered;
+ * duplicates (same warning attached to several platforms of one hub, or repeated in every
+ * variant) are collapsed by station name + status + text.
+ */
+const endpointWarnings = (variants: IRouteVariant[]): IRouteWarning[] => {
+  const endpointIds = new Set<number>();
+  for (const v of variants) {
+    endpointIds.add(v.departure.station.id);
+    endpointIds.add(v.arrival.station.id);
+  }
+  const seen = new Set<string>();
+  const out: IRouteWarning[] = [];
+  for (const v of variants) {
     for (const w of v.warnings) {
-      const status = NOTE_STATUS[w.status] ?? w.status;
-      out.push(
-        `- ${status} — ${pickName(w.stationName, lang)}: ${w.title ?? ''}${w.description ? ` — ${w.description}` : ''}`,
-      );
+      if (!endpointIds.has(w.stationId)) {
+        continue;
+      }
+      const key = `${w.status}|${w.stationName.ru}|${w.title ?? ''}|${w.description ?? ''}`;
+      if (seen.has(key)) {
+        continue;
+      }
+      seen.add(key);
+      out.push(w);
     }
   }
-  return out.join('\n');
+  return out;
 };
 
 /** Extra margin (min) on top of the travel time when warning about the upcoming closure */
@@ -304,7 +337,21 @@ export const renderRoutes = (result: IFindRoutesResult, fromName: string, toName
     return head.join('\n');
   }
   const body = result.variants.map((v, idx) => renderVariant(v, idx + 1, lang));
-  return [...head, body.join('\n\n')].join('\n');
+
+  // Single warnings block at the very end: unique, endpoint stations only
+  const tail: string[] = [];
+  const warnings = endpointWarnings(result.variants);
+  if (warnings.length) {
+    tail.push('');
+    tail.push('**Warnings at the departure and arrival stations:**');
+    for (const w of warnings) {
+      const status = NOTE_STATUS[w.status] ?? w.status;
+      tail.push(
+        `- ${status} — ${pickName(w.stationName, lang)}: ${w.title ?? ''}${w.description ? ` — ${w.description}` : ''}`,
+      );
+    }
+  }
+  return [...head, body.join('\n\n'), ...tail].join('\n');
 };
 
 // ─── Station details rendering ───────────────────────────────────────────────

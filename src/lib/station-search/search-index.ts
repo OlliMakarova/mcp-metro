@@ -12,13 +12,21 @@
 
 import { IMetroDataset, IMetroLine, IMetroStation } from '../metro-data/types.js';
 import { normalizeForSearch } from './normalize-lang.js';
+import { russianCaseVariants } from './russian-declension.js';
 import { enToRuVariants, transliterate, transliterateRU } from './transliterate.js';
 
 export interface IStationSearchEntry {
   station: IMetroStation;
   line?: IMetroLine;
-  /** Normalized spelling variants of the name */
+  /** Normalized spelling variants of the name (used for both exact and fuzzy matching) */
   variants: string[];
+  /**
+   * Russian case forms («чеховской», «октябрьского поля») matched ONLY exactly.
+   * They are excluded from fuzzy scoring: similarity against declensions adds noise
+   * (junk queries start crossing the threshold), while typos in an oblique query are
+   * already handled by fuzzy matching against the nominative.
+   */
+  exactVariants: string[];
 }
 
 export interface ISearchIndex {
@@ -31,6 +39,16 @@ const buildVariantsForRussian = (ru: string): string[] => {
     return [];
   }
   return [norm, normalizeForSearch(transliterate(norm))];
+};
+
+/**
+ * Case forms («чеховской», «чеховскую», «октябрьского поля») let queries written in an
+ * oblique case match exactly instead of producing a clarification list. Transliteration
+ * is not applied — Latin queries virtually always use the base form.
+ */
+const buildCaseVariantsForRussian = (ru: string): string[] => {
+  const norm = normalizeForSearch(ru);
+  return norm ? russianCaseVariants(norm) : [];
 };
 
 const buildVariantsForEnglish = (en: string): string[] => {
@@ -52,9 +70,13 @@ export const buildSearchIndex = (dataset: IMetroDataset): ISearchIndex => {
 
   const entries: IStationSearchEntry[] = dataset.stations.map((station) => {
     const variants = new Set<string>();
+    const exactVariants = new Set<string>();
 
     for (const v of buildVariantsForRussian(station.name.ru)) {
       variants.add(v);
+    }
+    for (const v of buildCaseVariantsForRussian(station.name.ru)) {
+      exactVariants.add(v);
     }
     if (station.name.en) {
       for (const v of buildVariantsForEnglish(station.name.en)) {
@@ -77,14 +99,22 @@ export const buildSearchIndex = (dataset: IMetroDataset): ISearchIndex => {
       for (const v of buildVariantsForRussian(alias)) {
         variants.add(v);
       }
+      for (const v of buildCaseVariantsForRussian(alias)) {
+        exactVariants.add(v);
+      }
     }
     variants.delete('');
+    exactVariants.delete('');
+    for (const v of variants) {
+      exactVariants.delete(v);
+    }
 
     const line = lineById.get(station.lineId);
     return {
       station,
       ...(line ? { line } : {}),
       variants: [...variants],
+      exactVariants: [...exactVariants],
     };
   });
 

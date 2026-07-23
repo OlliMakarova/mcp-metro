@@ -75,6 +75,6 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/OlliMakarova/mcp-metro.git/mcp-metro.git"
+    "url": "git+https://github.com/OlliMakarova/mcp-metro.git"
   }
 }

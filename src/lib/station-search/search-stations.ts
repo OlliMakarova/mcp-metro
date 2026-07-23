@@ -73,7 +73,19 @@ export const fuzzySearchStations = (
 
   for (const entry of index.entries) {
     let best = 0;
+    // Russian case forms are matched only exactly — fuzzy similarity against them is noise
+    exact: for (const variant of entry.exactVariants) {
+      for (const qv of queryVariants) {
+        if (variant === qv) {
+          best = 1;
+          break exact;
+        }
+      }
+    }
     outer: for (const variant of entry.variants) {
+      if (best >= 1) {
+        break;
+      }
       for (const qv of queryVariants) {
         // Fast path: exact match of normalized strings
         if (variant === qv) {
