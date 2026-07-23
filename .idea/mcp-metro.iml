@@ -9,6 +9,7 @@
       <excludeFolder url="file://$MODULE_DIR$/.idea" />
       <excludeFolder url="file://$MODULE_DIR$/.qwen" />
       <excludeFolder url="file://$MODULE_DIR$/_tmp" />
+      <excludePattern pattern="yarn.lock" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
