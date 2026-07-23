@@ -2,7 +2,7 @@ import { IResourceData } from 'fa-mcp-sdk';
 
 import { getMetroDatasetOrNull } from './lib/metro-data/cache.js';
 import { pickName } from './lib/metro-data/localized-name.js';
-import { routesWidgetResource } from './tools/metro/widget-resource.js';
+import { routesWidgetResource } from './tools/widget/widget-resource.js';
 
 /**
  * Resources of the metro MCP server. Content is generated dynamically from the active dataset,

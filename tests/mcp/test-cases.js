@@ -2,7 +2,7 @@
 
 /**
  * Shared test cases for the metro MCP server (run over the STDIO, HTTP and SSE transports).
- * They cover prompts, resources and the mos_metro_info tool.
+ * They cover prompts, resources and the metro_info tool.
  *
  * Each test is a function(client) -> Promise<{ name, passed, details? }>, where client
  * provides the methods: listPrompts(), getPrompt(name, args?), listResources(),
@@ -112,12 +112,12 @@ export const METRO_TESTS = {
 
   tools: [
     async (client) => {
-      const name = 'Список инструментов содержит mos_metro_info';
+      const name = 'Список инструментов содержит metro_info';
       try {
         const list = await client.listTools();
         const tools = list?.tools || list;
         const names = Array.isArray(tools) ? tools.map((t) => t.name) : [];
-        return names.includes('mos_metro_info') ? ok(name, { names }) : fail(name, { names });
+        return names.includes('metro_info') ? ok(name, { names }) : fail(name, { names });
       } catch (e) {
         return fail(name, { error: e?.message });
       }
@@ -126,7 +126,7 @@ export const METRO_TESTS = {
       const name = 'get_station_info по «Пушкинская» возвращает сведения о станции (названия — en по умолчанию)';
       try {
         const text = extractToolText(
-          await client.callTool('mos_metro_info', { first_metro_station: 'Пушкинская', action: 'get_station_info' }),
+          await client.callTool('metro_info', { first_metro_station: 'Пушкинская', action: 'get_station_info' }),
         );
         const good = typeof text === 'string' && text.includes('# Station') && /Pushkinskaya/i.test(text);
         return good ? ok(name, { sample: String(text).slice(0, 160) }) : fail(name, { text });
@@ -138,7 +138,7 @@ export const METRO_TESTS = {
       const name = 'get_station_info с language=ru показывает название по-русски';
       try {
         const text = extractToolText(
-          await client.callTool('mos_metro_info', {
+          await client.callTool('metro_info', {
             first_metro_station: 'Пушкинская',
             action: 'get_station_info',
             language: 'ru',
@@ -154,7 +154,7 @@ export const METRO_TESTS = {
       const name = 'get_station_info по опечатке «Универсиет» распознаёт «Университет»';
       try {
         const text = extractToolText(
-          await client.callTool('mos_metro_info', { first_metro_station: 'Универсиет', action: 'get_station_info' }),
+          await client.callTool('metro_info', { first_metro_station: 'Универсиет', action: 'get_station_info' }),
         );
         const good = typeof text === 'string' && /Universitet|Университет/.test(text);
         return good ? ok(name, { sample: String(text).slice(0, 160) }) : fail(name, { text });
@@ -166,7 +166,7 @@ export const METRO_TESTS = {
       const name = 'get_station_info по «Смоленская» просит уточнить (две линии)';
       try {
         const text = extractToolText(
-          await client.callTool('mos_metro_info', { first_metro_station: 'Смоленская', action: 'get_station_info' }),
+          await client.callTool('metro_info', { first_metro_station: 'Смоленская', action: 'get_station_info' }),
         );
         const good = typeof text === 'string' && /Clarify/i.test(text) && /Smolenskaya|Смоленская/.test(text);
         return good ? ok(name, { sample: String(text).slice(0, 200) }) : fail(name, { text });
@@ -178,7 +178,7 @@ export const METRO_TESTS = {
       const name = 'get_station_info по бессмысленному вводу просит уточнить название';
       try {
         const text = extractToolText(
-          await client.callTool('mos_metro_info', { first_metro_station: 'ыфваплджэ123', action: 'get_station_info' }),
+          await client.callTool('metro_info', { first_metro_station: 'ыфваплджэ123', action: 'get_station_info' }),
         );
         const good = typeof text === 'string' && /could not be recognized/i.test(text);
         return good ? ok(name, { sample: String(text).slice(0, 160) }) : fail(name, { text });
@@ -190,7 +190,7 @@ export const METRO_TESTS = {
       const name = 'search_route «Университет» → «Комсомольская» строит маршруты';
       try {
         const text = extractToolText(
-          await client.callTool('mos_metro_info', {
+          await client.callTool('metro_info', {
             first_metro_station: 'Университет',
             second_metro_station: 'Комсомольская',
             action: 'search_route',
@@ -206,7 +206,7 @@ export const METRO_TESTS = {
       const name = 'search_route без станции прибытия сообщает об ошибке';
       try {
         const text = extractToolText(
-          await client.callTool('mos_metro_info', { first_metro_station: 'Университет', action: 'search_route' }),
+          await client.callTool('metro_info', { first_metro_station: 'Университет', action: 'search_route' }),
         );
         const good = typeof text === 'string' && /arrival station/i.test(text);
         return good ? ok(name, { sample: String(text).slice(0, 160) }) : fail(name, { text });
@@ -218,7 +218,7 @@ export const METRO_TESTS = {
       const name = 'search_route с двумя неоднозначными станциями просит уточнить обе';
       try {
         const text = extractToolText(
-          await client.callTool('mos_metro_info', {
+          await client.callTool('metro_info', {
             first_metro_station: 'Смоленская',
             second_metro_station: 'Арбатская',
             action: 'search_route',

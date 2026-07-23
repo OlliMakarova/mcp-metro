@@ -4,7 +4,7 @@ import chalk from 'chalk';
 import { IToolHandlerParams, logger as lgr, ToolExecutionError, TToolHandlerResponse } from 'fa-mcp-sdk';
 
 import { hideSourceNames } from '../lib/metro-data/public-source.js';
-import { handleMosMetroInfo, mosMetroInfoTool } from './mos-metro-info.js';
+import { handleMetroInfo, metroInfoTool } from './metro-info.js';
 
 const logger = lgr.getSubLogger({ name: chalk.bgGrey('tools') });
 
@@ -15,10 +15,10 @@ type TToolHandler = (params: IToolHandlerParams) => Promise<TToolHandlerResponse
  * wired together here. To add a tool, create `src/tools/<tool-name>.ts` and register it below.
  */
 const handlers: Record<string, TToolHandler> = {
-  [mosMetroInfoTool.name]: handleMosMetroInfo,
+  [metroInfoTool.name]: handleMetroInfo,
 };
 
-export const tools: Tool[] = [mosMetroInfoTool];
+export const tools: Tool[] = [metroInfoTool];
 
 /**
  * Tool call dispatcher of the metro MCP server.

@@ -34,13 +34,13 @@ mcp-metro — обособленный спек-совместимый серв�
 
 | Что | Где |
 |---|---|
-| Определение инструмента и обработчик | `src/tools/mos-metro-info.ts` — `_meta.ui.resourceUri`; ветка `hostSupportsMcpApps(...)` кладёт полный payload `buildRoutesWidgetData(...)` в `structuredContent` — заменяется на `{ widget, dataUrl }`, ветка с полным payload удаляется (без переключателей и легаси) |
-| Сборка payload данных | `src/tools/metro/widget-data.ts` (`buildRoutesWidgetData`, `IRoutesWidgetData`) — остаётся; вызывается теперь из REST-обработчика |
-| Ресурс `ui://` | `src/tools/metro/widget-resource.ts` (`ROUTES_WIDGET_URI`, чтение HTML, `preferredFrameSize`); подключён в `src/custom-resources.ts`. Для хеша в URI: HTML читается синхронно при инициализации модуля — URI должен быть готов до формирования определения инструмента |
-| Виджет | `src/tools/metro/routes-widget.html` — `onToolResult` сейчас рендерит `structuredContent` напрямую; есть маркдаун-фолбэк для не-маршрутных ответов (остаётся) |
+| Определение инструмента и обработчик | `src/tools/metro-info.ts` — `_meta.ui.resourceUri`; ветка `hostSupportsMcpApps(...)` кладёт полный payload `buildRoutesWidgetData(...)` в `structuredContent` — заменяется на `{ widget, dataUrl }`, ветка с полным payload удаляется (без переключателей и легаси) |
+| Сборка payload данных | `src/tools/widget/widget-data.ts` (`buildRoutesWidgetData`, `IRoutesWidgetData`) — остаётся; вызывается теперь из REST-обработчика |
+| Ресурс `ui://` | `src/tools/widget/widget-resource.ts` (`ROUTES_WIDGET_URI`, чтение HTML, `preferredFrameSize`); подключён в `src/custom-resources.ts`. Для хеша в URI: HTML читается синхронно при инициализации модуля — URI должен быть готов до формирования определения инструмента |
+| Виджет | `src/tools/widget/routes-widget.html` — `onToolResult` сейчас рендерит `structuredContent` напрямую; есть маркдаун-фолбэк для не-маршрутных ответов (остаётся) |
 | REST | `src/api/router.ts` (tsoa) |
 | Разрешение станций | `src/lib/station-search/resolve-station.ts` — `option.ids` (те самые id для `from`/`to`) |
-| Поиск маршрутов | `src/lib/routing/find-routes.ts` — `findBestRoutes(dataset, fromIds, toIds, { k, at })`; `ROUTE_COUNT` в `mos-metro-info.ts` |
+| Поиск маршрутов | `src/lib/routing/find-routes.ts` — `findBestRoutes(dataset, fromIds, toIds, { k, at })`; `ROUTE_COUNT` в `metro-info.ts` |
 | Конфиг | `config/default.yaml`, `config/custom-environment-variables.yaml`, тип в `src/_types_/custom-config.ts`; локальный порт 9049 — `config/local.yaml` |
 | Тесты MCP | `tests/mcp/test-cases.js` (14 тестов на трёх транспортах, включая чтение `ui://`-ресурса) |
 | Сборка ассетов | `scripts/copy-assets.js` копирует HTML виджета в dist (вызывается из `yarn build`) |
@@ -49,7 +49,7 @@ mcp-metro — обособленный спек-совместимый серв�
 
 ## Контракт
 
-Ответ `mos_metro_info` (action=search_route, хост с поддержкой MCP Apps):
+Ответ `metro_info` (action=search_route, хост с поддержкой MCP Apps):
 
 ```json
 {
@@ -96,7 +96,7 @@ mcp-metro — обособленный спек-совместимый серв�
 
 ## Этап 2. Модуль ссылки данных
 
-- [ ] Модуль `src/tools/metro/widget-data-link.ts`: `buildWidgetDataUrl({ fromIds, toIds, lang, at })` —
+- [ ] Модуль `src/tools/widget/widget-data-link.ts`: `buildWidgetDataUrl({ fromIds, toIds, lang, at })` —
       сборка URL с подписью; `parseWidgetDataQuery(query)` — разбор и проверка подписи
       (`timingSafeEqual`), возврат типизированных параметров либо понятной ошибки. Подпись —
       HMAC-SHA256 от канонической строки `from|to|lang`, усечённая до разумной длины (например, 32
@@ -135,12 +135,12 @@ mcp-metro — обособленный спек-совместимый серв�
       (короткий, например первые 8 символов sha256). Тот же адрес — в `_meta.ui.resourceUri` инструмента
       и в регистрации ресурса. Хосты, кеширующие HTML по URI бессрочно (универсальный хост mem-bot),
       перечитывают его только при реальном изменении виджета.
-- [ ] `src/tools/metro/widget-resource.ts`: `_meta.ui.csp.connectDomains = [<origin publicBaseUrl>]` —
+- [ ] `src/tools/widget/widget-resource.ts`: `_meta.ui.csp.connectDomains = [<origin publicBaseUrl>]` —
       чтобы спек-хосты (Claude Desktop) разрешили iframe единственный сетевой запрос. Формат ключа сверить
       с `FA-MCP-SDK-DOC/10-mcp-apps.md` §5.4 (`connectDomains`) и `IUiResourceMeta` (`csp` как запись
       «директива → источники») — выбрать поддерживаемую SDK форму.
 
-## Этап 6. Виджет (`src/tools/metro/routes-widget.html`)
+## Этап 6. Виджет (`src/tools/widget/routes-widget.html`)
 
 - [ ] `onToolResult`: `structuredContent.dataUrl` → состояние «Загружаем маршруты…» → `fetch(dataUrl)` →
       рендер текущей разметки. Ветки с полным payload в `structuredContent` не существует.

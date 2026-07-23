@@ -8,7 +8,7 @@ import { describe, expect, it } from '@jest/globals';
 import { hideSourceNames } from '../../src/lib/metro-data/public-source.js';
 import { buildStationInfo } from '../../src/lib/station-info.js';
 import { findBestRoutes } from '../../src/lib/routing/find-routes.js';
-import { renderRoutes, renderStationInfo } from '../../src/tools/metro/render.js';
+import { renderRoutes, renderStationInfo } from '../../src/tools/lib/render.js';
 import { getMetrobookDataset, getMosmetroDataset, stationIdsByName } from './helpers.js';
 
 const LEAK_RE = /mosmetro|metrobook|prodapp/i;

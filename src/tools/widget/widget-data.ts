@@ -1,4 +1,4 @@
-// Data payload for the MCP Apps route widget (structuredContent of the mos_metro_info tool).
+// Data payload for the MCP Apps route widget (structuredContent of the metro_info tool).
 //
 // Converts IFindRoutesResult into a compact, fully localized JSON that the widget
 // (src/tools/metro/routes-widget.html) renders without any knowledge of the dataset:
@@ -14,7 +14,7 @@ import {
   IRouteVariant,
   TRouteLeg,
 } from '../../lib/routing/find-routes.js';
-import { endpointWarnings } from './render.js';
+import { endpointWarnings } from '../lib/render.js';
 
 /** Wagon position code understood by the widget's train pictogram */
 export type TWagonPos = 'front' | 'middle' | 'rear';

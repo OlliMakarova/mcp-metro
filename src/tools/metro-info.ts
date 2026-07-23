@@ -9,15 +9,15 @@ import { hideSourceNames } from '../lib/metro-data/public-source.js';
 import { findBestRoutes } from '../lib/routing/find-routes.js';
 import { buildStationInfo } from '../lib/station-info.js';
 import { IStationOption, resolveStation, TStationResolution } from '../lib/station-search/resolve-station.js';
-import { renderResolutionAsk, renderRoutes, renderStationInfo } from './metro/render.js';
-import { buildRoutesWidgetData } from './metro/widget-data.js';
-import { ROUTES_WIDGET_URI } from './metro/widget-resource.js';
+import { renderResolutionAsk, renderRoutes, renderStationInfo } from './lib/render.js';
+import { buildRoutesWidgetData } from './widget/widget-data.js';
+import { ROUTES_WIDGET_URI } from './widget/widget-resource.js';
 
 /** How many route variants to request (capped at 3 to keep the tool response compact) */
 const ROUTE_COUNT = 3;
 
 /** Single "metro data unavailable" error text in markdown (without real source names) */
-const DATA_UNAVAILABLE_MD = `## Moscow Metro data is temporarily unavailable. Please retry later.`;
+const DATA_UNAVAILABLE_MD = `## Metro data is temporarily unavailable. Please retry later.`;
 
 /**
  * Tool definition.
@@ -25,15 +25,24 @@ const DATA_UNAVAILABLE_MD = `## Moscow Metro data is temporarily unavailable. Pl
  * The schema conforms to JSON Schema draft 2020-12 and forbids unknown fields
  * (`additionalProperties: false`) — a requirement of the standard, §9.2.
  */
-export const mosMetroInfoTool: Tool = {
-  name: 'mos_metro_info',
-  title: 'Moscow Metro: routes and station details',
-  description: `Finds routes between two stations of the Moscow Metro (including the MCC and MCD) and returns station details.
-In search_route mode it builds 1 to 3 shortest routes between two stations with the total travel time, stations, transfers, car recommendations, surface transport at the endpoint stations, and active restrictions (repairs, closures).
-In get_station_info mode it returns station details: lines, exits, surface transport, services, first/last train schedule, transfers and warnings.
+export const metroInfoTool: Tool = {
+  name: 'metro_info',
+  title: 'Metro: routes and station details',
+  description: `Finds the shortest routes between two stations in the Moscow or Saint Petersburg Metro, 
+including the MCC (МЦК) and MCD (МЦД), in search_route mode, or provides details for a single station in get_station_info mode.
 
-Pass station names exactly as the user writes them.
-`,
+Returns:
+- total travel time
+- stations
+- transfers
+- surface transport at the route endpoints
+- restrictions, repairs, and closures
+- lines
+- exits
+- services
+- first and last train schedules
+
+Pass station names exactly as the user writes them.`,
   inputSchema: {
     type: 'object',
     properties: {
@@ -50,6 +59,12 @@ Pass station names exactly as the user writes them.
         enum: ['search_route', 'get_station_info'],
         description: `Action type: "search_route" — build the shortest routes between two stations;
 "get_station_info" — return details of the first_metro_station station.`,
+      },
+      city: {
+        type: 'string',
+        enum: ['Moscow', 'StPetersburg'],
+        default: 'Moscow',
+        description: `City whose metro to query. Defaults to Moscow.`,
       },
       language: {
         type: 'string',
@@ -115,12 +130,14 @@ const debugStationResolution = (query: string, resolution: TStationResolution): 
  * `structuredContent` with the widget payload — the host renders it via the
  * ui://mos-metro/routes.html resource; the markdown text stays as the model-facing fallback.
  */
-export const handleMosMetroInfo = async (params: IToolHandlerParams): Promise<TToolHandlerResponse> => {
+export const handleMetroInfo = async (params: IToolHandlerParams): Promise<TToolHandlerResponse> => {
   const args = params.arguments;
   const first = String(args?.first_metro_station ?? '').trim();
   const second = String(args?.second_metro_station ?? '').trim();
   const action = args?.action;
   const lang = toLang(args?.language);
+  // The city parameter is accepted for forward compatibility: St. Petersburg metro data is not
+  // wired in yet, so 'StPetersburg' currently falls back to the Moscow dataset like any other value.
 
   if (!first) {
     return asTextError('The first_metro_station parameter is not specified.');

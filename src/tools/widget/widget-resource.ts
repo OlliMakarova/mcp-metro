@@ -11,7 +11,7 @@ import { fileURLToPath } from 'node:url';
 
 import { IResourceData, MCP_APPS_RESOURCE_MIME_TYPE } from 'fa-mcp-sdk';
 
-/** ui:// URI the mos_metro_info tool advertises in its `_meta.ui.resourceUri` */
+/** ui:// URI the metro_info tool advertises in its `_meta.ui.resourceUri` */
 export const ROUTES_WIDGET_URI = 'ui://mos-metro/routes.html';
 
 const THIS_DIR = path.dirname(fileURLToPath(import.meta.url));
@@ -43,7 +43,7 @@ const readWidgetHtml = async (): Promise<string> => {
 export const routesWidgetResource: IResourceData = {
   uri: ROUTES_WIDGET_URI,
   name: 'mos-metro-routes-widget',
-  description: 'MCP Apps widget that renders Moscow Metro route variants returned by the mos_metro_info tool.',
+  description: 'MCP Apps widget that renders Moscow Metro route variants returned by the metro_info tool.',
   mimeType: MCP_APPS_RESOURCE_MIME_TYPE,
   content: () => readWidgetHtml(),
   _meta: {

@@ -1,12 +1,12 @@
-// Rendering of mos_metro_info tool responses as markdown (lists and tables).
+// Rendering of metro_info tool responses as markdown (lists and tables).
 //
 // All responses the agent sees are formatted as human-readable English markdown: routes and
 // station details as tables and numbered lists, clarification requests as an option list.
 // Station and line names are given in the requested response language (`lang`) when the data
 // provides them. Structured data arrives ready-made from the library layer (src/lib).
 
-import { pickName, TLang } from '../../lib/metro-data/localized-name.js';
-import { IStationWorkTimeDay, IWagonHint } from '../../lib/metro-data/types.js';
+import { pickName, TLang } from '../../lib/metro-data/localized-name';
+import { IStationWorkTimeDay, IWagonHint } from '../../lib/metro-data/types';
 import {
   IFindRoutesResult,
   ILineInfo,
@@ -14,9 +14,9 @@ import {
   IRouteVariant,
   IRouteWarning,
   TRouteLeg,
-} from '../../lib/routing/find-routes.js';
-import { IResolveLineRef, IStationOption, TStationResolution } from '../../lib/station-search/resolve-station.js';
-import { IStationInfo, IStationLineRef } from '../../lib/station-info.js';
+} from '../../lib/routing/find-routes';
+import { IResolveLineRef, IStationOption, TStationResolution } from '../../lib/station-search/resolve-station';
+import { IStationInfo, IStationLineRef } from '../../lib/station-info';
 
 // ─── Small formatters ────────────────────────────────────────────────────────
 

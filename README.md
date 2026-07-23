@@ -35,7 +35,7 @@ and `telegram`.
 
 ## MCP Tool
 
-### `mos_metro_info`
+### `metro_info`
 
 Universal tool. The identifier is lowercase snake_case, as required by the MCP tool-naming standard.
 
@@ -44,6 +44,7 @@ Universal tool. The identifier is lowercase snake_case, as required by the MCP t
 | `first_metro_station` | yes | Departure station (for a route) or the station to describe. Any of the four languages, typos allowed — resolved by fuzzy search. |
 | `second_metro_station` | for routes | Arrival station. Required for `action=search_route`, unused for `get_station_info`. |
 | `action` | yes | `search_route` — build routes between two stations; `get_station_info` — describe `first_metro_station`. |
+| `city` | no | `Moscow` (default) or `StPetersburg`. St. Petersburg data is not wired in yet: for now every value falls back to the Moscow dataset. |
 | `language` | no | Language the user communicates in: `en` (default), `ru`, `ar` or `cn`. Station and line names in the response are given in this language; all other response text is English. |
 
 The response is English Markdown. On ambiguity it contains a numbered list (or two lists, one per station) to choose from.

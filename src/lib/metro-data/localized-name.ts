@@ -6,7 +6,7 @@
 
 import { ILocalizedName } from './types.js';
 
-/** Response language supported by the mos_metro_info tool */
+/** Response language supported by the metro_info tool */
 export type TLang = 'en' | 'ru' | 'ar' | 'cn';
 
 /** Coerces the raw `language` tool argument to a supported language (default en) */
