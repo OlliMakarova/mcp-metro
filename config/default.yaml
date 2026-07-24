@@ -106,6 +106,18 @@ agentTester:
     #> /agent-tester can read the key. Default: false (safe).
     #> -------------------------------------------------------------------------
     exposeToClient: false
+    #> Default model pre-filled in the Agent Tester chat UI when the user has not chosen one yet.
+    #> This is the value that ends up in the browser's localStorage on first open. Editing the model in
+    #> the UI overrides it locally. Sent to the UI via GET /agent-tester/api/config (not a secret).
+    defaultModel: 'openai/gpt-5.4-nano'
+    #> List of model names shown in the Agent Tester UI model dropdown. Purely a convenience list —
+    #> the user can still type any model name manually. Sent to the UI via GET /agent-tester/api/config.
+    models:
+      - openai/gpt-5.4-nano
+      - openai/gpt-5.4-mini
+      - openai/gpt-5.4
+      - openai/gpt-4.1-nano
+      - openai/gpt-4.1-mini
 
   #> Key-value pairs for HTTP requests that should be auto-populated in agentTester. Example: X-User-Id: 12345
   httpHeaders:
@@ -217,6 +229,13 @@ consul:
 #        usedExtensions: []
 #        #  - pgvector
 
+#> Headless testing of MCP tools via POST /agent-tester/api/chat/test (no browser, structured trace).
+headlessTester:
+  #> Default LLM model used for headless test requests when the request body omits modelConfig.model.
+  #> Unlike agentTester.openAi.defaultModel (which seeds the browser UI), this value drives server-side
+  #> headless runs directly. Override per request by passing modelConfig.model (e.g. --model in headless-test.js).
+  defaultModel: 'openai/gpt-5.4'
+
 #> Service home page (`/`) customization
 homePage:
   #> Optional help link rendered in the home page footer
@@ -286,6 +305,19 @@ restApi:
     maxRequests: 60
     #> Rate limit window length, seconds
     windowSec: 60
+
+#> ========================================================================
+#> WIDGET DATA LINKS
+#> The MCP Apps route widget loads its dynamic data over REST from a self-describing,
+#> signed link the tool issues (GET /api/widget-data?from=...&to=...&lang=...&at=...&sig=...).
+#> The HMAC signature keeps that endpoint serving only links the tool itself produced,
+#> so it does not turn into a public route-search API.
+#> ========================================================================
+widgetData:
+  #> HMAC-SHA256 secret for signing widget-data links. Empty → a random secret is generated
+  #> once at startup (links stop verifying after a restart — fine for local development). In
+  #> production set an explicit secret so issued links stay valid indefinitely.
+  signSecret: ''
 
 #> MCP (Model Context Protocol) server settings
 mcp:
@@ -433,7 +465,27 @@ webServer:
   host: '127.0.0.1'
   #> TCP port for the HTTP server
   port: 9049
-  #> Array of hosts that CORS skips
+  #> ========================================================================
+  #> PUBLIC BASE URL
+  #> Externally reachable base address of this server (scheme + host [+ port]),
+  #> e.g. https://mcp-metro.time-gold.com. It is the SINGLE source of the external
+  #> address: the route widget's data links (dataUrl) and the ui:// resource CSP
+  #> connect-src are both built from it. Empty → http://localhost:<port> (local
+  #> development and Agent Tester work without any configuration).
+  #> ========================================================================
+  publicBaseUrl: ''
+  #> ========================================================================
+  #> CORS
+  #> The route widget loads its data over a cross-origin fetch from a sandboxed iframe whose
+  #> Origin is `null` (srcdoc sandboxes) or a dynamic host subdomain — neither can ever match
+  #> the originHosts allow-list. So the CORS origin guard is disabled here: the SDK then adds
+  #> `Access-Control-Allow-Origin: *` to every response and answers preflight requests. This
+  #> server is a public, read-only route API behind a reverse proxy — protect it by network policy.
+  #> Set cors.enabled: true to re-enable the standard §6 origin guard (originHosts allow-list).
+  #> ========================================================================
+  cors:
+    enabled: false
+  #> Array of hosts that CORS skips (used only when cors.enabled is true)
   originHosts: [ 'localhost', '0.0.0.0' ]
   #> ========================================================================
   #> Authentication is configured here only when accessing the MCP server.

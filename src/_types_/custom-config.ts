@@ -82,10 +82,43 @@ export interface IRestApiSectionConfig {
 }
 
 /**
- * Extended app config with group checking settings
+ * Signed widget-data links (`widgetData` section in config/*.yaml).
+ * The route widget loads its dynamic data over REST via a self-describing, signed link
+ * (see src/tools/widget/widget-data-link.ts). The signature keeps the /widget-data endpoint
+ * serving only links the tool itself issued, rather than becoming a public route-search API.
+ */
+export interface IWidgetDataSectionConfig {
+  widgetData?: {
+    /**
+     * HMAC-SHA256 secret used to sign widget-data links. When empty, a random secret is
+     * generated once at startup: links issued before a restart stop verifying afterwards
+     * (acceptable for local development; in production set an explicit secret so links are
+     * effectively permanent).
+     */
+    signSecret?: string;
+  };
+}
+
+/**
+ * Extended app config with group checking settings.
+ *
+ * `webServer.publicBaseUrl` is intersected onto the SDK's webServer type: it is the single
+ * source of the externally reachable base address, used to build both widget-data links and the
+ * `connect-src` CSP source of the ui:// widget resource. Empty → `http://localhost:<port>`.
  */
 export interface CustomAppConfig
-  extends AppConfig, IGroupAccessConfig, IMetroSectionConfig, ITelegramSectionConfig, IRestApiSectionConfig {}
+  extends
+    AppConfig,
+    IGroupAccessConfig,
+    IMetroSectionConfig,
+    ITelegramSectionConfig,
+    IRestApiSectionConfig,
+    IWidgetDataSectionConfig {
+  webServer: AppConfig['webServer'] & {
+    /** Externally reachable base URL (scheme + host [+ port]). Empty → http://localhost:<port> */
+    publicBaseUrl?: string;
+  };
+}
 
 // ========================================================================
 // YAML CONFIGURATION EXAMPLE (config/default.yaml)

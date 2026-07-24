@@ -89,9 +89,18 @@ export const METRO_TESTS = {
       }
     },
     async (client) => {
-      const name = 'Чтение ui://mos-metro/routes.html возвращает HTML-виджет MCP Apps';
+      const name = 'Версионированный ресурс ui://mos-metro/routes.<hash>.html возвращает HTML-виджет MCP Apps';
       try {
-        const resp = await client.readResource('ui://mos-metro/routes.html');
+        // The URI carries the widget's content hash, so it is discovered from the listing rather
+        // than hardcoded: `ui://mos-metro/routes.<hash>.html`.
+        const list = await client.listResources();
+        const resources = list?.resources || list;
+        const uris = Array.isArray(resources) ? resources.map((r) => r.uri) : [];
+        const uri = uris.find((u) => /^ui:\/\/mos-metro\/routes\.[^/]+\.html$/.test(u));
+        if (!uri) {
+          return fail(name, { uris });
+        }
+        const resp = await client.readResource(uri);
         const r = resp?.result || resp;
         const content = r?.contents?.[0];
         const good =
@@ -100,8 +109,9 @@ export const METRO_TESTS = {
           content.text.includes('<!doctype html>') &&
           content.text.includes('ui/notifications/tool-result');
         return good
-          ? ok(name, { mimeType: content.mimeType, bytes: content.text.length })
+          ? ok(name, { uri, mimeType: content.mimeType, bytes: content.text.length })
           : fail(name, {
+              uri,
               content: content && { mimeType: content.mimeType, sample: String(content.text).slice(0, 80) },
             });
       } catch (e) {

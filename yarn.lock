@@ -2902,10 +2902,10 @@ fa-consul@^1.0.7:
     async-mutex "^0.5.0"
     xxhashjs "^0.2.2"
 
-fa-mcp-sdk@^0.12.21:
-  version "0.12.21"
-  resolved "https://registry.yarnpkg.com/fa-mcp-sdk/-/fa-mcp-sdk-0.12.21.tgz#82deca16a38cd219284ef345382a527353aa0a65"
-  integrity sha512-rXsYB1df32W8j61QPmniILWM1zkteZLugfUFvTmoJGOkkSfbsEsJOZo4Z5FfGJEpc4YrXWqjUplDV7RqSoD4ug==
+fa-mcp-sdk@^0.12.28:
+  version "0.12.28"
+  resolved "https://registry.yarnpkg.com/fa-mcp-sdk/-/fa-mcp-sdk-0.12.28.tgz#920f8a1fe37dee7ea2bcd6135ba1c1189f5a0a08"
+  integrity sha512-hGWDcdFNSpQqx2mcHmTMgFTouKPdvi92K4RxtI+WZ4OeMtpY+UA3kTYdTWm7csnEmohtDD3qyMoxO1ntrwEc/g==
   dependencies:
     "@modelcontextprotocol/sdk" "^1.29.0"
     "@tsoa/runtime" "^6.6.0"

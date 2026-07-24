@@ -135,9 +135,17 @@ telegram:
 uiColor:
   primary: UI_COLOR_PRIMARY
 
+widgetData:
+  signSecret: WIDGET_DATA_SIGN_SECRET
+
 webServer:
   host: WS_HOST
   port: WS_PORT
+  publicBaseUrl: WS_PUBLIC_BASE_URL
+  cors:
+    enabled:
+      __name: WS_CORS_ENABLED
+      __format: boolean
   auth:
     enabled: WS_AUTH_ENABLED
     permanentServerTokens: WS_SERVER_TOKENS # comma separated list

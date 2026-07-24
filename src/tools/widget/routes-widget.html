@@ -206,6 +206,21 @@
     .md.error { background: var(--w-danger-bg); color: var(--w-danger-tx); }
 
     .loading { color: var(--w-text2); font-size: 13px; padding: 10px 2px; }
+
+    /* ── Refresh-route button ────────────────────────────────────────────── */
+    .refresh {
+      display: inline-flex; align-items: center; gap: 6px;
+      margin: 0 0 10px;
+      padding: 7px 12px;
+      border: 1px solid var(--w-border);
+      border-radius: var(--w-radius-sm);
+      background: var(--w-card);
+      color: var(--w-text);
+      font: inherit; font-size: 13px; font-weight: 600;
+      cursor: pointer;
+    }
+    .refresh:hover { border-color: #6d7fa8; }
+    .refresh:disabled { opacity: .6; cursor: default; }
   </style>
 </head>
 <body>
@@ -260,6 +275,9 @@
         closures: 'учтены перекрытия и ремонты', warnings: 'Предупреждения',
         buses: 'автобусы', trolleybuses: 'троллейбусы', trams: 'трамваи', nearStation: 'У станции',
         mcd: 'МЦД', mcc: 'МЦК',
+        loadingRoutes: 'Загружаем маршруты…', refresh: 'Обновить маршрут',
+        loadError: 'Не удалось загрузить данные маршрута — задайте вопрос заново.',
+        netError: 'Не удалось получить данные маршрута: сервер данных недоступен.',
       },
       en: {
         routes: 'Routes', details: 'Route details',
@@ -276,6 +294,9 @@
         closures: 'closures and repairs applied', warnings: 'Warnings',
         buses: 'buses', trolleybuses: 'trolleybuses', trams: 'trams', nearStation: 'At the station',
         mcd: 'MCD', mcc: 'MCC',
+        loadingRoutes: 'Loading routes…', refresh: 'Refresh route',
+        loadError: 'Could not load the route data — please ask again.',
+        netError: 'Could not fetch the route data: the data server is unreachable.',
       },
       ar: {
         routes: 'المسارات', details: 'تفاصيل المسار',
@@ -292,6 +313,9 @@
         closures: 'مع مراعاة الإغلاقات والإصلاحات', warnings: 'تنبيهات',
         buses: 'حافلات', trolleybuses: 'ترولّي باص', trams: 'ترام', nearStation: 'عند المحطة',
         mcd: 'MCD', mcc: 'MCC',
+        loadingRoutes: 'جارٍ تحميل المسارات…', refresh: 'تحديث المسار',
+        loadError: 'تعذّر تحميل بيانات المسار — يرجى طرح السؤال من جديد.',
+        netError: 'تعذّر جلب بيانات المسار: خادم البيانات غير متاح.',
       },
       cn: {
         routes: '路线', details: '路线详情',
@@ -308,6 +332,9 @@
         closures: '已考虑封闭与维修', warnings: '注意事项',
         buses: '公交', trolleybuses: '无轨电车', trams: '有轨电车', nearStation: '车站附近',
         mcd: 'MCD', mcc: 'MCC',
+        loadingRoutes: '正在加载路线…', refresh: '刷新路线',
+        loadError: '无法加载路线数据 — 请重新提问。',
+        netError: '无法获取路线数据：数据服务器不可达。',
       },
     };
     let L = DICT.en;
@@ -350,6 +377,25 @@
     // ─── Routes rendering ────────────────────────────────────────────────────
     let data = null;
     let selected = 0;
+    // The self-describing signed link the widget loads its route data from. The "Refresh route"
+    // button reuses it with the `at` parameter removed, so the route is rebuilt for "now".
+    let currentDataUrl = null;
+
+    /** Applies a response language before data arrives (loading / error states) */
+    function applyLang(lang) {
+      L = DICT[lang] || DICT.en;
+      document.documentElement.lang = lang === 'cn' ? 'zh' : (lang || 'en');
+      document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+    }
+
+    /** Reads the response language straight from the data link (before the fetch resolves) */
+    function langFromUrl(url) {
+      try {
+        return new URL(url).searchParams.get('lang') || 'en';
+      } catch {
+        return 'en';
+      }
+    }
 
     function trainHtml(wagons) {
       const hl = { front: 0, middle: 2, rear: 4 };
@@ -513,6 +559,7 @@
         : `<div class="od"><div class="od-chip"><span>${esc(d.from)} → ${esc(d.to)}</span></div></div>`;
 
       document.getElementById('app').innerHTML = `<div class="panel">
+        ${currentDataUrl ? `<button class="refresh" id="refreshBtn" type="button">↻ ${esc(L.refresh)}</button>` : ''}
         ${od}
         ${banner}
         <div class="sect">${L.routes}</div>
@@ -540,6 +587,73 @@
           }
         });
       }
+
+      const refreshBtn = document.getElementById('refreshBtn');
+      if (refreshBtn) {
+        refreshBtn.addEventListener('click', refreshRoute);
+      }
+    }
+
+    // ─── Route data loading over REST ────────────────────────────────────────
+    /** Loading placeholder (localized) while the route data is fetched */
+    function showLoading() {
+      document.getElementById('app').innerHTML =
+        `<div class="panel"><div class="loading">${esc(L.loadingRoutes)}</div></div>`;
+    }
+
+    /** Error panel with a localized message */
+    function showDataError(message) {
+      document.getElementById('app').innerHTML =
+        `<div class="md error"><p>${esc(message)}</p></div>`;
+    }
+
+    /**
+     * Fetches the route data from a self-describing link and renders it. A 400/404 (stale link,
+     * changed data) shows the "ask again" message; a network/CSP failure shows the "server
+     * unreachable" message. This is a plain fetch — never a tools/call — so it works identically in
+     * every channel, including a Telegram Mini App.
+     */
+    async function loadRouteData(url) {
+      currentDataUrl = url;
+      applyLang(langFromUrl(url));
+      showLoading();
+      let resp;
+      try {
+        resp = await fetch(url, { headers: { accept: 'application/json' } });
+      } catch {
+        showDataError(L.netError);
+        return;
+      }
+      if (!resp.ok) {
+        showDataError(L.loadError);
+        return;
+      }
+      let json;
+      try {
+        json = await resp.json();
+      } catch {
+        showDataError(L.loadError);
+        return;
+      }
+      data = json;
+      selected = 0;
+      renderRoutes();
+    }
+
+    /** "Refresh route": reload the same link without `at` — the route is rebuilt for "now" */
+    function refreshRoute() {
+      if (!currentDataUrl) {
+        return;
+      }
+      let url;
+      try {
+        const u = new URL(currentDataUrl);
+        u.searchParams.delete('at'); // the signature does not cover `at`, so it stays valid
+        url = u.toString();
+      } catch {
+        url = currentDataUrl;
+      }
+      loadRouteData(url);
     }
 
     // ─── Markdown-lite fallback (station info, clarifications, errors) ───────
@@ -607,10 +721,9 @@
       document.getElementById('loading').classList.add('hidden');
       if (!result || typeof result !== 'object') return;
       const sc = result.structuredContent;
-      if (sc && sc.widget === 'metro-routes') {
-        data = sc;
-        selected = 0;
-        renderRoutes();
+      // Route response: structuredContent carries only a self-describing link — fetch the data.
+      if (sc && sc.widget === 'metro-routes' && sc.dataUrl) {
+        loadRouteData(sc.dataUrl);
         return;
       }
       const textBlock = Array.isArray(result.content)

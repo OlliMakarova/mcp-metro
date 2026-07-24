@@ -18,6 +18,11 @@ rate-limited REST API. Works over STDIO (Claude Desktop) or HTTP/SSE.
   - which legs run on МЦД / МЦК lines;
   - ground transport (buses, trolleybuses, trams) at the departure and arrival stations;
   - active advisories along the route: escalator/elevator repairs, closed exits, station closures.
+
+  Variants are distinguished by their **main ride** only — which lines you take and between which
+  interchange hubs. Extra or alternative walks inside a hub (at the start, an intermediate hub or the
+  end) never spawn separate variants: when a hub offers several transfers, only the fastest is kept.
+  Variants more than **30% slower** than the fastest one are omitted.
 - **Station info** — lines at the station, city exits with nearby ground transport, on-station services,
   first/last train times per direction, available interchanges, and current advisories.
 - **Fuzzy station resolution** — recognizes a name across four languages with typos. When a single physical
@@ -49,6 +54,35 @@ Universal tool. The identifier is lowercase snake_case, as required by the MCP t
 
 The response is English Markdown. On ambiguity it contains a numbered list (or two lists, one per station) to choose from.
 
+## Route widget (MCP Apps)
+
+When the connected host advertises the **MCP Apps** UI extension (`io.modelcontextprotocol/ui`, SEP-1865), a
+`search_route` response additionally carries a compact `structuredContent = { widget: 'metro-routes', dataUrl }`.
+The Markdown text is unchanged and remains the model-facing answer and the only content text-only hosts receive.
+
+The design splits the cacheable UI from the dynamic data:
+
+- **UI** — a versioned resource `ui://mos-metro/routes.<hash>.html`, where `<hash>` is the widget's content hash.
+  Hosts that cache HTML by URI indefinitely re-read it only when the widget actually changes.
+- **Data** — the widget loads its route data itself from `dataUrl` over REST
+  (`GET /api/widget-data`). The link is **self-describing**: it carries the departure/arrival platform ids, the
+  language and the moment `at`, plus an HMAC signature over `from|to|lang`. The server rebuilds the data on every
+  request, so the link is **permanent** — there is no cache of issued data, no TTL, and nothing is lost on a
+  restart (as long as `widgetData.signSecret` is set). The signature deliberately does **not** cover `at`, so the
+  widget's **“Refresh route”** button simply drops `at` to rebuild the route for “now”. Because it is a plain
+  `fetch` (never a `tools/call`), the button works in every channel, including a Telegram Mini App.
+
+Behind a reverse proxy, set `webServer.publicBaseUrl` to the public URL (e.g. `https://mcp-metro.time-gold.com`):
+it is the single source of the external address and is used both for `dataUrl` and for the widget resource's CSP
+`connect-src`. The widget's data fetch is **cross-origin** from a sandboxed iframe whose `Origin` is `null`
+(srcdoc sandboxes) or a dynamic host subdomain — neither can match a CORS allow-list, so the SDK CORS origin guard
+is disabled here (`webServer.cors.enabled: false`) and every response carries `Access-Control-Allow-Origin: *`.
+This makes the server a public, read-only route API — protect it by network policy / the reverse proxy.
+
+**Limitation.** If the host's sandbox forbids network access (a CSP that omits the `connect-src`, or an offline
+channel), the widget cannot load its data and shows an error message asking to ask again — there is **no** fallback
+that embeds the full route payload inline. The user still has the complete Markdown answer in the conversation.
+
 ## REST API
 
 Three read-only endpoints under `/api`, each protected by per-client (by IP) rate limiting. On exceeding the
@@ -60,6 +94,7 @@ limit the server replies `HTTP 429` with a `Retry-After` header. Limits are conf
 | `GET /api/stations/search?q=<name>&limit=<1..50>` | Fuzzy station search. Returns matches with id, name, line, cluster id and similarity score. |
 | `GET /api/stations/info?q=<name>` | Station info. `200` when resolved; `300` with `options` when ambiguous; `404` when not found. |
 | `GET /api/routes?from=<name>&to=<name>&k=<1..4>` | Up to `k` route variants with full details. `300` when a station needs clarification. |
+| `GET /api/widget-data?from=<ids>&to=<ids>&lang=<..>&at=<ISO>&sig=<hmac>` | Route widget data (see [Route widget](#route-widget-mcp-apps)). Public, signed, CORS-open. `200` JSON with route variants; `400` on bad parameters/signature; `404` when station ids are absent from the current data; `503` when data is unavailable. `at` is optional (absent = now). |
 
 OpenAPI/Swagger UI is served at `/docs`; the raw spec at `/api/openapi.json`.
 
@@ -69,6 +104,7 @@ OpenAPI/Swagger UI is served at `/docs`; the raw spec at `/api/openapi.json`.
 |-----|------|-------------|
 | `metro://lines` | text/markdown | All metro / МЦК / МЦД lines with name, type and color. |
 | `metro://status` | text/markdown | Data source and freshness: schema date, station/line counts, active advisory count. |
+| `ui://mos-metro/routes.<hash>.html` | text/html;profile=mcp-app | MCP Apps route widget (see [Route widget](#route-widget-mcp-apps)). URI is versioned by content hash. |
 
 ## MCP Prompts
 
@@ -159,6 +195,12 @@ Priority: environment variables > `local.yaml` > `{NODE_ENV}.yaml` > `default.ya
   `config/local.yaml` or ENV).
 - `mcp` — MCP transport, tool result format, MCP endpoint rate limit and limits.
 - `webServer` — bind host/port and authentication.
+- `webServer.publicBaseUrl` — externally reachable base URL for the route widget (`dataUrl` + resource CSP).
+  Empty → `http://localhost:<port>` (local development and Agent Tester need no setup).
+- `webServer.cors.enabled` — CORS origin guard. `false` here so the widget's cross-origin data fetch works from a
+  sandboxed iframe (see [Route widget](#route-widget-mcp-apps)); set `true` to enforce the `originHosts` allow-list.
+- `widgetData.signSecret` — HMAC secret for signing widget-data links. Empty → a random secret per start (links stop
+  verifying after a restart); set an explicit secret in production so issued links stay valid indefinitely.
 
 ## Security
 

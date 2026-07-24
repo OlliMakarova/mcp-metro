@@ -10,11 +10,11 @@ import { findBestRoutes } from '../lib/routing/find-routes.js';
 import { buildStationInfo } from '../lib/station-info.js';
 import { IStationOption, resolveStation, TStationResolution } from '../lib/station-search/resolve-station.js';
 import { renderResolutionAsk, renderRoutes, renderStationInfo } from './lib/render.js';
-import { buildRoutesWidgetData } from './widget/widget-data.js';
+import { buildWidgetDataUrl } from './widget/widget-data-link.js';
 import { ROUTES_WIDGET_URI } from './widget/widget-resource.js';
 
 /** How many route variants to request (capped at 3 to keep the tool response compact) */
-const ROUTE_COUNT = 3;
+export const ROUTE_COUNT = 3;
 
 /** Single "metro data unavailable" error text in markdown (without real source names) */
 const DATA_UNAVAILABLE_MD = `## Metro data is temporarily unavailable. Please retry later.`;
@@ -126,9 +126,10 @@ const debugStationResolution = (query: string, resolution: TStationResolution): 
  * All responses are returned as ready-made English markdown text (lists and tables);
  * station and line names are localized to the requested `language`.
  *
- * When the client advertises MCP Apps support, route responses additionally carry
- * `structuredContent` with the widget payload — the host renders it via the
- * ui://mos-metro/routes.html resource; the markdown text stays as the model-facing fallback.
+ * When the client advertises MCP Apps support, route responses additionally carry a compact
+ * `structuredContent = { widget, dataUrl }` — the widget (loaded from the versioned ui:// resource)
+ * fetches its route data from that self-describing, signed link over REST. The markdown text stays
+ * as the model-facing fallback and the only content text-only hosts receive.
  */
 export const handleMetroInfo = async (params: IToolHandlerParams): Promise<TToolHandlerResponse> => {
   const args = params.arguments;
@@ -203,11 +204,15 @@ The departure and arrival stations are the same: **${fromName}**. They belong to
   try {
     const result = findBestRoutes(dataset, fromOpt.ids, toOpt.ids, { k: ROUTE_COUNT });
     const markdown = renderRoutes(result, fromName, toName, lang);
-    // MCP Apps host: markdown stays as the model-facing text, the widget renders structuredContent
+    // MCP Apps host: markdown stays as the model-facing text; the widget receives only a
+    // self-describing signed link and fetches its route data over REST itself. The link records the
+    // moment of this call so a widget opened later shows the route as of when it was built; its
+    // "Refresh route" button drops `at` to rebuild for "now".
     if (hostSupportsMcpApps(params.clientCapabilities)) {
+      const dataUrl = buildWidgetDataUrl({ fromIds: fromOpt.ids, toIds: toOpt.ids, lang, at: new Date() });
       return {
         content: [{ type: 'text', text: markdown }],
-        structuredContent: buildRoutesWidgetData(result, fromName, toName, lang),
+        structuredContent: { widget: 'metro-routes', dataUrl },
       };
     }
     return asTextContent(markdown);

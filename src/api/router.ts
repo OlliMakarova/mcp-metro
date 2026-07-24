@@ -23,6 +23,8 @@ import { resolveStation } from '../lib/station-search/resolve-station.js';
 import { fuzzySearchStations } from '../lib/station-search/search-stations.js';
 import { getStationClusters } from '../lib/station-search/station-clusters.js';
 import { buildStationInfo } from '../lib/station-info.js';
+import { parseWidgetDataQuery, WidgetLinkError } from '../tools/widget/widget-data-link.js';
+import { getRoutesWidgetData, WidgetStationsMissingError } from '../tools/widget/widget-data-service.js';
 
 // Real data source names are confidential: internal error texts are scrubbed of them
 // before being sent to the client (the original goes to the log above)
@@ -190,5 +192,43 @@ apiRouter.get('/routes', rateLimitMW, authMW, (req: Request, res: Response) => {
   } catch (error) {
     logger.error('REST /routes error:', error);
     res.status(500).json({ success: false, error: publicErrorText(error) });
+  }
+});
+
+// ─── Route 4: MCP Apps widget data (self-describing signed link) ───────────────
+//
+// The route widget loads its dynamic data from here (see src/tools/widget/widget-data-link.ts).
+// The endpoint is intentionally public (no auth): the widget fetches it from a sandboxed iframe
+// that sends no credentials — the HMAC signature in the link is the gate. Cross-origin access from
+// the sandbox (Origin: null or a dynamic host subdomain) is provided by the SDK, which — with
+// `webServer.cors.enabled: false` — adds `Access-Control-Allow-Origin: *` to every response and
+// answers preflight requests, so no per-route CORS handling is needed here.
+
+apiRouter.get('/widget-data', rateLimitMW, (req: Request, res: Response) => {
+  try {
+    // Malformed parameters or a bad signature — before touching the data layer
+    const params = parseWidgetDataQuery(req.query);
+
+    const dataset = getMetroDatasetOrNull();
+    if (!dataset) {
+      res.status(503).json({ success: false, error: 'Metro data is temporarily unavailable.' });
+      return;
+    }
+
+    const data = getRoutesWidgetData(dataset, params);
+    res.json(data);
+  } catch (error) {
+    if (error instanceof WidgetLinkError) {
+      res.status(400).json({ success: false, error: error.message });
+      return;
+    }
+    if (error instanceof WidgetStationsMissingError) {
+      res.status(404).json({ success: false, error: error.message });
+      return;
+    }
+    // A routing failure (closed stations / no path at the requested moment) — the route cannot be
+    // produced from the current data; report 404 with a source-scrubbed message.
+    logger.error('REST /widget-data error:', error);
+    res.status(404).json({ success: false, error: publicErrorText(error) });
   }
 });
