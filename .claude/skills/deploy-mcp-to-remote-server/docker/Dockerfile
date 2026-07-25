@@ -56,7 +56,7 @@ set -euo pipefail
 while IFS= read -r -d '' kv; do
   case "$kv" in
     REPO_URL=*|BRANCH=*|PROJECT_DIR=*|GIT_SSH_KEY_B64=*|CONFIG_LOCAL_YAML_B64=*|\
-DEPLOY_CONFIG_YAML_B64=*|DEBUG=*|SERVICE_NAME=*|SERVICE_INSTANCE=*) export "$kv" ;;
+DEPLOY_CONFIG_YAML_B64=*|DEBUG=*|PUBLIC_BASE_URL=*|SERVICE_NAME=*|SERVICE_INSTANCE=*) export "$kv" ;;
   esac
 done < /proc/1/environ
 
@@ -108,12 +108,15 @@ fi
 
 # .env is the systemd EnvironmentFile for the app service. WS_HOST=0.0.0.0 makes
 # the server listen on all interfaces so the published port reaches it.
+# WS_PUBLIC_BASE_URL is derived from the DNS by the orchestrator (https://<dns>),
+# so publicBaseUrl no longer needs to be set by hand in config/local.yaml.
 cat > .env <<ENVV
 SERVICE_NAME=$SERVICE_NAME
 SERVICE_INSTANCE=$SERVICE_INSTANCE
 NODE_ENV=production
 DEBUG=$DEBUG
 WS_HOST=0.0.0.0
+WS_PUBLIC_BASE_URL=${PUBLIC_BASE_URL:-}
 ENVV
 
 # Dependencies + build.

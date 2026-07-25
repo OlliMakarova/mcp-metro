@@ -154,6 +154,7 @@ function loadConfig() {
     projectPath: project.projectPath || '/opt/node/mcp-metro',
     statePath: req(project.statePath, 'project.statePath'),
     dns: req(mcp.dns, 'mcp.dns'),
+    email: (cfg.deployConfigYaml && cfg.deployConfigYaml.email) || '',
     debug: envSection.DEBUG || 'config-info',
     appPort: (local.webServer && local.webServer.port) || '9049',
     localYaml: extractRawBlock(raw, 'configLocalYaml'),
@@ -218,36 +219,109 @@ function caddyBlock(cfg) {
   ].join('\n');
 }
 
-function caddySnippet(cfg) {
+// nginx server block (HTTP). certbot --nginx later adds the 443 listener + redirect.
+function nginxBlock(cfg) {
+  return [
+    `upstream mcp_metro_upstream { server 127.0.0.1:${cfg.appPort}; keepalive 8; }`,
+    'server {',
+    '    listen 80;',
+    `    server_name ${cfg.dns};`,
+    `    access_log /var/log/nginx/${cfg.dns}.log;`,
+    `    error_log  /var/log/nginx/${cfg.dns}.ERROR.log;`,
+    '    client_max_body_size 2m;',
+    '    gzip on;',
+    '    gzip_types application/json text/plain text/markdown;',
+    '',
+    '    location / {',
+    '        proxy_http_version 1.1;',
+    '        proxy_set_header Connection "";',
+    '        proxy_set_header Host $http_host;',
+    '        proxy_set_header X-Real-IP $remote_addr;',
+    '        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;',
+    '        proxy_set_header X-Forwarded-Proto $scheme;',
+    '        proxy_buffering off;',
+    '        proxy_read_timeout 3600s;',
+    '        proxy_send_timeout 3600s;',
+    '        proxy_pass http://mcp_metro_upstream;',
+    '        proxy_redirect off;',
+    '    }',
+    '}',
+  ].join('\n');
+}
+
+// Caddy branch: transactional edit of the shared Caddyfile (validate a temp copy,
+// only overwrite the live file if it passes) so other sites are never broken.
+function caddyBody(cfg) {
   const dnsEsc = cfg.dns.replace(/\./g, '\\.');
-  // Transactional: build + validate a temp copy first, and only overwrite the
-  // real Caddyfile (which serves all other sites) if validation passes. This
-  // guarantees the live config is never left in a broken state.
   return `
 CF=/etc/caddy/Caddyfile
-if [ ! -f "$CF" ]; then
-  echo "WARNING: $CF not found — configure the reverse proxy for ${cfg.dns} manually."
-elif grep -qE "^\\s*${dnsEsc}\\s*\\{" "$CF"; then
+if grep -qE "^\\s*${dnsEsc}\\s*\\{" "$CF" 2>/dev/null; then
   echo "Caddy already has a block for ${cfg.dns}."
 else
   echo "Appending Caddy block for ${cfg.dns}..."
   mkdir -p /opt/log/caddy
-  # Caddy runs as its own user; pre-create the per-site log owned like the log dir
-  # (usually caddy:caddy) so the reload can open it (validate does not catch this).
   touch /opt/log/caddy/${cfg.dns}.log
   chown --reference=/opt/log/caddy /opt/log/caddy/${cfg.dns}.log 2>/dev/null || true
   TMP="$(mktemp)"
   cp "$CF" "$TMP"
   printf '\\n%s\\n' ${sq(caddyBlock(cfg))} >> "$TMP"
   if caddy validate --adapter caddyfile --config "$TMP" >/dev/null 2>&1; then
-    cp "$TMP" "$CF"
-    rm -f "$TMP"
+    cp "$TMP" "$CF"; rm -f "$TMP"
     systemctl reload caddy && echo "Caddy reloaded — ${cfg.dns} is live."
   else
     rm -f "$TMP"
     echo "ERROR: Caddy validation failed — the live Caddyfile was left UNCHANGED. Not adding ${cfg.dns}."
     exit 1
   fi
+fi`;
+}
+
+// nginx branch: write a site (HTTP), reload, then obtain/enable TLS via certbot.
+function nginxBody(cfg) {
+  const email = cfg.email ? `-m ${cfg.email}` : '--register-unsafely-without-email';
+  return `
+SITE=/etc/nginx/sites-available/${cfg.dns}.conf
+LINK=/etc/nginx/sites-enabled/${cfg.dns}.conf
+if [ ! -f "$SITE" ]; then
+  echo "Writing nginx site for ${cfg.dns}..."
+  cat > "$SITE" <<'NGINXEOF'
+${nginxBlock(cfg)}
+NGINXEOF
+  ln -sf "$SITE" "$LINK"
+else
+  echo "nginx site for ${cfg.dns} already present (keeping existing, incl. any TLS edits)."
+  ln -sf "$SITE" "$LINK"
+fi
+if ! nginx -t 2>&1 | tail -2; then
+  echo "ERROR: nginx -t failed for ${cfg.dns}. Review $SITE."
+  exit 1
+fi
+systemctl reload nginx
+if [ ! -d "/etc/letsencrypt/live/${cfg.dns}" ]; then
+  echo "Obtaining TLS certificate via certbot for ${cfg.dns}..."
+  if certbot --nginx -d ${cfg.dns} --non-interactive --agree-tos ${email} --redirect; then
+    nginx -t >/dev/null 2>&1 && systemctl reload nginx
+    echo "nginx + HTTPS live for ${cfg.dns}."
+  else
+    echo "WARNING: certbot failed for ${cfg.dns} (DNS may not point at this server yet, or port 80 is blocked)."
+    echo "         The HTTP (port 80) proxy is live; re-run 'deploy' once DNS resolves to enable HTTPS."
+  fi
+else
+  echo "TLS certificate for ${cfg.dns} already present; nginx reloaded."
+fi`;
+}
+
+// Detect the reverse proxy present on the host and configure it for <dns>.
+function reverseProxySnippet(cfg) {
+  return `
+if systemctl is-active --quiet caddy 2>/dev/null; then
+  echo 'Reverse proxy: Caddy detected.'
+${caddyBody(cfg)}
+elif command -v nginx >/dev/null 2>&1; then
+  echo 'Reverse proxy: nginx detected.'
+${nginxBody(cfg)}
+else
+  echo "WARNING: neither Caddy nor nginx found — set up a reverse proxy for ${cfg.dns} -> 127.0.0.1:${cfg.appPort} manually."
 fi`;
 }
 
@@ -320,14 +394,15 @@ docker run -d --name ${CONTAINER} --restart unless-stopped \
   -e BRANCH=${sq(cfg.branch)} \
   -e PROJECT_DIR=${sq(cfg.projectPath)} \
   -e DEBUG=${sq(cfg.debug)} \
+  -e PUBLIC_BASE_URL=${sq('https://' + cfg.dns)} \
   -e GIT_SSH_KEY_B64=${sq(keyB64)} \
   -e CONFIG_LOCAL_YAML_B64=${sq(localYamlB64)} \
   -e DEPLOY_CONFIG_YAML_B64=${sq(deployCfgB64)} \
   ${IMAGE}
 echo 'Container started. First boot clones + builds inside the container (a few minutes).'
-${caddySnippet(cfg)}
+${reverseProxySnippet(cfg)}
 `;
-  say('Starting container and wiring up Caddy...');
+  say('Starting container and wiring up the reverse proxy (Caddy or nginx)...');
   code = sshRun(cfg, runScript);
   if (code !== 0) fail(`Deploy failed (exit ${code}). Run: node remote.cjs status`);
   say(`Done. First boot builds inside the container; watch it with: node remote.cjs status`);
@@ -365,8 +440,15 @@ else
   echo 'no errors flagged in the last update run'
 fi
 echo
-echo '===== CADDY ====='
-grep -qE "^\\s*${dnsEsc}\\s*\\{" /etc/caddy/Caddyfile 2>/dev/null && echo 'Caddy block present' || echo 'Caddy block MISSING'
+echo '===== REVERSE PROXY ====='
+if grep -qE "^\\s*${dnsEsc}\\s*\\{" /etc/caddy/Caddyfile 2>/dev/null; then
+  echo 'Caddy block present'
+elif [ -f /etc/nginx/sites-enabled/${cfg.dns}.conf ]; then
+  echo -n 'nginx site present; TLS cert: '
+  [ -d /etc/letsencrypt/live/${cfg.dns} ] && echo 'yes (HTTPS)' || echo 'NO (HTTP only — DNS/certbot pending)'
+else
+  echo 'no reverse-proxy config for this domain'
+fi
 `;
   say(`Diagnostics for ${cfg.dns}`);
   sshRun(cfg, script);
@@ -465,6 +547,12 @@ if [ -f "$CF" ] && grep -qE "^\\s*${dnsEsc}\\s*\\{" "$CF"; then
   caddy validate --adapter caddyfile --config "$CF" >/dev/null 2>&1 && systemctl reload caddy && echo 'Caddy block removed.' \
     || { cp "$BAK" "$CF"; echo 'Caddy validation failed — restored from backup.'; }
 fi
+echo 'Removing nginx site for ${cfg.dns} (if any)...'
+if [ -f /etc/nginx/sites-available/${cfg.dns}.conf ] || [ -L /etc/nginx/sites-enabled/${cfg.dns}.conf ]; then
+  rm -f /etc/nginx/sites-enabled/${cfg.dns}.conf /etc/nginx/sites-available/${cfg.dns}.conf
+  nginx -t >/dev/null 2>&1 && systemctl reload nginx && echo 'nginx site removed.' || echo 'nginx reload skipped (check nginx -t).'
+fi
+echo 'Note: the TLS certificate for ${cfg.dns} is left in place (remove with: certbot delete --cert-name ${cfg.dns}).'
 echo 'Done.'
 `;
   say('Uninstalling mcp-metro from the server');

@@ -82,8 +82,13 @@ to add — do not guess credentials.
   set) — inside the container only Telegram fires. The checkout and `node_modules` live in the Docker
   volume `mcp-metro-data` (fast restarts); the downloaded metro data (`data-cache`) is bind-mounted
   to the host `project.statePath` so it persists even across container/volume removal.
-- **Server footprint.** Only Docker + one Caddy block for `<dns>` → `127.0.0.1:<port>`. The port is
-  published on loopback only; Caddy is the single public entry point and manages TLS.
+- **Server footprint.** Only Docker + one reverse-proxy vhost for `<dns>` → `127.0.0.1:<port>`. The
+  port is published on loopback only. The deploy auto-detects the proxy: **Caddy** (transactional
+  edit of the shared `/etc/caddy/Caddyfile`, auto-TLS) or **nginx** (writes a site under
+  `/etc/nginx/sites-*`, then obtains/enables TLS with `certbot --nginx`, using `deployConfigYaml.email`).
+  If certbot fails (DNS not pointing at the server yet), the HTTP proxy still goes live and re-running
+  `deploy` after DNS resolves enables HTTPS. If neither proxy is present, it warns and you wire it up
+  manually. `publicBaseUrl` is derived as `https://<dns>` — do not set it in `configLocalYaml`.
 - **Privileged container.** Running systemd as PID 1 requires `--privileged` + a cgroup mount. This
   grants the container broad host access; it is acceptable on a dedicated own server but reduces
   isolation — mention it if the user asks about security.

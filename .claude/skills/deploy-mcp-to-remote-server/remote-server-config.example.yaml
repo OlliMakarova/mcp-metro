@@ -78,8 +78,8 @@ configLocalYaml:
 
   webServer:
     port: 9049
-    # External base URL: widget dataUrl and the ui:// resource CSP connect-src are built from it.
-    publicBaseUrl: '***'
+    # NOTE: publicBaseUrl is NOT set here — the orchestrator derives it as
+    # https://<mcp.dns> and injects it into the container (WS_PUBLIC_BASE_URL).
     auth:
       jwtToken:
         encryptKey: '***'
