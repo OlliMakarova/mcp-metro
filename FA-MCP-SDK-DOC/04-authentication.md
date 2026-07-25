@@ -36,7 +36,7 @@ Pre-flight checks (`init-mcp-server.ts`) reject misconfigured non-legacy modes a
 - `remoteJwks` without `jwksUri` → throws
 - `localKey` without `publicKeyPath` → throws
 - non-legacy without `expectedIssuer` → throws (standard §7.2)
-- `clockSkew > 60s` → throws (standard Прил. A.1)
+- `clockSkew > 60s` → throws (standard Appendix A.1)
 - `production` + `legacyAesCtr` + `auth.enabled=true` → warn (asymmetric required by standard)
 
 ```yaml
@@ -478,7 +478,7 @@ JWT_PAYLOAD_USERNAME=admin JWT_TTL=8d node scripts/generate-jwt.js
 
 ## Claude Code Skill: `/gen-jwt`
 
-Interactive JWT token generation via Claude Code. Invoke with `/gen-jwt` or natural language (e.g. "сгенерируй токен для vpupkin на 1 год").
+Interactive JWT token generation via Claude Code. Invoke with `/gen-jwt` or natural language (e.g. "generate a token for vpupkin for 1 year").
 
 The skill parses your request for `username`, `ttl`, `service`, `request` (ticket ID), `ip`, and extra key=value params. If required params (`username`, `ttl`) are missing, it asks interactively. Optional params (`request`, `ip`) are prompted once with an option to skip.
 
@@ -486,7 +486,7 @@ Runs `node scripts/generate-jwt.js` under the hood.
 
 **Example:**
 ```
-/gen-jwt для vpupkin, по заявке REQ-12345, на 1 год, role=admin, IP 10.0.0.0/24
+/gen-jwt for vpupkin, ticket REQ-12345, for 1 year, role=admin, IP 10.0.0.0/24
 ```
 
 Skill location: `.claude/skills/gen-jwt/SKILL.md`

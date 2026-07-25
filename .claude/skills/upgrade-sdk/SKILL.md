@@ -1,6 +1,6 @@
 ---
 name: upgrade-sdk
-description: "Upgrade fa-mcp-sdk in the current project end-to-end: analyze the version diff, present an actionable execution plan, get user confirmation, then apply the upgrade automatically (deps, configs, code) — asking the user inline for any choices or values it needs. Falls back to a manual checklist only for items the LLM genuinely cannot perform. Use when user asks to upgrade/update fa-mcp-sdk, mentions 'обновить sdk', 'upgrade sdk', 'обновление fa-mcp-sdk', 'обнови sdk', or supplies versions to upgrade between."
+description: "Upgrade fa-mcp-sdk in the current project end-to-end: analyze the version diff, present an actionable execution plan, get user confirmation, then apply the upgrade automatically (deps, configs, code) — asking the user inline for any choices or values it needs. Falls back to a manual checklist only for items the LLM genuinely cannot perform. Use when user asks to upgrade/update fa-mcp-sdk, mentions 'upgrade sdk', 'update fa-mcp-sdk', or supplies versions to upgrade between."
 disable-model-invocation: true
 allowed-tools: Bash(yarn *) Bash(npm *) Bash(node *) Bash(git *) Bash(cat *) Bash(diff *) Bash(ls *) Bash(find *) Bash(mkdir *) Bash(cp *) Bash(mv *) Bash(rm *) Read Write Edit MultiEdit Glob Grep WebFetch Agent
 argument-hint: "[from-version] [to-version] [language hint]"
@@ -46,7 +46,7 @@ Parse `$ARGUMENTS` to extract a target version and an optional language hint.
 ### Language detection
 
 Look anywhere in the arguments for a natural-language phrase indicating the desired output language:
-- "на русском", "по-русски", "in Russian", "ru" → Russian
+- "in Russian", "ru" → Russian
 - "in English", "en" → English
 - Any similar phrase or ISO 639-1 code.
 
@@ -65,15 +65,14 @@ a **version** (with or without `v` prefix — `0.4.30` and `v0.4.30` are equival
 #### Scope of references: PROJECT (default) vs SDK
 
 **By default, versions and commit hashes refer to THIS project** (the repository where the skill is invoked), NOT to
-fa-mcp-sdk. A reference is SDK-scoped ONLY if the user's phrasing explicitly says so. Trigger phrases (case-insensitive,
-English or Russian):
+fa-mcp-sdk. A reference is SDK-scoped ONLY if the user's phrasing explicitly says so. Trigger phrases
+(case-insensitive):
 - "sdk", "fa-mcp-sdk", "of sdk", "sdk commit", "sdk version"
-- "sdk", "fa-mcp-sdk", "версия sdk", "комит sdk", "коммит sdk", "хеш sdk"
 
 Examples:
 - `/upgrade-sdk 1.2.3 1.2.7` → project versions (look up the SDK version pinned in each)
-- `/upgrade-sdk от версии 0.2.3 SDK до 0.4.5 SDK` → SDK versions directly
-- `/upgrade-sdk от комита sdk abc1234 до комита sdk def5678` → SDK commits directly
+- `/upgrade-sdk from SDK version 0.2.3 to SDK version 0.4.5` → SDK versions directly
+- `/upgrade-sdk from SDK commit abc1234 to SDK commit def5678` → SDK commits directly
 - `/upgrade-sdk abc1234 def5678` → project commits (look up the SDK version pinned in each)
 
 #### Resolving PROJECT references to SDK versions
@@ -101,8 +100,8 @@ Resolved project references to SDK:
 **One argument** — it is treated as **FROM**; TO defaults to the **latest published fa-mcp-sdk** (fetched via
 `yarn info fa-mcp-sdk version` or `npm view fa-mcp-sdk version`). Goal: upgrade to the newest existing release.
 
-**Alternative TO=HEAD mode.** If the user explicitly says "to HEAD", "до HEAD", "до последнего коммита SDK",
-"to latest commit", "до master", or supplies the literal `HEAD`/`master` as the second argument, TO becomes the
+**Alternative TO=HEAD mode.** If the user explicitly says "to HEAD", "to latest commit", "to master", or
+supplies the literal `HEAD`/`master` as the second argument, TO becomes the
 **tip of `master` on `Bazilio-san/fa-mcp-sdk`** (resolved via
 `https://api.github.com/repos/Bazilio-san/fa-mcp-sdk/commits/master`) instead of the latest **published** version.
 In this mode `yarn add` must use the git-URL form with the resolved commit hash (see Step 4).

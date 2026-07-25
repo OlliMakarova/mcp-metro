@@ -133,8 +133,9 @@ default) the capability is not advertised and all four `tasks/*` methods return 
   automatically when `_meta.deprecated` is set.
 - `inputSchema` — MUST declare `$schema: 'https://json-schema.org/draft/2020-12/schema'` and
   `additionalProperties: false`.
-- `outputSchema` — MAY; when present, the SDK validates `structuredContent` against it and
-  mirrors the value into `content[0]` as JSON text (§12.4).
+- `outputSchema` — MAY; when present, the SDK validates `structuredContent` against it. A tool MAY
+  return `structuredContent` with an empty `content`; the SDK copies it into `content[0]` as JSON text
+  only for plain clients, never for MCP Apps UI clients (`io.modelcontextprotocol/ui`).
 - `title` — SHOULD; user-facing label.
 - `execution.taskSupport` — MAY; one of `optional` / `required` / `forbidden` (default — absence is
   treated as `forbidden`, i.e. synchronous only). Controls task-augmented execution (§8.7); passed

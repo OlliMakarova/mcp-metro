@@ -1,6 +1,6 @@
 ---
 name: gen-jwt
-description: "Generate JWT token for MCP server authentication. Use when user asks to generate/create a JWT token, mentions 'jwt', 'token for user', 'токен для', or wants to issue access credentials."
+description: "Generate JWT token for MCP server authentication. Use when user asks to generate/create a JWT token, mentions 'jwt', 'token for user', 'generate a token for', or wants to issue access credentials."
 allowed-tools: Bash(node scripts/generate-jwt.js *), Write
 argument-hint: "[username] [ttl] [options...]"
 ---
@@ -15,7 +15,7 @@ Parse `$ARGUMENTS` and the user's request to extract:
 
 1. **username** (REQUIRED) — the user the token is issued to
 2. **ttl** (REQUIRED) — token lifetime in format `<N>s | <N>m | <N>d | <N>y` (seconds, minutes, days, years)
-3. **request** (optional) — ticket/issue ID if user mentions "заявка", "тикет", "ticket", "request", "issue", "REQ-", "JIRA-" etc. The param key is always `request`
+3. **request** (optional) — ticket/issue ID if user mentions "ticket", "request", "issue", "REQ-", "JIRA-" etc. The param key is always `request`
 4. **ip** (optional) — allowed IP addresses/CIDR masks, comma-separated
 5. **service** (optional) — service name, passed via `-s`
 6. **extra params** (optional) — any other key=value pairs
@@ -35,12 +35,12 @@ If **ttl** is missing, not provided, or doesn't match `<N>s | <N>m | <N>d | <N>y
 ### Step 2: Ask about optional params (only if not already provided)
 
 If the user did NOT mention a request/ticket:
-- Ask: "Привязать к заявке? (введите ID заявки или Enter чтобы пропустить)"
-- If user says "no", "skip", "нет", "-", or presses Enter — omit the `request` param.
+- Ask: "Bind to a ticket? (enter the ticket ID, or press Enter to skip)"
+- If user says "no", "skip", "-", or presses Enter — omit the `request` param.
 
 If the user did NOT mention IP restrictions:
-- Ask: "Ограничить по IP? (введите IP/CIDR через запятую или Enter чтобы пропустить)"
-- If user says "no", "skip", "нет", "-", or presses Enter — omit the `ip` param.
+- Ask: "Restrict by IP? (enter IP/CIDR values comma-separated, or press Enter to skip)"
+- If user says "no", "skip", "-", or presses Enter — omit the `ip` param.
 
 ### Step 3: Build and run the command
 
@@ -67,7 +67,7 @@ User: "token for admin on 30 days"
 node scripts/generate-jwt.js -u admin -ttl 30d
 ```
 
-User: "jwt для svc-account, сервис my-mcp, на 8 дней"
+User: "jwt for svc-account, service my-mcp, for 8 days"
 ```bash
 node scripts/generate-jwt.js -u svc-account -ttl 8d -s my-mcp
 ```
@@ -106,8 +106,7 @@ After running the command:
 - NEVER use AskUserQuestion with predefined options for ANY parameter. All parameters are free-form text — ask the user to type values directly in chat. Do NOT suggest choices like "admin", "service-account", "30d", "1y", etc. Just ask the question and let the user type their answer.
 - NEVER skip the interactive prompts for optional params — always ask once if not provided. But accept "skip" gracefully.
 - NEVER proceed without valid username and ttl.
-- If the user provides ttl in natural language ("1 year", "30 days", "на год"), convert it to the CLI format: `1y`, `30d`, etc.
-- Russian/English: understand both. "год/лет" = `y`, "день/дней/дня" = `d`, "минут/минуты" = `m`, "секунд" = `s`.
+- If the user provides ttl in natural language ("1 year", "30 days"), convert it to the CLI format: `1y`, `30d`, etc.
 - The `-p` flag value must be quoted and semicolon-separated: `"key1=val1;key2=val2"`
 - IP addresses in the `ip` param are comma-separated (no spaces after commas in the value).
 - Run the command from the project root directory.

@@ -128,9 +128,11 @@ my-mcp-server/
 │   │   ├── agent-brief.ts      # Short agent description
 │   │   ├── agent-prompt.ts     # Full agent prompt
 │   │   └── custom-prompts.ts   # Additional prompts
-│   ├── tools/
-│   │   ├── handle-tool-call.ts # Tool execution
-│   │   └── tools.ts            # Tool definitions
+│   ├── tools/                  # one tool = one file (<tool-name>.ts, _ → -)
+│   │   ├── hello.ts            # a self-contained tool: definition + handler
+│   │   ├── tool.ts             # ITemplateTool interface (shared helper)
+│   │   ├── tools.ts            # registry — lists tool files, derives Tool[]
+│   │   └── handle-tool-call.ts # dispatcher — routes tools/call by name
 │   ├── custom-resources.ts     # Custom MCP resources
 │   └── start.ts                # Entry point
 └── tests/
@@ -154,34 +156,62 @@ const serverData: McpServerData = {
 await initMcpServer(serverData);
 ```
 
-**`src/tools/tools.ts`:**
+**`src/tools/hello.ts`** (one tool = one file — definition + handler together):
 ```typescript
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
+import { formatToolResult, ToolExecutionError, IToolHandlerParams, TToolHandlerResponse } from 'fa-mcp-sdk';
+import { ITemplateTool } from './tool.js';
 
-export const tools: Tool[] = [{
+const definition: Tool = {
   name: 'hello',
   description: 'Say hello',
   inputSchema: {
     type: 'object',
     properties: { name: { type: 'string', description: 'Name to greet' } },
-    required: ['name']
-  }
-}];
+    required: ['name'],
+  },
+};
+
+async function handler(params: IToolHandlerParams): Promise<TToolHandlerResponse> {
+  const name = params.arguments?.name;
+  if (!name) throw new ToolExecutionError('hello', 'Name required');
+  return formatToolResult({ message: `Hello, ${name}!` });
+}
+
+export const helloTool: ITemplateTool = { definition, handler };
 ```
 
-**`src/tools/handle-tool-call.ts`:**
+**`src/tools/tools.ts`** (registry — list each tool file, derive the `Tool[]`):
 ```typescript
-import { formatToolResult, ToolExecutionError, TToolHandlerResponse } from 'fa-mcp-sdk';
+import { Tool } from '@modelcontextprotocol/sdk/types.js';
+import { ITemplateTool } from './tool.js';
+import { helloTool } from './hello.js';
 
-export const handleToolCall = async (
-  params: { name: string; arguments?: any },
-): Promise<TToolHandlerResponse> => {
-  const { name, arguments: args } = params;
-  switch (name) {
-    case 'hello':
-      return formatToolResult({ message: `Hello, ${args.name}!` });
-    default:
-      throw new ToolExecutionError(name, `Unknown tool: ${name}`);
-  }
+export const templateTools: ITemplateTool[] = [helloTool];
+export const tools: Tool[] = templateTools.map((t) => t.definition);
+```
+
+**`src/tools/handle-tool-call.ts`** (dispatcher — route by name; you rarely edit this):
+```typescript
+import { IToolHandlerParams, TToolHandlerResponse, ToolExecutionError } from 'fa-mcp-sdk';
+import { templateTools } from './tools.js';
+
+const handlers = new Map(templateTools.map((t) => [t.definition.name, t.handler]));
+
+export const handleToolCall = async (params: IToolHandlerParams): Promise<TToolHandlerResponse> => {
+  const handler = handlers.get(params.name);
+  if (!handler) throw new ToolExecutionError(params.name, `Unknown tool: ${params.name}`);
+  return handler(params);
 };
+```
+
+**`src/tools/tool.ts`** (the shared interface):
+```typescript
+import { Tool } from '@modelcontextprotocol/sdk/types.js';
+import { IToolHandlerParams, TToolHandlerResponse } from 'fa-mcp-sdk';
+
+export interface ITemplateTool {
+  definition: Tool;
+  handler: (params: IToolHandlerParams) => Promise<TToolHandlerResponse> | TToolHandlerResponse;
+}
 ```

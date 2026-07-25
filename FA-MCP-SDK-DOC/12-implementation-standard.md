@@ -513,8 +513,11 @@ Example of a tool execution error:
 
 If a tool declares `outputSchema`, the server MUST return `structuredContent` that conforms to that schema.
 
-For backward compatibility, a tool returning `structuredContent` SHOULD also return the serialized JSON in
-`content` as `TextContent`.
+`content` and `structuredContent` are independent channels: `content` is the human-/model-readable text that
+enters the model context, while `structuredContent` is machine-/UI-oriented data that, per the MCP Apps
+specification, MUST NOT be added to the model context. A tool therefore MAY return `structuredContent` alone
+with `content` empty, and the server MUST NOT silently serialize `structuredContent` into `content` — a
+textual representation for the model, if wanted, MUST be produced explicitly in `content`.
 
 ## 10. Prompts: external contract
 
@@ -689,8 +692,10 @@ For a specific tool, the format must be deterministic and documented.
 - personal / sensitive data MUST be protected per the domain policy (masking, filtering);
 - binary data is transmitted as `blob` with the correct `mimeType`;
 - if `structuredContent` and `outputSchema` are used, the result MUST conform to `outputSchema`;
-- for backward compatibility, `structuredContent` SHOULD be duplicated in `content` as serialized JSON
-  text.
+- `content` and `structuredContent` are independent — a tool MAY return either alone or both together,
+  and `content` MAY be empty when `structuredContent` carries the whole result. `structuredContent` is
+  machine-/UI-oriented data; per the MCP Apps specification it MUST NOT be pushed into the model context,
+  so it MUST NOT be silently copied into `content` (see § 9.5).
 
 ### 12.3. Text response example
 

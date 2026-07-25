@@ -31,14 +31,12 @@
 import fs from 'fs';
 import http from 'http';
 
-function getOpt(flag, fallback) {
+function getOpt (flag, fallback) {
   const i = process.argv.indexOf(flag);
   return i >= 0 ? process.argv[i + 1] : fallback;
 }
 
-function hasFlag(flag) {
-  return process.argv.includes(flag);
-}
+function hasFlag (flag) { return process.argv.includes(flag); }
 
 const port = getOpt('--port');
 const messagesArg = getOpt('--messages');
@@ -60,10 +58,7 @@ if (!port || !messagesArg) {
 }
 
 const raw = fs.readFileSync(messagesArg, 'utf8');
-const messages = raw
-  .split(/\r?\n/)
-  .map((l) => l.trim())
-  .filter((l) => l && !l.startsWith('#'));
+const messages = raw.split(/\r?\n/).map(l => l.trim()).filter(l => l && !l.startsWith('#'));
 if (messages.length === 0) {
   console.error(`no messages found in ${messagesArg}`);
   process.exit(2);
@@ -73,9 +68,7 @@ let sessionId = sessionOpt;
 if (!sessionId && sessionFile) {
   try {
     const s = fs.readFileSync(sessionFile, 'utf8').trim();
-    if (s) {
-      sessionId = s;
-    }
+    if (s) sessionId = s;
   } catch (e) {
     if (e.code !== 'ENOENT') {
       console.error(`session-file read error: ${e.message}`);
@@ -84,60 +77,43 @@ if (!sessionId && sessionFile) {
   }
 }
 
-function sendOne(message) {
+function sendOne (message) {
   return new Promise((resolve, reject) => {
     const body = {
       message,
       mcpConfig: { url: `http://localhost:${port}/mcp`, transport: 'http' },
     };
-    if (sessionId) {
-      body.sessionId = sessionId;
-    }
-    if (auth) {
-      body.mcpConfig.headers = { Authorization: auth };
-    }
-    if (agentPrompt) {
-      body.agentPrompt = agentPrompt;
-    }
-    if (model) {
-      body.modelConfig = { model };
-    }
+    if (sessionId) body.sessionId = sessionId;
+    if (auth) body.mcpConfig.headers = { Authorization: auth };
+    if (agentPrompt) body.agentPrompt = agentPrompt;
+    if (model) body.modelConfig = { model };
 
     const payload = JSON.stringify(body);
     const qs = `?verbose=${verbose}&maxResultChars=${maxResult}&maxTraceChars=${maxTrace}`;
 
-    const req = http.request(
-      {
-        hostname: 'localhost',
-        port,
-        path: `/agent-tester/api/chat/test${qs}`,
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Content-Length': Buffer.byteLength(payload),
-          ...(auth ? { Authorization: auth } : {}),
-        },
-        timeout,
+    const req = http.request({
+      hostname: 'localhost',
+      port,
+      path: `/agent-tester/api/chat/test${qs}`,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(payload),
+        ...(auth ? { Authorization: auth } : {}),
       },
-      (res) => {
-        const chunks = [];
-        res.on('data', (c) => chunks.push(c));
-        res.on('end', () => {
-          const text = Buffer.concat(chunks).toString('utf8');
-          let parsed = null;
-          try {
-            parsed = JSON.parse(text);
-          } catch {
-            /* keep raw */
-          }
-          resolve({ status: res.statusCode, text, parsed });
-        });
-      },
-    );
-    req.on('error', reject);
-    req.on('timeout', () => {
-      req.destroy(new Error('timeout'));
+      timeout,
+    }, (res) => {
+      const chunks = [];
+      res.on('data', (c) => chunks.push(c));
+      res.on('end', () => {
+        const text = Buffer.concat(chunks).toString('utf8');
+        let parsed = null;
+        try { parsed = JSON.parse(text); } catch { /* keep raw */ }
+        resolve({ status: res.statusCode, text, parsed });
+      });
     });
+    req.on('error', reject);
+    req.on('timeout', () => { req.destroy(new Error('timeout')); });
     req.write(payload);
     req.end();
   });
@@ -150,7 +126,7 @@ function sendOne(message) {
   for (let i = 0; i < messages.length; i++) {
     const msg = messages[i];
     const header = `=== MESSAGE ${i + 1}/${messages.length}: ${msg.slice(0, 80)} ===`;
-    process.stdout.write(`${header}\n`);
+    process.stdout.write(header + '\n');
 
     let result;
     try {
@@ -159,21 +135,15 @@ function sendOne(message) {
       anyFailure = true;
       process.stdout.write(`request error: ${e.message}\n`);
       results.push({ message: msg, error: e.message });
-      if (stopOnError) {
-        break;
-      }
+      if (stopOnError) break;
       continue;
     }
 
-    process.stdout.write(`${result.text}\n`);
+    process.stdout.write(result.text + '\n');
 
-    if (result.parsed?.sessionId) {
-      sessionId = result.parsed.sessionId;
-    }
+    if (result.parsed?.sessionId) sessionId = result.parsed.sessionId;
     const ok = result.status >= 200 && result.status < 300;
-    if (!ok) {
-      anyFailure = true;
-    }
+    if (!ok) anyFailure = true;
 
     results.push({
       message: msg,
@@ -181,25 +151,15 @@ function sendOne(message) {
       response: result.parsed ?? result.text,
     });
 
-    if (!ok && stopOnError) {
-      break;
-    }
+    if (!ok && stopOnError) break;
   }
 
   if (sessionFile && sessionId) {
-    try {
-      fs.writeFileSync(sessionFile, sessionId);
-    } catch (e) {
-      console.error(`session-file write skipped: ${e.message}`);
-    }
+    try { fs.writeFileSync(sessionFile, sessionId); } catch (e) { console.error(`session-file write skipped: ${e.message}`); }
   }
 
   if (outPath) {
-    try {
-      fs.writeFileSync(outPath, JSON.stringify(results, null, 2));
-    } catch (e) {
-      console.error(`out write failed: ${e.message}`);
-    }
+    try { fs.writeFileSync(outPath, JSON.stringify(results, null, 2)); } catch (e) { console.error(`out write failed: ${e.message}`); }
   }
 
   process.exit(anyFailure ? 1 : 0);

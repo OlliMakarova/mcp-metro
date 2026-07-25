@@ -2,12 +2,39 @@
 
 ## Tool Development
 
-### Tool Definition (`src/tools/tools.ts`)
+### Tool organization — one tool = one file (STRONG default)
+
+Every MCP tool lives in **its own file** under `src/tools/`, named after the tool's `name` with every `_`
+replaced by `-` (a tool named `get_currency_rate` → `src/tools/get-currency-rate.ts`). **Everything that
+belongs to the tool lives in that one file** — its `inputSchema` (and any `outputSchema` / `execution`),
+`title`, `description`, `handler`, and any helpers or UI markup it alone uses. Do **not** split a tool into a
+separate schema file and a separate handler file, and do **not** keep all tools inline in `tools.ts` as one
+big array plus a `switch (name)` dispatcher.
+
+Each tool file exports a self-contained `ITemplateTool` (`{ definition, handler }`, interface in
+`src/tools/tool.ts`). Two thin files aggregate them:
+
+- `src/tools/tools.ts` — the **registry**: imports every tool file, lists them, and derives the `Tool[]`
+  array advertised in `tools/list`.
+- `src/tools/handle-tool-call.ts` — the **dispatcher**: builds a name → handler map from the registry and
+  routes each `tools/call` to the matching handler (logging, the `DEBUG=mcp:tool` hook, the unknown-tool guard).
+
+A helper or schema fragment shared by several tools is **not** a tool — put it in `src/tools/` under a name
+that is not any tool's `name` (e.g. `src/tools/widget-document.ts`). To add a tool: create its file, then add
+its export to the list in `tools.ts`. The example below shows what one such tool file contains.
+
+### Tool Definition (`src/tools/<tool-name>.ts`)
 
 ```typescript
 import { Tool } from '@modelcontextprotocol/sdk/types.js';
+import {
+  formatToolResult, ToolExecutionError,
+  IToolHandlerParams, TToolHandlerResponse,
+} from 'fa-mcp-sdk';
+import { ITemplateTool } from './tool.js';
 
-export const tools: Tool[] = [{
+// The tool's MCP wire definition — name, title, description, inputSchema (+ optional outputSchema/execution).
+const definition: Tool = {
   name: 'my_custom_tool',
   title: 'My custom tool',                                  // SHOULD §9.1 — human-readable name
   description: 'Description of what this tool does',
@@ -21,7 +48,24 @@ export const tools: Tool[] = [{
     required: ['query'],
     additionalProperties: false,                             // reject unknown fields
   },
-}];
+};
+
+// The handler for THIS tool lives in the same file. Args are already validated against inputSchema (§9.3).
+async function handler(params: IToolHandlerParams): Promise<TToolHandlerResponse> {
+  const query = params.arguments?.query;
+  if (!query) throw new ToolExecutionError('my_custom_tool', 'Query required');
+  return formatToolResult({ message: `Processed: ${query}` });
+}
+
+export const myCustomTool: ITemplateTool = { definition, handler };
+```
+
+Then register it in `src/tools/tools.ts`:
+
+```typescript
+import { myCustomTool } from './my-custom-tool.js';
+export const templateTools: ITemplateTool[] = [/* …existing tools…, */ myCustomTool];
+export const tools: Tool[] = templateTools.map((t) => t.definition);
 ```
 
 **Standard §9.1 (MUST) — tool name `name` MUST match `/^[a-z][a-z0-9_]{0,62}$/`** (ASCII
@@ -70,9 +114,12 @@ arguments or in a trusted internal deployment. The toggle does not affect `outpu
 
 A tool MAY declare `outputSchema` to describe its `structuredContent` payload. When set,
 the SDK validates the handler's response against the schema — a violation raises JSON-RPC
-`-32603` (internal error: the tool broke its own contract). Whenever a response includes
-`structuredContent`, the SDK mirrors a serialised JSON copy into `content[0].text` so
-legacy clients that only read `content` keep working without code changes.
+`-32603` (internal error: the tool broke its own contract).
+
+`content` and `structuredContent` are independent — a tool MAY return `structuredContent` alone with
+an empty `content`. For plain clients the SDK copies `structuredContent` into an empty `content` as a
+compatibility convenience; MCP Apps UI clients (`io.modelcontextprotocol/ui`) never get that copy,
+since `structuredContent` is UI-only data that must not enter the model context.
 
 ```typescript
 export const tools: Tool[] = [{
@@ -101,34 +148,52 @@ export const tools: Tool[] = [{
 }];
 ```
 
-### Tool Handler (`src/tools/handle-tool-call.ts`)
+### Tool Handler (per tool, in `src/tools/<tool-name>.ts`)
+
+Each tool's `handler` lives in that tool's own file (one tool = one file — see "Tool organization" above).
+It receives `IToolHandlerParams` — `{ name, arguments, headers, payload, transport, clientCapabilities,
+signal, sendProgress }` — where `payload: { user, … }` is present when JWT auth is enabled, `transport` is
+`'stdio' | 'sse' | 'http'`, and `headers` are normalized to lowercase keys:
 
 ```typescript
-import {
-  formatToolResult, ToolExecutionError, logger,
-  IToolHandlerParams, TToolHandlerResponse,
-} from 'fa-mcp-sdk';
+// src/tools/my-custom-tool.ts
+import { Tool } from '@modelcontextprotocol/sdk/types.js';
+import { formatToolResult, ToolExecutionError, IToolHandlerParams, TToolHandlerResponse } from 'fa-mcp-sdk';
+import { ITemplateTool } from './tool.js';
+
+const definition: Tool = { name: 'my_custom_tool', title: 'My custom tool', description: '…', inputSchema: { /* … */ } };
+
+async function handler(params: IToolHandlerParams): Promise<TToolHandlerResponse> {
+  const { arguments: args } = params;
+  // Args are already validated against inputSchema (§9.3) — no need to re-check shape here.
+  if (!args?.query) throw new ToolExecutionError('my_custom_tool', 'Query required');
+  return formatToolResult({ message: `Processed: ${args.query}` });
+}
+
+export const myCustomTool: ITemplateTool = { definition, handler };
+```
+
+You do **not** write a `switch (name)` — the dispatcher in `src/tools/handle-tool-call.ts` builds a
+name → handler map from the registry and routes each call, logging it, honouring `DEBUG=mcp:tool`, and
+throwing `Unknown tool` for an unregistered name. It stays thin and rarely changes:
+
+```typescript
+// src/tools/handle-tool-call.ts (the dispatcher — you normally never edit this)
+import { IToolHandlerParams, TToolHandlerResponse, ToolExecutionError } from 'fa-mcp-sdk';
+import { templateTools } from './tools.js';
+
+const handlers = new Map(templateTools.map((t) => [t.definition.name, t.handler]));
 
 export const handleToolCall = async (params: IToolHandlerParams): Promise<TToolHandlerResponse> => {
-  const { name, arguments: args, headers, payload, transport } = params;
-  // payload: { user: string, ... } if JWT auth enabled
-  // transport: 'stdio' | 'sse' | 'http'
-  // headers: normalized lowercase keys
-
-  try {
-    switch (name) {
-      case 'my_custom_tool':
-        if (!args?.query) throw new ToolExecutionError(name, 'Query required');
-        return formatToolResult({ message: `Processed: ${args.query}` });
-      default:
-        throw new ToolExecutionError(name, `Unknown tool: ${name}`);
-    }
-  } catch (error) {
-    logger.error(`Tool ${name} failed:`, error);
-    throw error;
-  }
+  const handler = handlers.get(params.name);
+  if (!handler) throw new ToolExecutionError(params.name, `Unknown tool: ${params.name}`);
+  return handler(params);
 };
 ```
+
+> The patterns in the rest of this section (error handling, cancellation, progress) are shown with a
+> `switch (name)` for brevity, but in this template each belongs **inside its own tool's `handler(params)`** —
+> the dispatcher already routes by name, so you never write the `switch` yourself.
 
 The handler must return `TToolHandlerResponse` — a discriminated union of
 `IToolHandlerTextResponse` (`{ content: [{ type: 'text', text }] }`) and
@@ -442,6 +507,12 @@ restart, and it is scoped to a single instance (no shared store across a cluster
 poll interval and the retained-task cap are configured under `mcp.tasks.*` (see
 [03-configuration.md](./03-configuration.md)); the full method contract is in
 [11-public-contract.md](./11-public-contract.md) §4.
+
+> **Test progress and cancellation live.** The Agent Tester's **Tool Tester** tab exercises both this
+> `sendProgress` stream and `signal`-based cancellation without a hand-written client: Send Request
+> shows a live progress bar and a Cancel button for any tool that reports progress and honors the abort
+> signal. See [08-agent-tester-and-headless-api.md](./08-agent-tester-and-headless-api.md) →
+> "Live progress & cancellation (`/api/mcp/call-tool-stream`)".
 
 ### MCP Apps — Reading Client Capabilities
 

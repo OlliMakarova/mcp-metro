@@ -24,6 +24,17 @@ resource, renders it inside a sandboxed iframe (the **View**), and proxies bidir
 between View and MCP server. The View can call server tools, read resources, request display-mode
 changes, send chat messages, or push model-context updates.
 
+**Prefer referencing the widget over embedding it.** A tool can ship its `ui://` resource two ways, and the
+*referenced* form is the recommended one: declare `_meta.ui.resourceUri` on the tool and register the `ui://`
+HTML as a **separate** resource the host fetches with `resources/read` (preferred), rather than returning the
+resource inline in the tool result's `content[]` (*embedded*). Referencing lets the host fetch and cache the
+static shell once, review its `_meta.ui` (CSP, permissions, domain) before rendering, and know the widget
+exists before the call — which is what enables app-only tools (`visibility: ["app"]`) and the Agent Tester
+Inspector's "UI" badge / "Launch widget" button. `fa-mcp-sdk` resolves both — it reads an embedded resource
+from the result first, then falls back to `_meta.ui.resourceUri` — so a tool uses exactly one form; reserve
+embedding for quick, one-off, fully data-dependent widgets. In the template, `show_widget` demonstrates the
+referenced form and `example_tool` the embedded one.
+
 This solves three problems with text-only MCP responses: (a) lack of standardized UI delivery across
 hosts (MCP-UI vs. OpenAI Apps SDK fragmentation), (b) inconsistent security models for embedded
 content, and (c) inability to ship rich interactive surfaces (dashboards, players, forms, maps)
@@ -495,13 +506,18 @@ export const handleToolCall = async (params: IToolHandlerParams) => {
 
   if (supportsUi) {
     return {
-      content: [{ type: 'text', text: renderTextSummary() }],   // text fallback is MANDATORY
+      content: [{ type: 'text', text: renderTextSummary() }],   // optional — see note below
       _meta: { ui: { resourceUri: 'ui://my/view.html' } },
     };
   }
   return formatToolResult({ message: renderTextSummary() });    // pure text path
 };
 ```
+
+**`structuredContent` is not mirrored into `content` for UI clients.** Per the MCP Apps spec it is
+UI-only data that must not enter the model context, and a UI client reads it natively. So a UI tool
+MAY return `structuredContent` alone with `content: []`, and the model gets no text for that call.
+Only plain clients get the compatibility copy of `structuredContent` in an empty `content`.
 
 The `ITransportContext` passed to dynamic `customPrompts(ctx)` / `customResources(ctx)` carries the
 same `clientCapabilities` field — use it to filter which prompts/resources to advertise per host.

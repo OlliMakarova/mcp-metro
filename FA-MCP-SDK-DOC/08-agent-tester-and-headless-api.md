@@ -177,7 +177,7 @@ On Windows, curl's `-d` flag may corrupt non-ASCII characters (e.g. Cyrillic) be
 ```bash
 # 1. Write request JSON to a file (editor must save as UTF-8)
 cat > tmp-request.json << 'EOF'
-{"message":"Отправь письмо на user@example.com с темой \"Тест\"","mcpConfig":{"url":"http://localhost:9876/mcp","transport":"http"}}
+{"message":"Send an email to user@example.com with the subject \"Test\"","mcpConfig":{"url":"http://localhost:9876/mcp","transport":"http"}}
 EOF
 
 # 2. Send with --data-binary to preserve UTF-8 encoding
@@ -613,6 +613,54 @@ right. The widget runs the full handshake (`ui/initialize` → `tool-input` → 
 same way it would inside a chat message, so you can iterate on widget HTML without a chat agent
 in the loop.
 
+### Live progress & cancellation (`/api/mcp/call-tool-stream`)
+
+The Tool Tester's **Send Request** streams a long-running tool's progress live (a fill bar plus a
+`step N of M — P%` line) and shows a **Cancel** button while the tool runs. This is the interactive
+counterpart to the tool-side `sendProgress` / `signal` contract in `02-1-tools-and-api.md`
+(§ Progress, § Cancellation): it lets you *see* the `notifications/progress` a tool emits and
+*exercise* cancellation without hand-writing an MCP client.
+
+```
+POST /agent-tester/api/mcp/call-tool-stream
+```
+
+Request — `callId` is a client-generated id used to cancel this exact call:
+```json
+{ "serverName": "my-mcp", "toolName": "import_rows", "parameters": { "rows": 20 }, "callId": "c-8f3a" }
+```
+
+The response is a Server-Sent Events stream (`Content-Type: text/event-stream`). It emits one
+`progress` event per `notifications/progress` the tool reports, then exactly one terminal event:
+
+| event | data | meaning |
+|---|---|---|
+| `progress` | `{ progress, total?, message? }` | one step reported by the tool through `sendProgress` |
+| `result` | `{ success: true, result, durationMs, uiResource? }` | tool finished — same payload shape as `/api/mcp/call-tool` |
+| `error` | `{ success: false, error, durationMs }` | the tool threw |
+| `cancelled` | `{ success: false, error, durationMs }` | the call was aborted by the client |
+
+Progress is opt-in on the wire: the SDK client attaches a `_meta.progressToken` automatically because
+this endpoint registers a progress callback — you never set the token by hand. A tool produces
+`progress` events only if its handler actually calls `sendProgress` (a tool that never reports
+progress simply streams the terminal event with no bar).
+
+**Cancel** an in-flight streaming call:
+```
+POST /agent-tester/api/mcp/cancel      { "callId": "c-8f3a" }
+```
+
+This aborts the call's `AbortController`; the SDK client then sends `notifications/cancelled`, which
+flips the tool handler's `signal.aborted`. Cancellation therefore only takes effect if the tool honors
+`signal` — checking `signal.aborted` at safe seams, or forwarding `signal` to `fetch` / `pg`. Closing
+the browser tab cancels the call too (the server aborts when the SSE connection drops). The flow works
+the same for a plain synchronous long tool and for a task-augmented one (`execution.taskSupport`).
+
+The non-streaming `POST /api/mcp/call-tool` above stays as-is for headless / programmatic callers and
+the MCP Apps split-view; the streaming variant is what the Tool Tester's Send button uses. New UI
+test-ids for this flow: `at-tt-cancel-btn` (Cancel button), `at-tt-progress` (progress container),
+`at-tt-progress-text` (the `step N of M — P%` line).
+
 ### `GET /api/mcp/ui-resources`
 
 Lists all UI resources advertised by a connected server. Used by the App Inspector tab; available
@@ -644,9 +692,13 @@ starts with `ui://`. Returns `404` when the named server is not connected.
 A third tab (test-id `at-tab-inspector`) appears next to Chat / Tool Tester. It surfaces:
 
 - **App Tools** — every tool from the connected server with a `🖼 UI` flag for those that carry
-  `_meta.ui.resourceUri`. Each app-tool gets a "Launch widget" button that runs the tool with an
-  arguments JSON (prompted) and mounts the returned widget in a modal — useful for iterating on a
-  widget without going through chat or Tool Tester.
+  `_meta.ui.resourceUri`. Each app-tool gets a "Launch widget" button that opens an in-page arguments
+  dialog (test-id `at-widget-args-modal`) with a JSON editor, a schema-driven **Skeleton** generator, a
+  **Validate** button and a collapsible **Schema** view; **Launch** then runs the tool and mounts the
+  returned widget in a modal — useful for iterating on a widget without going through chat or Tool Tester.
+  The editor content is stored per tool under the same `localStorage` key as the Tool Tester tab, so the
+  arguments are shared between the two. Invalid JSON blocks the launch; a schema mismatch blocks the first
+  click and can be pushed through with a second one (the server still validates the arguments).
 - **UI Resources** — output of `GET /api/mcp/ui-resources` for the connected server.
 - **UI Message Log** — live capture of every JSON-RPC frame passing through the iframe bridges
   (host→view, view→host, View-initiated tool calls, log notifications). Filterable by direction.

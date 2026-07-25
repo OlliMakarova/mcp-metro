@@ -11,6 +11,15 @@ Enrich an existing MCP server's tools with interactive UIs using the MCP Apps SD
 
 Existing tools get paired with HTML resources that render inline in the host's conversation. The tool continues to work for text-only clients — UI is an enhancement, not a replacement. Each tool that benefits from UI gets linked to a resource via `_meta.ui.resourceUri`, and the host renders that resource in a sandboxed iframe when the tool is called.
 
+> **Preferred pattern: reference the widget via `_meta.ui.resourceUri`.** Linking a tool to a **separately
+> registered** `ui://` resource (the tool declares `_meta.ui.resourceUri`; the host fetches the HTML with
+> `resources/read`) is the **recommended** way to add UI, and the one this skill uses throughout. Prefer it
+> over embedding the `ui://` resource inline in the tool result's `content[]`. The referenced form lets the
+> host fetch and cache the static shell once, review its `_meta.ui` (CSP, permissions, domain) before
+> rendering, and know the widget exists before the call — which is what enables app-only tools
+> (`visibility: ["app"]`) and the "UI" badge / "Launch widget" button in the Agent Tester Inspector. Reserve
+> the embedded form for quick, one-off, fully data-dependent widgets.
+
 ## Getting Reference Code
 
 Clone or update the MCP Apps SDK repository (`@modelcontextprotocol/ext-apps`) using the bundled
@@ -218,7 +227,8 @@ registerAppTool(server, "my-tool", {
 Key guidance:
 - **Always keep the `content` array** with a text fallback for text-only clients
 - Add `structuredContent` for data the UI needs to render
-- Link the tool to its resource via `_meta.ui.resourceUri`
+- **Link the tool to a separately registered resource via `_meta.ui.resourceUri`** (the preferred pattern —
+  see "How It Works") rather than embedding the `ui://` resource inline in the tool result
 - Leave tools that don't benefit from UI unchanged — they stay as plain tools
 
 ## Step 5: Register Resources

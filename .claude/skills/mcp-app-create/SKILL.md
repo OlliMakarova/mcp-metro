@@ -18,6 +18,16 @@ The tool's `_meta.ui.resourceUri` references the resource's URI.
 
 Host calls tool → Host renders resource UI → Server returns result → UI receives result.
 
+> **Preferred pattern: reference the widget via `_meta.ui.resourceUri`.** This "Tool + separate Resource"
+> form — the tool declares `_meta.ui.resourceUri` and the HTML is registered as its own `ui://` resource that
+> the host fetches with `resources/read` — is the **recommended** way to ship a widget, and the only one this
+> skill scaffolds. Prefer it over the *embedded* alternative, where the tool returns the `ui://` resource
+> inline in its result `content[]`. The referenced form lets the host fetch and cache the static shell once,
+> review its `_meta.ui` (CSP, permissions, domain) before rendering, and know the widget exists before the
+> call — which is what enables app-only tools (`visibility: ["app"]`) and the "UI" badge / "Launch widget"
+> button in the Agent Tester Inspector. Reserve the embedded form for quick, one-off, fully data-dependent
+> widgets where those benefits don't matter.
+
 ## Quick Start Decision Tree
 
 ### Framework Selection
