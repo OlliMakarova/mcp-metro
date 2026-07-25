@@ -13,7 +13,6 @@
  *
  * This script intentionally links ONLY compatible entities.
  * It does NOT link:
- *   - .claude/agents    -> Codex agents use .codex/agents/*.toml
  *   - .claude/commands  -> migrate commands to skills instead
  *   - .claude/settings  -> Codex uses .codex/config.toml / hooks.json
  *   - .mcp.json         -> Codex MCP uses .codex/config.toml

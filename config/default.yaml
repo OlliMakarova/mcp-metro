@@ -505,7 +505,7 @@ webServer:
     #> and set one token of at least 20 characters in length
     #> ========================================================================
     #> Add your server tokens here: ['token1', 'token2']
-    permanentServerTokens: [ 'token' ]
+    permanentServerTokens: [ ]
 
     #> ========================================================================
     #> JWT TOKEN

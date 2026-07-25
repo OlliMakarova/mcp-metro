@@ -6,11 +6,10 @@ allowed-tools: Read, Write, Edit, MultiEdit, Bash(node scripts/fcp.js *), Bash(r
 
 # Editing files in `.claude/`
 
-**Scope of this rule — read carefully.** It applies to **every file under `.claude/`** — not only
-`SKILL.md`. This includes scripts in `.claude/skills/<skill>/scripts/`, hooks in `.claude/hooks/`,
-agent configs in `.claude/agents/`, supporting reference files, `settings.json`, and anything else
-inside the directory. Claude Code watches the whole tree and reloads on change; direct writes risk
-partial reads and inconsistent state during multi-edit sessions.
+**Scope of this rule — read carefully.** It applies to **every file under `.claude/`** — not only `SKILL.md`. 
+This includes scripts in `.claude/skills/<skill>/scripts/`, hooks in `.claude/hooks/`, supporting reference files, 
+`settings.json`, and anything else inside the directory. Claude Code watches the whole tree and reloads on change; 
+direct writes risk partial reads and inconsistent state during multi-edit sessions.
 
 To enforce this, `settings.json` denies the `Write` and `Edit` tools on `.claude/**` outright.
 Attempting a direct edit will fail the permission check — that is intentional, not a bug.

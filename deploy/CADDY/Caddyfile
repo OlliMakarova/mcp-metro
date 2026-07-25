@@ -1,0 +1,206 @@
+# /etc/caddy/Caddyfile — reverse proxy for an MCP server built with fa-mcp-sdk.
+#
+# This is the Caddy counterpart of deploy/NGINX/sites-enabled/{{mcp.domain}}.conf. Caddy obtains and
+# renews the TLS certificate itself and redirects HTTP to HTTPS automatically, so there is no
+# certificate block and no second server for port 80 — the bare domain name is enough.
+#
+# Deployment:
+#   sudo cp Caddyfile /etc/caddy/Caddyfile
+#   sudo caddy validate --config /etc/caddy/Caddyfile
+#   sudo systemctl reload caddy
+# If you already serve other sites, drop only the `{{mcp.domain}} { … }` block into
+# /etc/caddy/conf.d/{{mcp.domain}}.caddy and add `import conf.d/*.caddy` to the main Caddyfile.
+#
+# Why the endpoints are split instead of a single `reverse_proxy` for the whole site:
+#
+#   * /mcp, /sse and /messages carry the MCP protocol itself. The MCP SDK answers a JSON-RPC request
+#     with a Server-Sent Events stream (`Content-Type: text/event-stream`) and keeps pushing progress
+#     notifications and log messages into it while the tool is still running. `flush_interval -1`
+#     forwards every frame the instant it arrives instead of collecting it in a buffer.
+#   * The same streams are idle most of the time: `GET /mcp` and `GET /sse` wait for server-initiated
+#     messages and fa-mcp-sdk sends no heartbeat frames, so the upstream read timeout must be long.
+#   * Everything else (home page, /docs, /api, /health, /admin) is an ordinary request/response pair.
+#
+# The MCP transports are plain HTTP/1.1 plus SSE — there is no WebSocket anywhere in fa-mcp-sdk, so no
+# upgrade handling is required.
+#
+# Caddy already sends X-Forwarded-For, X-Forwarded-Proto and X-Forwarded-Host to the backend and passes
+# the original Host header through. Set `webServer.trustProxy: true` in config/*.yaml so Express
+# honours them — otherwise `req.protocol` stays "http" and `req.ip` is always 127.0.0.1, which breaks
+# the OAuth discovery documents (/.well-known/*), the optional JWT IP restriction
+# (`webServer.auth.jwtToken.isCheckIP`) and per-IP rate limiting (`mcp.rateLimit.scope: 'ip'`).
+
+{
+	# Address for the Let's Encrypt account and expiry notifications.
+	# email admin@{{mcp.domain}}
+
+	# Caddy applies no write timeout by default, which is exactly what long-lived SSE streams need.
+	# Only add a `servers { timeouts { … } }` block here if you deliberately want to cap them.
+}
+
+{{mcp.domain}} {
+	log {
+		output file /var/log/caddy/{{mcp.domain}}.log
+		format json
+	}
+
+	# Keep this slightly ABOVE `mcp.limits.maxPayloadBytes` (1 MiB by default) so an oversized body is
+	# rejected by the application — which answers with a proper JSON-RPC -32005 / HTTP 413 — instead of
+	# being cut off by the proxy with an error page the MCP client cannot parse.
+	request_body {
+		max_size 2MB
+	}
+
+	# Compression for documentation, OpenAPI and REST payloads. The Content-Type list deliberately
+	# omits `text/event-stream`: a compressor in front of an SSE stream delays its frames.
+	encode gzip zstd {
+		match {
+			header Content-Type text/html*
+			header Content-Type text/plain*
+			header Content-Type text/css*
+			header Content-Type text/markdown*
+			header Content-Type application/json*
+			header Content-Type application/javascript*
+		}
+	}
+
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+	}
+
+	# ── MCP protocol: Streamable HTTP (POST/GET/DELETE /mcp) ────────────────────────────────────
+	# POST carries the JSON-RPC calls, GET is the server-initiated event stream of the active session,
+	# DELETE tears the session down. `read_timeout` must outlive both the longest tool call
+	# (`mcp.limits.toolTimeoutMs`, 30 s by default) and the idle time of the GET stream, so an hour is
+	# a sane starting value. Raise it if you enable long-running tasks (`mcp.tasks.enabled`).
+	handle /mcp* {
+		reverse_proxy 127.0.0.1:{{port}} {
+			flush_interval -1
+			transport http {
+				dial_timeout 5s
+				read_timeout 3600s
+				write_timeout 3600s
+			}
+		}
+	}
+
+	# ── MCP protocol: legacy SSE transport (GET/POST /sse, POST /messages) ──────────────────────
+	# Kept for clients that do not speak Streamable HTTP yet. `GET /sse` opens the event stream,
+	# `POST /messages?sessionId=…` (or `POST /sse`) delivers the client's JSON-RPC messages into it.
+	handle /sse* {
+		reverse_proxy 127.0.0.1:{{port}} {
+			flush_interval -1
+			transport http {
+				dial_timeout 5s
+				read_timeout 3600s
+				write_timeout 3600s
+			}
+		}
+	}
+
+	handle /messages* {
+		reverse_proxy 127.0.0.1:{{port}} {
+			flush_interval -1
+			transport http {
+				dial_timeout 5s
+				read_timeout 3600s
+				write_timeout 3600s
+			}
+		}
+	}
+
+	# ── Agent Tester (built-in chat UI, `agentTester.enabled`) ──────────────────────────────────
+	# Two reasons for its own block: `POST /agent-tester/api/mcp/call-tool-stream` is an SSE stream of
+	# live tool progress, and a chat turn waits for an LLM plus one or more tool calls, which routinely
+	# takes minutes. Ten minutes covers both. The endpoint is a development tool — restricting it to
+	# your office / VPN networks is a good idea; uncomment the guard below to do that.
+	handle /agent-tester* {
+		route {
+			# @external not remote_ip 10.0.0.0/8 192.168.0.0/16
+			# respond @external "Forbidden" 403
+
+			reverse_proxy 127.0.0.1:{{port}} {
+				flush_interval -1
+				transport http {
+					dial_timeout 5s
+					read_timeout 600s
+					write_timeout 600s
+				}
+			}
+		}
+	}
+
+	# ── Prometheus metrics (`webServer.metrics.enabled`) ────────────────────────────────────────
+	# The application serves /metrics without any authentication by design and expects the reverse
+	# proxy to shield it. Widen the address list to cover your Prometheus scraper. The `route` wrapper
+	# guarantees the guard runs before the proxy — outside of `route`, Caddy reorders directives by its
+	# own fixed table instead of the order written here.
+	handle /metrics* {
+		route {
+			@external not remote_ip 127.0.0.1/32 ::1
+			respond @external "Forbidden" 403
+
+			reverse_proxy 127.0.0.1:{{port}}
+		}
+	}
+
+	# ── Token issuing surface: Admin UI (/admin) and the JWT API (/gen-jwt) ─────────────────────
+	# Both hand out access credentials for this server. If tokens are only ever issued from inside the
+	# corporate network, uncomment the guard — it is the cheapest possible protection layer.
+	handle /admin* {
+		route {
+			# @external not remote_ip 10.0.0.0/8 192.168.0.0/16
+			# respond @external "Forbidden" 403
+
+			reverse_proxy 127.0.0.1:{{port}}
+		}
+	}
+
+	handle /gen-jwt* {
+		reverse_proxy 127.0.0.1:{{port}}
+	}
+
+	# ── Example: a project-specific REST endpoint that streams or runs long ─────────────────────
+	# Endpoints added by the project under /api are served by the catch-all block below. If one of them
+	# streams its answer or legitimately runs longer than the defaults allow, give it a block of its
+	# own — placed BEFORE the catch-all `handle`, since Caddy matches the most specific path first:
+	#
+	# handle /api/<your-long-running-endpoint> {
+	# 	reverse_proxy 127.0.0.1:{{port}} {
+	# 		flush_interval -1
+	# 		transport http {
+	# 			read_timeout 600s
+	# 			write_timeout 600s
+	# 		}
+	# 	}
+	# }
+
+	# ── Everything else ─────────────────────────────────────────────────────────────────────────
+	# Home page (/), health and readiness probes, Swagger UI (/docs), OpenAPI documents, REST API
+	# (/api), token check (/ct), static assets (/static, /svg) and the OAuth discovery documents
+	# (/.well-known/*, /oauth/token).
+	handle {
+		reverse_proxy 127.0.0.1:{{port}}
+	}
+}
+
+# ─────────────────────────────────────────────────────────────────────────────────────────────────
+# Running MORE THAN ONE instance requires session affinity. A Streamable HTTP session is stateful and
+# lives in the memory of a single process: the transport is created by the `initialize` call and
+# addressed afterwards by the `Mcp-Session-Id` request header. A request routed to another instance is
+# rejected with JSON-RPC -32600 ("no valid session"). Replace the upstream in the /mcp block with:
+#
+# reverse_proxy 127.0.0.1:{{port}} 127.0.0.1:<second-port> {
+# 	lb_policy header Mcp-Session-Id {
+# 		fallback client_ip_hash
+# 	}
+# 	flush_interval -1
+# 	transport http {
+# 		read_timeout 3600s
+# 		write_timeout 3600s
+# 	}
+# }
+#
+# The `fallback` covers the very first `initialize` call, which carries no session header yet.
+# ─────────────────────────────────────────────────────────────────────────────────────────────────
