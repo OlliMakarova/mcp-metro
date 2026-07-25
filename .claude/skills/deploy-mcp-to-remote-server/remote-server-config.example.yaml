@@ -1,0 +1,86 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Example configuration for the deploy-mcp-to-remote-server skill.
+#
+# Copy to remote-server-config.local.yaml (kept out of version control) and fill
+# in real values. The orchestrator scripts/remote.cjs reads the .local.yaml only.
+#
+# Deployment model: a self-contained systemd Docker container. On the server
+# nothing lives but Docker + one Caddy block. The container clones the repo,
+# writes config/local.yaml (from `configLocalYaml`) and deploy/config.yml (from
+# `deployConfigYaml` + Telegram creds), builds, runs the app as a systemd service,
+# and a cron inside it runs update.cjs every minute. update.cjs is universal: it
+# notifies by e-mail on a classic host deploy and by Telegram in the container.
+#
+# Format is a small subset of YAML: nested maps with 2-space indentation and
+# scalar values. Do not quote the Windows key paths — backslashes are literal.
+# ─────────────────────────────────────────────────────────────────────────────
+
+server:
+  host: <server IP>            # SSH host of the target server
+  port: 22                     # SSH port
+  user: <username>             # SSH user (usually root)
+  keyPath: <path to SSH key>   # Local private key for SSH, e.g. C:\Users\you\.ssh\id_rsa
+
+git:
+  repoUrl: <git@github.com:org/repo.git>   # SSH URL the CONTAINER clones from
+  # Private key the container uses to clone. Best practice is a dedicated read-only
+  # GitHub Deploy Key — create one with:  node scripts/remote.cjs keygen
+  # then add the printed public key to the repo (Settings → Deploy keys, read-only).
+  # You may also point this at an existing key that already has GitHub access.
+  deployKeyPath: <path to git private key>   # e.g. C:\Users\you\.ssh\mcp-metro-deploy
+
+project:
+  branch: master                    # Branch the container tracks and auto-updates from
+  projectPath: /opt/node/mcp-metro  # Where the repo is cloned INSIDE the container
+  statePath: /opt/mcp-metro         # HOST directory that persistently holds the
+                                    # downloaded metro data (bind-mounted as the cache)
+
+mcp:
+  dns: <mcp DNS>       # Public domain served by Caddy, e.g. mcp-metro.time-gold.com
+
+env:
+  DEBUG: config-info   # DEBUG value passed into the container (optional; default: config-info)
+
+# ── deployConfigYaml — written verbatim to deploy/config.yml inside the container ──
+# update.cjs reads it. Telegram credentials are auto-appended from configLocalYaml.telegram,
+# so you do not repeat them here. `email` is used only on a classic host deploy (where a
+# `mail` agent exists); in the container the verdict goes to Telegram instead.
+deployConfigYaml:
+  branch: master
+  email: <email for the classic host deploy>
+
+# ── configLocalYaml — written verbatim to config/local.yaml inside the container ──
+# The full runtime config of the app (secrets included). Its telegram section is
+# reused for the deploy/rebuild notifications.
+configLocalYaml:
+  agentTester:
+    enabled: true
+    showFooterLink: false
+    useAuth: true
+    openAi:
+      apiKeyName: '***'
+      apiKey: '***'
+      baseURL: '***'
+      exposeToClient: false
+
+  homePage:
+    helpLink:
+      href: ''
+
+  telegram:
+    enabled: true
+    botToken: '***'   # also used for deploy/rebuild notifications
+    chatId: '***'     # also used for deploy/rebuild notifications
+
+  widgetData:
+    # Permanent HMAC secret for signing widget-data links — so issued links stay valid across restarts.
+    signSecret: '***'
+
+  webServer:
+    port: 9049
+    # External base URL: widget dataUrl and the ui:// resource CSP connect-src are built from it.
+    publicBaseUrl: '***'
+    auth:
+      jwtToken:
+        encryptKey: '***'
+    trustProxy: true

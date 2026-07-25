@@ -35,6 +35,7 @@
       "Bash(unset http_proxy)",
       "Read(./config/local.yaml)",
       "Read(./node_modules/fa-mcp-sdk/config/_local.yaml)",
+      "Read(./.claude/skills/deploy-mcp-to-remote-server/remote-server-config.local.yaml)",
       "Edit",
       "MultiEdit",
       "Read",
@@ -48,7 +49,10 @@
       "Read(./_misc/**)",
       "Read(./**/_tmp/**)",
       "Read(./**/*.private.*)",
-      "Read(./**/*.local.*)",
+      "Read(./*.local.*)",
+      "Read(./config/**/*.local.*)",
+      "Read(./src/**/*.local.*)",
+      "Read(./node_modules/**/*.local.*)",
       "Read(./**/*local-*)"
     ]
   },

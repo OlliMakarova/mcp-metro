@@ -4,6 +4,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const https = require('https');
 const { execSync, spawn } = require('child_process');
 const os = require('os');
 
@@ -21,6 +22,8 @@ const VON = path.resolve(path.join(CWD, '..'));
 const DEFAULT_CONFIG = {
   branch: 'master',
   email: '',
+  telegramBotToken: '',
+  telegramChatId: '',
 };
 
 // Colors for terminal  output
@@ -292,6 +295,8 @@ function loadConfig() {
       branch: config.branch || DEFAULT_CONFIG.branch,
       nodeVersion: config.nodeVersion,
       email: config.email || DEFAULT_CONFIG.email,
+      telegramBotToken: config.telegramBotToken || DEFAULT_CONFIG.telegramBotToken,
+      telegramChatId: config.telegramChatId || DEFAULT_CONFIG.telegramChatId,
     };
   } catch (error) {
     console.warn(`Warning: Could not parse config file ${configFile}:`, error.message);
@@ -388,6 +393,17 @@ function getRepoInfo() {
   }
 }
 
+// True when a usable `mail` command is on PATH. Inside the Docker container there is
+// no mail transfer agent, so the e-mail channel is silently skipped there.
+function hasMailCommand() {
+  try {
+    execSync('command -v mail', { stdio: 'ignore', shell: '/bin/bash' });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 const colorizeHTML = (text) =>
   text
     .replace(/<red>/g, '<span style="color:#ff0000;">')
@@ -400,8 +416,17 @@ const colorizeHTML = (text) =>
     .replace(/<\/r>/g, '</span>')
     .replace(/\[ERROR]/g, '<span style="color:#ffffff; background-color: #ff0000">[ERROR]</span>');
 
-async function sendBuildNotification(emails, status, body, serviceName) {
+/**
+ * Send a build/restart verdict by e-mail via the system `mail` command.
+ * Used on the classic host/systemd deployment. Skipped when no `mail` command
+ * exists (e.g. inside the container) or when no address is configured.
+ */
+async function sendEmailNotification(emails, status, body, serviceName) {
   if (!emails) {
+    return;
+  }
+  if (!hasMailCommand()) {
+    logIt('`mail` command not available — e-mail notification skipped');
     return;
   }
   let s = '';
@@ -412,7 +437,6 @@ async function sendBuildNotification(emails, status, body, serviceName) {
   }
   body = body.replace('<status>', s);
 
-  // Create HTML email content
   const hostname = os.hostname();
   const htmlContent = `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en">
@@ -426,7 +450,6 @@ async function sendBuildNotification(emails, status, body, serviceName) {
 ${colorizeHTML(clearColors(body))}
 </pre></body></html>`;
 
-  // Send to each email address
   const emailArray = emails
     .split(',')
     .map((email) => email.trim())
@@ -451,6 +474,67 @@ ${colorizeHTML(clearColors(body))}
       console.error(`Failed to send email to ${emailAddress}:`, error.message);
     }
   }
+}
+
+/**
+ * Send a build/restart verdict to Telegram. Used on the Docker deployment (and
+ * anywhere a bot is configured). Credentials come from deploy/config.yml →
+ * telegramBotToken / telegramChatId.
+ */
+function sendTelegramNotification(config, status, body, serviceName) {
+  const { telegramBotToken, telegramChatId } = config;
+  if (!telegramBotToken || !telegramChatId) {
+    logIt('Telegram bot token or chat id not set — notification skipped');
+    return Promise.resolve();
+  }
+
+  const hostname = os.hostname();
+  const icon = status === 'SUCCESS' ? '✅' : '❌';
+  let text = `${icon} ${status} — ${serviceName} @ ${hostname}\n\n${clearColors(clearHtmlColors(body))}`;
+  // Telegram hard-limits a single message to 4096 characters.
+  if (text.length > 3900) {
+    text = `${text.slice(0, 3900)}\n…(truncated)`;
+  }
+
+  const payload = JSON.stringify({ chat_id: telegramChatId, text, disable_web_page_preview: true });
+
+  return new Promise((resolve) => {
+    const req = https.request(
+      {
+        hostname: 'api.telegram.org',
+        path: `/bot${telegramBotToken}/sendMessage`,
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(payload) },
+      },
+      (res) => {
+        let data = '';
+        res.on('data', (chunk) => (data += chunk));
+        res.on('end', () => {
+          if (res.statusCode !== 200) {
+            console.error(`Telegram notify HTTP ${res.statusCode}: ${data}`);
+          }
+          resolve();
+        });
+      },
+    );
+    req.on('error', (error) => {
+      console.error(`Telegram notify failed: ${error.message}`);
+      resolve();
+    });
+    req.write(payload);
+    req.end();
+  });
+}
+
+/**
+ * Universal dispatcher: fire every configured notification channel. E-mail is used
+ * on the classic host deployment (when a `mail` command and an address exist);
+ * Telegram is used on the Docker deployment (when bot credentials exist). Both may
+ * fire; each is a no-op when its prerequisites are absent.
+ */
+async function sendNotifications(config, status, body, serviceName) {
+  await sendEmailNotification(config.email, status, body, serviceName);
+  await sendTelegramNotification(config, status, body, serviceName);
 }
 
 const printCurrenBranch = () => {
@@ -600,21 +684,15 @@ async function main() {
 
       // Add completion info to build log
       logIt(`Update completed successfully at ${new Date().toISOString().replace('T', ' ').substring(0, 19)}`);
-      // Send build notification if email is configured
-      if (config.email) {
-        await sendBuildNotification(config.email, 'SUCCESS', logBuffer, serviceName);
-      } else {
-        logIt('EMAIL not found');
-      }
+      // Notify via every configured channel (e-mail and/or Telegram)
+      await sendNotifications(config, 'SUCCESS', logBuffer, serviceName);
     } else {
       logIt('No changes detected. Update skipped.');
     }
   } catch (err) {
     const message = String(err.message).includes(err.stderr) ? err.message : [err.stderr, err.message].join('\n');
     logError(message);
-    if (config.email) {
-      await sendBuildNotification(config.email, 'FAIL', logBuffer, serviceName);
-    }
+    await sendNotifications(config, 'FAIL', logBuffer, serviceName);
   } finally {
     logIt('#FINISH#');
     if (updateDeployedLogFile) {
