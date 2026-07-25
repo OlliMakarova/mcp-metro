@@ -106,8 +106,10 @@ if [ -n "${DEPLOY_CONFIG_YAML_B64:-}" ]; then
   echo "$DEPLOY_CONFIG_YAML_B64" | base64 -d > deploy/config.yml
 fi
 
-# .env is the systemd EnvironmentFile for the app service. WS_HOST=0.0.0.0 makes
-# the server listen on all interfaces so the published port reaches it.
+# .env is the systemd EnvironmentFile for the app service. The container runs with
+# --network host (so it shares the host's connectivity, e.g. a Telegram tunnel), so
+# WS_HOST=127.0.0.1 keeps the app on loopback only — the reverse proxy fronts it and
+# the port is never exposed on a public interface.
 # WS_PUBLIC_BASE_URL is derived from the DNS by the orchestrator (https://<dns>),
 # so publicBaseUrl no longer needs to be set by hand in config/local.yaml.
 cat > .env <<ENVV
@@ -115,7 +117,7 @@ SERVICE_NAME=$SERVICE_NAME
 SERVICE_INSTANCE=$SERVICE_INSTANCE
 NODE_ENV=production
 DEBUG=$DEBUG
-WS_HOST=0.0.0.0
+WS_HOST=127.0.0.1
 WS_PUBLIC_BASE_URL=${PUBLIC_BASE_URL:-}
 ENVV
 

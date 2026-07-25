@@ -522,6 +522,7 @@ function sendTelegramNotification(config, status, body, serviceName) {
         hostname: 'api.telegram.org',
         path: `/bot${telegramBotToken}/sendMessage`,
         method: 'POST',
+        timeout: 15000,
         headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(payload) },
       },
       (res) => {
@@ -535,6 +536,8 @@ function sendTelegramNotification(config, status, body, serviceName) {
         });
       },
     );
+    // Don't let an unreachable Telegram (e.g. blocked network) hang the update.
+    req.on('timeout', () => req.destroy(new Error('request timed out after 15s')));
     req.on('error', (error) => {
       console.error(`Telegram notify failed: ${error.message}`);
       resolve();

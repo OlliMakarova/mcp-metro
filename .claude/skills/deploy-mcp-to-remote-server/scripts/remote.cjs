@@ -385,9 +385,9 @@ docker volume create ${VOLUME} >/dev/null
 mkdir -p ${sq(cfg.statePath)}
 docker run -d --name ${CONTAINER} --restart unless-stopped \
   --privileged --cgroupns=host \
+  --network host \
   --tmpfs /run --tmpfs /run/lock \
   -v /sys/fs/cgroup:/sys/fs/cgroup:rw \
-  -p 127.0.0.1:${cfg.appPort}:${cfg.appPort} \
   -v ${VOLUME}:${cfg.projectPath} \
   -v ${sq(cfg.statePath)}:${cfg.projectPath}/data-cache \
   -e REPO_URL=${sq(cfg.repoUrl)} \
