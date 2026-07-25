@@ -57,8 +57,25 @@ The response is English Markdown. On ambiguity it contains a numbered list (or t
 ## Route widget (MCP Apps)
 
 When the connected host advertises the **MCP Apps** UI extension (`io.modelcontextprotocol/ui`, SEP-1865), a
-`search_route` response additionally carries a compact `structuredContent = { widget: 'metro-routes', dataUrl }`.
-The Markdown text is unchanged and remains the model-facing answer and the only content text-only hosts receive.
+`search_route` response carries `structuredContent = { widget: 'metro-routes', dataUrl }` (the human-facing route
+output) **plus one short text block in `content`** — a concise localized route summary (fastest variant, transfers,
+main line, operating status, advisory count). The **full route Markdown is not returned** in this branch (the widget
+already shows the details; a long text just gets re-narrated by the model). Per the MCP Apps spec `structuredContent`
+is UI-only and is not added to the model context, so without that short `content` the model would have **no record of
+what the user sees on this turn** and would answer from its own guesses. Text-only hosts (no MCP Apps support) receive
+the full route Markdown as before. Non-route responses (station info, clarifications) are always Markdown regardless
+of UI support.
+
+**Model-context trace (same source, later turns).** The concise summary is produced once by `buildModelSummary` and
+reused in two places, so the wording is identical across turns: (1) the tool's `content` above (this turn); and (2)
+the `modelSummary` field of the `GET /api/widget-data` payload, which the widget — after the data loads — pushes to
+the host via the MCP Apps `ui/update-model-context` request. That push is **invisible in the chat** but keeps the
+summary in the model context for follow-up questions. It is sent only when the host advertises the `updateModelContext`
+capability in the `ui/initialize` response; otherwise the widget does nothing (silent degradation). Each load
+(including “Refresh route”) overwrites the previous summary.
+
+**Server convention.** Any new tool of this server that answers with a widget returns, next to the widget, one short
+text block for the model by the same rule — never an empty `content` and never the full detail text.
 
 The design splits the cacheable UI from the dynamic data:
 

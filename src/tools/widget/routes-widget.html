@@ -380,6 +380,8 @@
     // The self-describing signed link the widget loads its route data from. The "Refresh route"
     // button reuses it with the `at` parameter removed, so the route is rebuilt for "now".
     let currentDataUrl = null;
+    // Host capabilities from the ui/initialize response (used to gate ui/update-model-context).
+    let hostCapabilities = {};
 
     /** Applies a response language before data arrives (loading / error states) */
     function applyLang(lang) {
@@ -638,6 +640,20 @@
       data = json;
       selected = 0;
       renderRoutes();
+      pushModelContext();
+    }
+
+    /**
+     * Leave a trace of what the user is seeing in the model context (ui/update-model-context) so the
+     * agent can answer follow-up questions. This is invisible in the chat — nothing is shown, the
+     * host just keeps the summary for future turns. Sent only when the host advertises the capability;
+     * degrades silently otherwise. Each call overwrites the previous summary (e.g. after Refresh).
+     */
+    function pushModelContext() {
+      if (!hostCapabilities || !hostCapabilities.updateModelContext) return;
+      const text = data && data.modelSummary;
+      if (!text) return;
+      rpcRequest('ui/update-model-context', { content: [{ type: 'text', text: text }] }).catch(() => {});
     }
 
     /** "Refresh route": reload the same link without `at` — the route is rebuilt for "now" */
@@ -806,6 +822,7 @@
       appCapabilities: { availableDisplayModes: ['inline'] },
     }).then((res) => {
       applyHostContext(res && res.hostContext);
+      hostCapabilities = (res && res.hostCapabilities) || {};
       rpcNotify('ui/notifications/initialized', {});
     }).catch(() => {
       // Keep listening anyway: a non-conforming host may skip the handshake response

@@ -77,6 +77,17 @@ async function main() {
     check('search_route returns structuredContent.widget = metro-routes', sc?.widget === 'metro-routes', sc);
     check('structuredContent carries a dataUrl', typeof sc?.dataUrl === 'string', sc?.dataUrl);
     check('structuredContent does NOT carry the full variants payload', sc?.variants === undefined);
+    // Widget-capable host receives ONE short text block — the model summary — next to the widget.
+    // Its equality with the widget's modelSummary (same source) is checked after the fetch below.
+    check(
+      'content is exactly one text block (the model summary)',
+      Array.isArray(result?.content) &&
+        result.content.length === 1 &&
+        result.content[0]?.type === 'text' &&
+        typeof result.content[0]?.text === 'string' &&
+        result.content[0].text.length > 0,
+      result?.content,
+    );
 
     const dataUrl = sc?.dataUrl;
     if (typeof dataUrl !== 'string') {
@@ -89,6 +100,18 @@ async function main() {
     check('GET dataUrl → 200', r1.status === 200, r1.status);
     check('dataUrl JSON has variants[]', Array.isArray(j1?.variants) && j1.variants.length > 0);
     check('dataUrl JSON widget = metro-routes', j1?.widget === 'metro-routes');
+    check(
+      'dataUrl JSON carries a non-empty modelSummary (for ui/update-model-context)',
+      typeof j1?.modelSummary === 'string' && j1.modelSummary.length > 0,
+      j1?.modelSummary,
+    );
+    // Single source: the tool's content text on this turn is byte-for-byte the same summary the
+    // widget later pushes via ui/update-model-context (contract point 2).
+    check(
+      'tool content text equals the widget modelSummary (single source)',
+      (result?.content?.[0]?.text ?? null) === (j1?.modelSummary ?? undefined),
+      { content: result?.content?.[0]?.text, modelSummary: j1?.modelSummary },
+    );
     check(
       'dataUrl response has open CORS header',
       r1.headers.get('access-control-allow-origin') === '*',

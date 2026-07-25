@@ -10,6 +10,7 @@ import { findBestRoutes } from '../lib/routing/find-routes.js';
 import { buildStationInfo } from '../lib/station-info.js';
 import { IStationOption, resolveStation, TStationResolution } from '../lib/station-search/resolve-station.js';
 import { renderResolutionAsk, renderRoutes, renderStationInfo } from './lib/render.js';
+import { buildModelSummary } from './widget/model-summary.js';
 import { buildWidgetDataUrl } from './widget/widget-data-link.js';
 import { ROUTES_WIDGET_URI } from './widget/widget-resource.js';
 
@@ -126,10 +127,11 @@ const debugStationResolution = (query: string, resolution: TStationResolution): 
  * All responses are returned as ready-made English markdown text (lists and tables);
  * station and line names are localized to the requested `language`.
  *
- * When the client advertises MCP Apps support, route responses additionally carry a compact
- * `structuredContent = { widget, dataUrl }` — the widget (loaded from the versioned ui:// resource)
- * fetches its route data from that self-describing, signed link over REST. The markdown text stays
- * as the model-facing fallback and the only content text-only hosts receive.
+ * When the client advertises MCP Apps support, a route response carries ONLY a compact
+ * `structuredContent = { widget, dataUrl }` and no text — the widget (loaded from the versioned
+ * ui:// resource) fetches its route data from that self-describing, signed link over REST and is the
+ * sole route output. Text-only hosts (no MCP Apps support) receive the full route markdown instead.
+ * Non-route responses (station info, clarifications) are always markdown, regardless of UI support.
  */
 export const handleMetroInfo = async (params: IToolHandlerParams): Promise<TToolHandlerResponse> => {
   const args = params.arguments;
@@ -203,19 +205,28 @@ The departure and arrival stations are the same: **${fromName}**. They belong to
 
   try {
     const result = findBestRoutes(dataset, fromOpt.ids, toOpt.ids, { k: ROUTE_COUNT });
-    const markdown = renderRoutes(result, fromName, toName, lang);
-    // MCP Apps host: markdown stays as the model-facing text; the widget receives only a
-    // self-describing signed link and fetches its route data over REST itself. The link records the
-    // moment of this call so a widget opened later shows the route as of when it was built; its
-    // "Refresh route" button drops `at` to rebuild for "now".
+    // MCP Apps host: the widget (from structuredContent) is the human-facing route output, so we do
+    // NOT return the full route markdown (the widget would just be duplicated in words). But the
+    // model still needs a trace of what the user sees on THIS turn — the MCP Apps spec keeps
+    // structuredContent out of the model context — so we return ONE short text block: the same
+    // summary the widget later pushes via ui/update-model-context. Both come from buildModelSummary
+    // with the same arguments, so the wording is identical across the first and later turns. The
+    // link records the moment of this call; the widget's "Refresh route" button drops `at`.
     if (hostSupportsMcpApps(params.clientCapabilities)) {
+      const summary = buildModelSummary(result, fromName, toName, lang);
+      // No usable summary (no route variants) — fall back to the plain text answer, exactly as for a
+      // text-only host, so the model is never left with an empty result.
+      if (!summary) {
+        return asTextContent(renderRoutes(result, fromName, toName, lang));
+      }
       const dataUrl = buildWidgetDataUrl({ fromIds: fromOpt.ids, toIds: toOpt.ids, lang, at: new Date() });
       return {
-        content: [{ type: 'text', text: markdown }],
+        content: [{ type: 'text', text: summary }],
         structuredContent: { widget: 'metro-routes', dataUrl },
       };
     }
-    return asTextContent(markdown);
+    // Text-only host: the full route markdown is the answer.
+    return asTextContent(renderRoutes(result, fromName, toName, lang));
   } catch (e) {
     const msg = hideSourceNames(e instanceof Error ? e.message : String(e));
     return asTextError(`Failed to build a route ${fromName} → ${toName}: ${msg}`);

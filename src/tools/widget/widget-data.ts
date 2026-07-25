@@ -15,6 +15,7 @@ import {
   TRouteLeg,
 } from '../../lib/routing/find-routes.js';
 import { endpointWarnings } from '../lib/render.js';
+import { buildModelSummary } from './model-summary.js';
 
 /** Wagon position code understood by the widget's train pictogram */
 export type TWagonPos = 'front' | 'middle' | 'rear';
@@ -80,6 +81,8 @@ export interface IRoutesWidgetData {
   lang: TLang;
   from: string;
   to: string;
+  /** Concise localized summary the widget pushes to the model context via ui/update-model-context */
+  modelSummary: string;
   closuresApplied: boolean;
   operating: {
     isOpen: boolean;
@@ -241,6 +244,7 @@ export const buildRoutesWidgetData = (
     lang,
     from: fromName,
     to: toName,
+    modelSummary: buildModelSummary(result, fromName, toName, lang),
     closuresApplied: result.closuresApplied,
     operating: {
       isOpen: op.isOpen,

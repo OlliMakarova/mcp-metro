@@ -29,6 +29,11 @@ for the MAJOR / MINOR / PATCH rules.
 
 ### Changed
 
+- `metro_info` (`search_route`), MCP-Apps-capable hosts: the response now returns the route widget
+  (`structuredContent`) **plus one short model-context summary in `content`** instead of an empty
+  `content`. The full route Markdown is returned only to text-only hosts. The same summary is produced
+  once (`buildModelSummary`) and also carried in the `/api/widget-data` payload as a new optional
+  `modelSummary` field, which the widget pushes via `ui/update-model-context` (MINOR).
 - `<tool_name>` description clarified to mention the default value of `<arg>` (PATCH).
 
 ### Deprecated
