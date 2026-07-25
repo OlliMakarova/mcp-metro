@@ -77,6 +77,9 @@ const ytdl = timestamp.slice(2, 14); // YYMMDDHHMMSS format
 const runTimeLogFile = path.join(VON, `deploy__${scriptDirName}__processing__${ytdl}.log`);
 const lastDeployLogFile = path.join(VON, `deploy__${scriptDirName}__last_deploy.log`);
 const cumulativeLogFile = path.join(VON, `deploy__${scriptDirName}__cumulative.log`);
+// Machine-readable one-line verdict of the last actual update, for external monitors
+// (e.g. the deploy skill's `status` / `updatelog`): "SUCCESS|FAIL | <ts> | <detail>".
+const statusFile = path.join(VON, `deploy__${scriptDirName}__status.log`);
 
 const clearColors = (text) => text.replace(/\x1B\[[0-9;]*[mGKH]/g, '');
 const clearHtmlColors = (text) => text.replace(/<\/?(red|y|g|r|status)>/g, '');
@@ -99,9 +102,24 @@ const logError = (msg) => {
   const msg2 = `[ERROR] ${msg}`;
   logBuffer += `<red>${msg2}</red>\n`;
   fs.appendFileSync(cumulativeLogFile, `${msg2}\n`);
+  // Also mirror into the current run log so the last_deploy copy carries the error.
+  try {
+    fs.appendFileSync(runTimeLogFile, `${msg2}\n`);
+  } catch {
+    /* runtime log may not exist yet */
+  }
 };
 
 const nowPretty = () => `${new Date().toISOString().replace('T', ' ').substring(0, 19)}Z`;
+
+/** Write the one-line machine-readable verdict of the current update run. */
+const writeStatus = (status, detail = '') => {
+  try {
+    fs.writeFileSync(statusFile, `${status} | ${nowPretty()} | ${String(detail).split('\n')[0]}\n`);
+  } catch {
+    /* best effort */
+  }
+};
 
 /**
  * Truncate cumulative log file if it exceeds 2MB, keeping last 10KB
@@ -684,6 +702,7 @@ async function main() {
 
       // Add completion info to build log
       logIt(`Update completed successfully at ${new Date().toISOString().replace('T', ' ').substring(0, 19)}`);
+      writeStatus('SUCCESS', updateReason || 'update completed');
       // Notify via every configured channel (e-mail and/or Telegram)
       await sendNotifications(config, 'SUCCESS', logBuffer, serviceName);
     } else {
@@ -692,6 +711,7 @@ async function main() {
   } catch (err) {
     const message = String(err.message).includes(err.stderr) ? err.message : [err.stderr, err.message].join('\n');
     logError(message);
+    writeStatus('FAIL', message);
     await sendNotifications(config, 'FAIL', logBuffer, serviceName);
   } finally {
     logIt('#FINISH#');

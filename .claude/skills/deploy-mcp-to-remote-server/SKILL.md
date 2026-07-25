@@ -33,6 +33,7 @@ node .claude/skills/deploy-mcp-to-remote-server/scripts/remote.cjs <subcommand>
 | update now / обнови сейчас | `update` | Run `update.cjs --force` inside the container (immediate rebuild from the branch). |
 | logs / логи | `logs [N]` | Last N app-service journal lines (default 200). |
 | bootstrap/build logs | `bootlog [N]` | Last N first-boot (clone/build) journal lines — use when a fresh deploy is still building. |
+| auto-update log / errors | `updatelog [N]` | Last auto-update verdict (SUCCESS/FAIL), an `[ERROR]` scan, and the last update-run log. Use to check whether the once-a-minute rebuild is succeeding or failing. |
 | shell into container | `shell` | Open an interactive bash shell inside the container. |
 | run a command inside | `exec -- <cmd>` | Run an arbitrary command inside the container (runs from `/`; node is at `/root/.nvm/versions/node/v22.17.1/bin/node`). |
 | uninstall / удали с сервера | `uninstall --yes` | Remove container, image, volume and the Caddy block. Destructive — needs `--yes`. |

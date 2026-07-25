@@ -21,6 +21,7 @@
 //   node remote.cjs restart     # restart just the app service (fast, no rebuild)
 //   node remote.cjs update      # force update.cjs --force inside the container
 //   node remote.cjs logs [N]    # last N app-service journal lines (default 200)
+//   node remote.cjs updatelog   # auto-update verdict + error scan + last-run log
 //   node remote.cjs uninstall --yes   # remove container, image, volume, Caddy block
 //   node remote.cjs ssh         # print the raw ssh command
 // ─────────────────────────────────────────────────────────────────────────────
@@ -93,6 +94,16 @@ function extractRawBlock(text, topKey) {
   while (out.length && out[0] === '') out.shift();
   while (out.length && out[out.length - 1] === '') out.pop();
   return out.join('\n') + '\n';
+}
+
+// Container paths of the update.cjs bookkeeping logs (VON = parent of the project dir,
+// name = its basename): deploy__<name>__status.log / __last_deploy.log / __cumulative.log.
+function logPaths(cfg) {
+  const p = cfg.projectPath.replace(/\/+$/, '');
+  const von = p.replace(/\/[^/]+$/, '') || '/';
+  const name = p.replace(/^.*\//, '');
+  const base = `${von}/deploy__${name}__`;
+  return { status: `${base}status.log`, lastDeploy: `${base}last_deploy.log`, cumulative: `${base}cumulative.log` };
 }
 
 function fail(msg) {
@@ -325,6 +336,7 @@ ${caddySnippet(cfg)}
 
 function cmdStatus(cfg) {
   const dnsEsc = cfg.dns.replace(/\./g, '\\.');
+  const lp = logPaths(cfg);
   const script = `
 echo '===== CONTAINER ====='
 docker ps -a --filter name=^/${CONTAINER}$ --format 'status: {{.Status}}' || true
@@ -343,8 +355,15 @@ curl -fsS -m 8 "https://${cfg.dns}/health" && echo || echo 'public /health FAILE
 echo
 echo '===== AUTO-UPDATE ====='
 docker exec ${CONTAINER} cat /etc/cron.d/mcp-update 2>/dev/null || echo 'cron file not present yet'
-echo '--- last update log ---'
-docker exec ${CONTAINER} tail -n 12 /tmp/mcp-update.log 2>/dev/null || echo '(no update.log yet)'
+echo -n 'last update verdict: '
+docker exec ${CONTAINER} cat ${lp.status} 2>/dev/null || echo '(no update has run yet — cron checks every minute)'
+ERRS=$(docker exec ${CONTAINER} grep -aF '[ERROR]' ${lp.lastDeploy} 2>/dev/null | wc -l | tr -d ' ')
+if [ "\${ERRS:-0}" -gt 0 ] 2>/dev/null; then
+  echo "⚠ \${ERRS} error line(s) in the last update run — details: node remote.cjs updatelog"
+  docker exec ${CONTAINER} grep -aF '[ERROR]' ${lp.lastDeploy} 2>/dev/null | tail -4
+else
+  echo 'no errors flagged in the last update run'
+fi
 echo
 echo '===== CADDY ====='
 grep -qE "^\\s*${dnsEsc}\\s*\\{" /etc/caddy/Caddyfile 2>/dev/null && echo 'Caddy block present' || echo 'Caddy block MISSING'
@@ -383,6 +402,27 @@ function cmdBootlog(cfg, n) {
   const lines = /^\d+$/.test(String(n)) ? n : '200';
   say(`Last ${lines} bootstrap (clone/build) log lines`);
   sshRun(cfg, `docker exec ${CONTAINER} journalctl -o cat --no-pager -n ${lines} -u mcp-bootstrap.service`);
+}
+
+// Inspect the auto-update history: the last verdict, the full last-update run log,
+// and every error line — so a failed rebuild is easy to spot and diagnose.
+function cmdUpdatelog(cfg, n) {
+  const lines = /^\d+$/.test(String(n)) ? n : '80';
+  const lp = logPaths(cfg);
+  const script = `
+echo '===== LAST UPDATE VERDICT ====='
+docker exec ${CONTAINER} cat ${lp.status} 2>/dev/null || echo '(no update has run yet — cron checks every minute)'
+echo
+echo '===== ERROR LINES (last run + history) ====='
+{ docker exec ${CONTAINER} grep -aF '[ERROR]' ${lp.lastDeploy} 2>/dev/null;
+  docker exec ${CONTAINER} grep -aF '[ERROR]' ${lp.cumulative} 2>/dev/null; } | tail -20
+docker exec ${CONTAINER} sh -c "grep -aqF '[ERROR]' ${lp.lastDeploy} ${lp.cumulative} 2>/dev/null" && true || echo '(no [ERROR] entries found)'
+echo
+echo '===== LAST UPDATE RUN LOG (tail ${lines}) ====='
+docker exec ${CONTAINER} tail -n ${lines} ${lp.lastDeploy} 2>/dev/null || echo '(no completed update run recorded yet)'
+`;
+  say('Auto-update log and error scan');
+  sshRun(cfg, script);
 }
 
 // Open an interactive shell inside the container (for debugging/testing).
@@ -449,6 +489,7 @@ function main() {
     case 'update': return cmdUpdate(cfg);
     case 'logs': return cmdLogs(cfg, rest[0]);
     case 'bootlog': return cmdBootlog(cfg, rest[0]);
+    case 'updatelog': return cmdUpdatelog(cfg, rest[0]);
     case 'shell': return cmdShell(cfg);
     case 'exec': return cmdExec(cfg, rest);
     case 'uninstall': return cmdUninstall(cfg, rest.includes('--yes'));
@@ -464,6 +505,7 @@ function main() {
   update            Force update.cjs --force inside the container
   logs [N]          Last N app-service journal lines (default 200)
   bootlog [N]       Last N bootstrap (clone/build) journal lines (default 200)
+  updatelog [N]     Last auto-update verdict + error scan + last-run log (default 80)
   shell             Open an interactive bash shell inside the container
   exec -- <cmd...>  Run an arbitrary command inside the container
   uninstall --yes   Remove container, image, volume and Caddy block
