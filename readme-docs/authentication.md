@@ -1,7 +1,9 @@
 # Authentication
 
-How callers authenticate to MCP METRO. The metro data sources themselves need no credentials, so this is the only
-authentication in the project.
+How callers authenticate to MCP METRO. In short: authentication is off by default (fine locally, not on a public
+address); when enabled, the `Authorization` header is resolved as permanent server tokens → Basic → JWT → custom
+validator; tokens are issued with `node scripts/generate-jwt.js` or the `/gen-jwt` skill. The metro data sources
+themselves need no credentials, so this is the only authentication in the project.
 
 ## Default state: open
 

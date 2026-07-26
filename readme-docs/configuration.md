@@ -1,6 +1,9 @@
 # Configuration
 
-Every setting MCP METRO reads, grouped by section, with the value the project ships with.
+Every setting MCP METRO reads, grouped by section, with the value the project ships with. In short: settings are
+resolved as environment variables > `config/local.yaml` > `config/{NODE_ENV}.yaml` > `config/default.yaml`;
+secrets belong in the gitignored `config/local.yaml`; the defaults run out of the box — the only keys a real
+deployment must set are `webServer.publicBaseUrl` and, once auth is on, the token secrets.
 
 ## How settings are resolved
 

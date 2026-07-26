@@ -1,6 +1,9 @@
 # Route Search
 
-How MCP METRO turns two station names into ranked route variants with realistic travel times.
+How MCP METRO turns two station names into ranked route variants with realistic travel times. In short: Yen's
+k-shortest-paths algorithm runs over a weighted graph rebuilt for the requested moment, closures active at that
+moment are removed from the graph before the search, expected train waiting time is added at every boarding, and
+variants more than 30% slower than the fastest one are dropped. The rest of this page explains each piece.
 
 ## The graph
 
