@@ -7,9 +7,10 @@
 // The link carries an HMAC signature over `from|to|lang` only. Its purpose is to keep the endpoint
 // serving links the tool itself issued (the k-shortest-paths search is not cheap). The signature
 // deliberately does NOT cover `at`, so the widget's "Refresh route" button can drop `at` to rebuild
-// for "now" without breaking the signature. `walk` (the user's walk time to the departure station)
-// is likewise outside the signature: it is display-only presentation data with no compute cost, and
-// keeping it unsigned lets the Refresh path reuse the link untouched.
+// for "now" without breaking the signature. `walk`/`walkFrom` (the user's walk times to the
+// departure station and from the arrival station) are likewise outside the signature: they are
+// display-only presentation data with no compute cost, and keeping them unsigned lets the Refresh
+// path reuse the link untouched.
 
 import { createHmac, timingSafeEqual } from 'node:crypto';
 
@@ -32,7 +33,9 @@ export interface IWidgetDataParams {
   /** Moment the route is built for; absent means "now" (the Refresh button path) */
   at?: Date;
   /** Walk time (minutes) from the user's origin to the departure station; absent — not mentioned */
-  walkMin?: number;
+  walkToMin?: number;
+  /** Walk time (minutes) from the arrival station to the user's destination; absent — not mentioned */
+  walkFromMin?: number;
 }
 
 /** Thrown by parseSignedQuery on malformed input or a signature mismatch (maps to HTTP 400) */
@@ -61,8 +64,11 @@ export const buildSignedUrl = (baseUrl: string, secret: string, params: IWidgetD
   if (params.at) {
     search.set('at', params.at.toISOString());
   }
-  if (params.walkMin !== undefined) {
-    search.set('walk', String(params.walkMin));
+  if (params.walkToMin !== undefined) {
+    search.set('walk', String(params.walkToMin));
+  }
+  if (params.walkFromMin !== undefined) {
+    search.set('walkFrom', String(params.walkFromMin));
   }
   search.set('sig', signSig(secret, fromStr, toStr, params.lang));
   return `${baseUrl}/api/widget-data?${search.toString()}`;
@@ -99,6 +105,19 @@ const parseIds = (raw: string, field: string): number[] => {
   return ids;
 };
 
+/** Optional walk-minutes query field → integer 1..WALK_MIN_MAX; throws WidgetLinkError when malformed */
+const parseWalk = (value: unknown, field: string): number | undefined => {
+  const raw = firstQueryValue(value);
+  if (!raw) {
+    return undefined;
+  }
+  const min = Number(raw);
+  if (!Number.isInteger(min) || min < 1 || min > WALK_MIN_MAX) {
+    throw new WidgetLinkError(`Invalid "${field}" parameter: expected an integer between 1 and ${WALK_MIN_MAX}.`);
+  }
+  return min;
+};
+
 /**
  * Parses and verifies a widget-data query (Express `req.query`) against `secret`. Returns typed
  * route parameters, or throws WidgetLinkError on missing/invalid parameters or a bad signature.
@@ -131,14 +150,15 @@ export const parseSignedQuery = (secret: string, query: Record<string, unknown>)
     }
   }
 
-  let walkMin: number | undefined;
-  const walkStr = firstQueryValue(query.walk);
-  if (walkStr) {
-    walkMin = Number(walkStr);
-    if (!Number.isInteger(walkMin) || walkMin < 1 || walkMin > WALK_MIN_MAX) {
-      throw new WidgetLinkError(`Invalid "walk" parameter: expected an integer between 1 and ${WALK_MIN_MAX}.`);
-    }
-  }
+  const walkToMin = parseWalk(query.walk, 'walk');
+  const walkFromMin = parseWalk(query.walkFrom, 'walkFrom');
 
-  return { fromIds, toIds, lang, ...(at ? { at } : {}), ...(walkMin !== undefined ? { walkMin } : {}) };
+  return {
+    fromIds,
+    toIds,
+    lang,
+    ...(at ? { at } : {}),
+    ...(walkToMin !== undefined ? { walkToMin } : {}),
+    ...(walkFromMin !== undefined ? { walkFromMin } : {}),
+  };
 };

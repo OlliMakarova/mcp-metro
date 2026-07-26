@@ -14,10 +14,12 @@ interface ISummaryVals {
   from: string;
   to: string;
   count: number;
-  /** Fastest total (minutes), including the walk to the departure station when it is known */
+  /** Fastest total (minutes), including the walks to/from the metro when they are known */
   fastestMin: number;
   /** Walk time (minutes) to the departure station; undefined — not mentioned by the user */
-  walkMin?: number;
+  walkToMin?: number;
+  /** Walk time (minutes) from the arrival station; undefined — not mentioned by the user */
+  walkFromMin?: number;
   transfers: number;
   lines: string[];
   closed: boolean;
@@ -45,6 +47,23 @@ const ruPlural = (n: number, forms: [string, string, string]): string => {
 const linesSuffix = (lines: string[], open: string, close: string): string =>
   lines.length ? ` ${open}${lines.join(', ')}${close}` : '';
 
+/** Localized «(incl. walk …)» clause; empty when neither walk time is known */
+const walkClause = (
+  v: ISummaryVals,
+  fmt: (min: number, dir: 'to' | 'from') => string,
+  join: string,
+  wrap: (body: string) => string,
+): string => {
+  const parts: string[] = [];
+  if (v.walkToMin !== undefined) {
+    parts.push(fmt(v.walkToMin, 'to'));
+  }
+  if (v.walkFromMin !== undefined) {
+    parts.push(fmt(v.walkFromMin, 'from'));
+  }
+  return parts.length ? wrap(parts.join(join)) : '';
+};
+
 const FORMAT: Record<TLang, (v: ISummaryVals) => string> = {
   en: (v) => {
     const transfers = v.transfers === 0 ? 'no transfers' : `${v.transfers} transfer${v.transfers === 1 ? '' : 's'}`;
@@ -54,7 +73,12 @@ const FORMAT: Record<TLang, (v: ISummaryVals) => string> = {
         ? ` Metro closes in ~${v.closingMin} min.`
         : '';
     const warn = v.warnings ? ` Advisories: ${v.warnings}.` : '';
-    const walk = v.walkMin !== undefined ? ` (incl. ~${v.walkMin} min walk to the metro)` : '';
+    const walk = walkClause(
+      v,
+      (min, dir) => `~${min} min walk ${dir === 'to' ? 'to the metro' : 'from the metro'}`,
+      ' and ',
+      (body) => ` (incl. ${body})`,
+    );
     return `Moscow Metro route ${v.from} → ${v.to}: ${v.count} option${v.count === 1 ? '' : 's'}, fastest ~${v.fastestMin} min${walk}, ${transfers}${linesSuffix(v.lines, '(', ')')}.${op}${warn}`;
   },
   ru: (v) => {
@@ -69,7 +93,12 @@ const FORMAT: Record<TLang, (v: ISummaryVals) => string> = {
         : '';
     const warn = v.warnings ? ` Предупреждений: ${v.warnings}.` : '';
     const options = ruPlural(v.count, ['вариант', 'варианта', 'вариантов']);
-    const walk = v.walkMin !== undefined ? ` (включая ~${v.walkMin} мин пешком до метро)` : '';
+    const walk = walkClause(
+      v,
+      (min, dir) => `~${min} мин пешком ${dir === 'to' ? 'до метро' : 'от метро'}`,
+      ' и ',
+      (body) => ` (включая ${body})`,
+    );
     return `Метро Москвы, маршрут ${v.from} → ${v.to}: ${v.count} ${options}, быстрейший ~${v.fastestMin} мин${walk}, ${transfers}${linesSuffix(v.lines, '(', ')')}.${op}${warn}`;
   },
   ar: (v) => {
@@ -80,7 +109,12 @@ const FORMAT: Record<TLang, (v: ISummaryVals) => string> = {
         ? ` يُغلق المترو خلال ~${v.closingMin} د.`
         : '';
     const warn = v.warnings ? ` تنبيهات: ${v.warnings}.` : '';
-    const walk = v.walkMin !== undefined ? ` (شاملاً ~${v.walkMin} د مشيًا إلى المترو)` : '';
+    const walk = walkClause(
+      v,
+      (min, dir) => `~${min} د مشيًا ${dir === 'to' ? 'إلى المترو' : 'من المترو'}`,
+      ' و',
+      (body) => ` (شاملاً ${body})`,
+    );
     return `مترو موسكو، المسار ${v.from} → ${v.to}: ${v.count} مسار، الأسرع ~${v.fastestMin} د${walk}، ${transfers}${linesSuffix(v.lines, '(', ')')}.${op}${warn}`;
   },
   cn: (v) => {
@@ -91,7 +125,12 @@ const FORMAT: Record<TLang, (v: ISummaryVals) => string> = {
         ? ` 地铁将于约 ${v.closingMin} 分钟后停止进站。`
         : '';
     const warn = v.warnings ? ` 注意事项：${v.warnings}。` : '';
-    const walk = v.walkMin !== undefined ? `（含步行至地铁约 ${v.walkMin} 分钟）` : '';
+    const walk = walkClause(
+      v,
+      (min, dir) => (dir === 'to' ? `步行至地铁约 ${min} 分钟` : `出站后步行约 ${min} 分钟`),
+      '、',
+      (body) => `（含${body}）`,
+    );
     return `莫斯科地铁，路线 ${v.from} → ${v.to}：${v.count} 个方案，最快约 ${v.fastestMin} 分钟${walk}，${transfers}${linesSuffix(v.lines, '（', '）')}。${op}${warn}`;
   },
 };
@@ -116,15 +155,17 @@ const fastestLines = (result: IFindRoutesResult, lang: TLang): string[] => {
 
 /**
  * Builds the concise, localized model-context summary for a route result. Returns an empty string
- * when no variants were found (nothing meaningful to record). `walkMin` — the user's walk time to
- * the departure station (minutes); when given, it is added to the fastest total and called out.
+ * when no variants were found (nothing meaningful to record). `walkToMin` / `walkFromMin` — the
+ * user's walk times to the departure station and from the arrival station (minutes); when given,
+ * they are added to the fastest total and called out.
  */
 export const buildModelSummary = (
   result: IFindRoutesResult,
   fromName: string,
   toName: string,
   lang: TLang,
-  walkMin?: number,
+  walkToMin?: number,
+  walkFromMin?: number,
 ): string => {
   const first = result.variants[0];
   if (!first) {
@@ -136,8 +177,9 @@ export const buildModelSummary = (
     from: fromName,
     to: toName,
     count: result.variants.length,
-    fastestMin: Math.round(first.totalTimeSec / 60) + (walkMin ?? 0),
-    ...(walkMin !== undefined ? { walkMin } : {}),
+    fastestMin: Math.round(first.totalTimeSec / 60) + (walkToMin ?? 0) + (walkFromMin ?? 0),
+    ...(walkToMin !== undefined ? { walkToMin } : {}),
+    ...(walkFromMin !== undefined ? { walkFromMin } : {}),
     transfers: first.transfersCount,
     lines: fastestLines(result, lang),
     closed: op.isOpen === false,

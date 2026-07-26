@@ -46,29 +46,33 @@ describe('widget-data-sign', () => {
     expect(parsed.fromIds).toEqual(fromIds);
   });
 
-  it('round-trips the walk-to-metro time and omits it when not set', () => {
+  it('round-trips the walk-to/from-metro times and omits them when not set', () => {
     const withWalk = parseSignedQuery(
       SECRET,
-      queryOf(buildSignedUrl(BASE, SECRET, { fromIds, toIds, lang: 'ru', walkMin: 10 })),
+      queryOf(buildSignedUrl(BASE, SECRET, { fromIds, toIds, lang: 'ru', walkToMin: 10, walkFromMin: 5 })),
     );
-    expect(withWalk.walkMin).toBe(10);
+    expect(withWalk.walkToMin).toBe(10);
+    expect(withWalk.walkFromMin).toBe(5);
     const without = parseSignedQuery(SECRET, queryOf(buildSignedUrl(BASE, SECRET, { fromIds, toIds, lang: 'ru' })));
-    expect(without.walkMin).toBeUndefined();
+    expect(without.walkToMin).toBeUndefined();
+    expect(without.walkFromMin).toBeUndefined();
   });
 
-  it('keeps the signature valid after removing at while walk is present (Refresh with walk)', () => {
-    const url = buildSignedUrl(BASE, SECRET, { fromIds, toIds, lang: 'en', at: AT, walkMin: 7 });
+  it('keeps the signature valid after removing at while walks are present (Refresh with walks)', () => {
+    const url = buildSignedUrl(BASE, SECRET, { fromIds, toIds, lang: 'en', at: AT, walkToMin: 7, walkFromMin: 4 });
     const u = new URL(url);
     u.searchParams.delete('at');
     const parsed = parseSignedQuery(SECRET, queryOf(u.toString()));
     expect(parsed.at).toBeUndefined();
-    expect(parsed.walkMin).toBe(7);
+    expect(parsed.walkToMin).toBe(7);
+    expect(parsed.walkFromMin).toBe(4);
   });
 
-  it('rejects a malformed walk parameter', () => {
+  it('rejects malformed walk / walkFrom parameters', () => {
     const q = queryOf(buildSignedUrl(BASE, SECRET, { fromIds, toIds, lang: 'en' }));
     for (const bad of ['abc', '0', '-5', '3.5', '601']) {
       expect(() => parseSignedQuery(SECRET, { ...q, walk: bad })).toThrow(WidgetLinkError);
+      expect(() => parseSignedQuery(SECRET, { ...q, walkFrom: bad })).toThrow(WidgetLinkError);
     }
   });
 

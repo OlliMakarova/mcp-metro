@@ -85,6 +85,8 @@ export interface IRoutesWidgetData {
   modelSummary: string;
   /** Walk time (seconds) from the user's origin to the departure station; absent — not mentioned */
   walkToMetroSec?: number;
+  /** Walk time (seconds) from the arrival station to the user's destination; absent — not mentioned */
+  walkFromMetroSec?: number;
   closuresApplied: boolean;
   operating: {
     isOpen: boolean;
@@ -229,15 +231,17 @@ const widgetVariant = (v: IRouteVariant, lang: TLang): IWidgetVariant => ({
 
 /**
  * Full widget payload for the found routes (structuredContent of the tool response).
- * `walkMin` — the user's walk time to the departure station (minutes), when mentioned: the widget
- * shows it as a walking segment and adds it to the totals, and the model summary calls it out.
+ * `walkToMin` / `walkFromMin` — the user's walk times to the departure station and from the arrival
+ * station (minutes), when mentioned: the widget shows them as walking segments and adds them to the
+ * totals, and the model summary calls them out.
  */
 export const buildRoutesWidgetData = (
   result: IFindRoutesResult,
   fromName: string,
   toName: string,
   lang: TLang,
-  walkMin?: number,
+  walkToMin?: number,
+  walkFromMin?: number,
 ): IRoutesWidgetData => {
   const op = result.operating;
   const warnings: IWidgetWarning[] = endpointWarnings(result.variants).map((w) => ({
@@ -251,8 +255,9 @@ export const buildRoutesWidgetData = (
     lang,
     from: fromName,
     to: toName,
-    modelSummary: buildModelSummary(result, fromName, toName, lang, walkMin),
-    ...(walkMin !== undefined ? { walkToMetroSec: walkMin * 60 } : {}),
+    modelSummary: buildModelSummary(result, fromName, toName, lang, walkToMin, walkFromMin),
+    ...(walkToMin !== undefined ? { walkToMetroSec: walkToMin * 60 } : {}),
+    ...(walkFromMin !== undefined ? { walkFromMetroSec: walkFromMin * 60 } : {}),
     closuresApplied: result.closuresApplied,
     operating: {
       isOpen: op.isOpen,

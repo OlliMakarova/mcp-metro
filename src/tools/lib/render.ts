@@ -209,27 +209,33 @@ const renderEndpoint = (role: string, ep: IRouteEndpoint, lang: TLang): string =
   return `- **${role}: ${pickName(ep.station.name, lang)}** (${lineName(ep.line, lang)})${tail}`;
 };
 
-const renderVariant = (v: IRouteVariant, n: number, lang: TLang, walkSec: number): string => {
+const renderVariant = (v: IRouteVariant, n: number, lang: TLang, walkToSec: number, walkFromSec: number): string => {
   const extraEnter = v.departure.enterTimeSec ?? 0;
   const extraExit = v.arrival.exitTimeSec ?? 0;
-  const totalWithWalk = v.totalTimeSec + walkSec;
+  const totalWithWalk = v.totalTimeSec + walkToSec + walkFromSec;
   const doorToDoor = totalWithWalk + extraEnter + extraExit;
 
   const out: string[] = [];
   // Per-leg times already show the ride/transfer split; only the wait share and the
   // door-to-door total are not derivable from the legs
   const extras = extraEnter || extraExit ? `; ~${fmtDuration(doorToDoor)} door-to-door` : '';
-  const walkNote = walkSec ? `, walk to the metro ~${fmtDuration(walkSec)}` : '';
+  const walkNotes = [
+    walkToSec ? `, walk to the metro ~${fmtDuration(walkToSec)}` : '',
+    walkFromSec ? `, walk from the metro ~${fmtDuration(walkFromSec)}` : '',
+  ].join('');
   out.push(`## Option ${n} — ${fmtDuration(totalWithWalk)}, transfers: ${v.transfersCount}`);
-  out.push(`(incl. expected train wait ~${fmtDuration(v.waitTimeSec)}${walkNote}${extras})`);
+  out.push(`(incl. expected train wait ~${fmtDuration(v.waitTimeSec)}${walkNotes}${extras})`);
   let i = 1;
-  if (walkSec) {
-    out.push(`${i}. 🚶 Walk to the departure station — ${fmtDuration(walkSec)}`);
+  if (walkToSec) {
+    out.push(`${i}. 🚶 Walk to the departure station — ${fmtDuration(walkToSec)}`);
     i += 1;
   }
   for (const leg of v.legs) {
     out.push(leg.kind === 'ride' ? renderRideLeg(leg, i, lang) : renderTransferLeg(leg, i, lang));
     i += 1;
+  }
+  if (walkFromSec) {
+    out.push(`${i}. 🚶 Walk from the arrival station to the destination — ${fmtDuration(walkFromSec)}`);
   }
   return out.join('\n');
 };
@@ -301,19 +307,25 @@ const operatingWarning = (result: IFindRoutesResult): string | undefined => {
 };
 
 /**
- * Full markdown response for the found routes. `walkMin` — the user's walk time to the departure
- * station (minutes), when the conversation mentioned it: added to every option's total and shown
- * as the first (walking) segment.
+ * Full markdown response for the found routes. `walkToMin` / `walkFromMin` — the user's walk times
+ * to the departure station and from the arrival station (minutes), when the conversation mentioned
+ * them: added to every option's total and shown as the first / last (walking) segments.
  */
 export const renderRoutes = (
   result: IFindRoutesResult,
   fromName: string,
   toName: string,
   lang: TLang,
-  walkMin?: number,
+  walkToMin?: number,
+  walkFromMin?: number,
 ): string => {
-  const walkSec = (walkMin ?? 0) * 60;
-  const walkIncluded = walkSec ? ` and a ~${fmtDuration(walkSec)} walk to the departure station` : '';
+  const walkToSec = (walkToMin ?? 0) * 60;
+  const walkFromSec = (walkFromMin ?? 0) * 60;
+  const walkBits = [
+    walkToSec ? `a ~${fmtDuration(walkToSec)} walk to the departure station` : '',
+    walkFromSec ? `a ~${fmtDuration(walkFromSec)} walk from the arrival station` : '',
+  ].filter(Boolean);
+  const walkIncluded = walkBits.length ? ` and ${walkBits.join(' and ')}` : '';
   const head = [
     `# Routes: ${fromName} → ${toName}`,
     '',
@@ -334,7 +346,7 @@ export const renderRoutes = (
     head.push('No route could be built between the given stations.');
     return head.join('\n');
   }
-  const body = result.variants.map((v, idx) => renderVariant(v, idx + 1, lang, walkSec));
+  const body = result.variants.map((v, idx) => renderVariant(v, idx + 1, lang, walkToSec, walkFromSec));
 
   // Departure/arrival details are identical across variants in the common case — render each
   // distinct block once at the end instead of repeating it under every option
