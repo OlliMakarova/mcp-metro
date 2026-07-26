@@ -14,8 +14,8 @@ allowed-tools: Bash, Read
 
 Project-agnostic skill: nothing here is hard-coded to a particular project, server or domain.
 The service/container name is derived from the host project's `package.json` name and the node
-version from its `.envrc`; everything else comes from the config file. Copy this whole skill folder
-into another fa-mcp-sdk project, fill in `remote-server-config.local.yaml`, and it works.
+version from its `.envrc`; everything else comes from the `config/` files. Copy this whole skill
+folder into another fa-mcp-sdk project, fill in `config/*.yaml`, and it works.
 
 Almost everything is done by scripts. Your job: pick the right subcommand, run it, and report the
 output to the user in clear Russian. Do not hand-craft SSH or docker commands — the orchestrator
@@ -51,16 +51,25 @@ Report exactly what the script printed (health, git verdict, errors) — do not 
 
 ## Configuration
 
-Settings live in `.claude/skills/deploy-mcp-to-remote-server/remote-server-config.local.yaml`
-(out of version control; template in `remote-server-config.example.yaml`). Required keys:
-`server.*`, `git.repoUrl`, `git.deployKeyPath`, `project.statePath` (and optional `project.branch`,
-`project.projectPath`), `mcp.dns`, the `deployConfigYaml` block (branch + email → deploy/config.yml),
-and the whole `configLocalYaml` block (the app's runtime config → config/local.yaml). The
-`configLocalYaml.telegram` section doubles as the deploy-notification channel (its creds are
-auto-appended to deploy/config.yml). `env.DEBUG` is optional (default `config-info`). That file is
-blocked from direct reading by a permission rule (it holds secrets) — rely on `status`/`logs`
-output for debugging. If the script reports the config is missing a value, tell the user which key
-to add — do not guess credentials.
+Settings live in `.claude/skills/deploy-mcp-to-remote-server/config/` — three real files (out of
+version control via `config/.gitignore`; each has an `*.example.*` template beside it):
+
+- **`remote-server-config.local.yaml`** — connection + deploy params. Required: `server.*`,
+  `git.repoUrl`, `git.deployKeyPath`, `mcp.dns`; optional `project.statePath`/`projectPath`/`cacheDir`,
+  `env.DEBUG` (default `config-info`), `service.name`/`instance`, `container.nodeVersion`.
+- **`local.yaml`** — the MCP app's own `config/local.yaml`, copied **verbatim** into the container.
+  Whatever the project supports goes here. The skill reads only `webServer.port` from it. Do **not**
+  set `webServer.publicBaseUrl` — the skill injects `https://<mcp.dns>`. (The app may keep its own
+  `telegram:` here for its own alerts; that is independent of the deploy notifications below.)
+- **`config.yml`** — the container's `deploy/config.yml` (read by `update.cjs`): `branch`, the deploy
+  skill's `telegram:` block (`botToken`/`chatId`), optional `email`, and an optional `smtp:` block.
+  With `smtp:` update.cjs e-mails the report over SMTP via nodemailer (works in the container, no MTA
+  needed); without it, e-mail uses the host `mail` command (classic host deploy only). `config.yml`
+  is copied verbatim into the container — the deploy notifications read **only** from here.
+
+The real files hold secrets and may be blocked from the Read tool — inspect them with a small
+`node -e "fs.readFileSync(...)"` if needed, and rely on `status`/`logs`/`updatelog` for debugging.
+If the script reports a file or key is missing, tell the user which one — do not guess credentials.
 
 ## First-time deploy — order of steps
 
@@ -77,8 +86,8 @@ to add — do not guess credentials.
   PID 1. It carries no app code. `remote.cjs deploy` pipes it to `docker build -` on the server
   (no build context, so nothing lands on the server disk).
 - **Boot-time bootstrap.** A baked `mcp-bootstrap.service` clones the repo (using the read-only
-  Deploy Key), writes `config/local.yaml` (from `configLocalYaml`), `deploy/config.yml` (branch +
-  Telegram creds) and `.env` (with `WS_HOST=127.0.0.1` — the container runs `--network host`, so the
+  Deploy Key), writes `config/local.yaml` (from the skill's `local.yaml`), `deploy/config.yml` (from
+  `config.yml` + Telegram creds) and `.env` (with `WS_HOST=127.0.0.1` — the container runs `--network host`, so the
   app listens on loopback only and the reverse proxy fronts it), runs `yarn install` + build, then
   installs the app as a systemd service via the repo's own `deploy/srv.cjs install`.
 - **`--network host`.** The container shares the host's network (so it reaches whatever the host can,
@@ -86,9 +95,10 @@ to add — do not guess credentials.
   published on a public interface.
 - **Auto-update within 2 minutes.** A cron job inside the container runs the repo's `update.cjs`
   every minute. On any change to the branch it hard-resets, rebuilds and `systemctl restart`s the
-  service, then posts a SUCCESS/FAIL verdict. `update.cjs` is **universal**: it e-mails (only where a
-  `mail` agent exists, i.e. a classic host deploy) and posts to **Telegram** (whenever bot creds are
-  set) — inside the container only Telegram fires. The checkout and `node_modules` live in the Docker
+  service, then posts a SUCCESS/FAIL verdict. `update.cjs` notifies via every configured channel:
+  **Telegram** (whenever bot creds are set — the usual in-container channel), and **e-mail** either
+  over **SMTP** (nodemailer, when `config.yml` has an `smtp:` block — works in the container) or via
+  the host `mail` command (classic host deploy). The checkout and `node_modules` live in the Docker
   volume `<name>-data` (fast restarts); the app's data cache (`data-cache`, or `project.cacheDir`) is
   bind-mounted to the host `project.statePath` so it persists even across container/volume removal.
 - **Reverse proxy from the fa-mcp-sdk templates.** `deploy` auto-detects Caddy or nginx and renders
@@ -108,9 +118,9 @@ to add — do not guess credentials.
   - **Do NOT add security headers at the proxy**: fa-mcp-sdk already emits `X-Content-Type-Options`,
     `X-Frame-Options` and `Referrer-Policy` on every response — the templates deliberately omit them
     so clients never receive duplicate/conflicting values.
-  - **`webServer.trustProxy: true`** must be set in `configLocalYaml` so Express honours the
+  - **`webServer.trustProxy: true`** must be set in `local.yaml` so Express honours the
     `X-Forwarded-*` headers (otherwise HTTPS detection, per-IP rate limiting and the OAuth discovery
-    documents break). `publicBaseUrl` is derived as `https://<dns>` — do not set it in `configLocalYaml`.
+    documents break). `publicBaseUrl` is derived as `https://<dns>` — do not set it in `local.yaml`.
   - Note: behind a NAT/front-proxy that hides the real client IP (nginx sees one fixed address), the
     `/metrics` and `/admin` IP allow-lists cannot distinguish external from internal callers.
 - **Privileged container.** Running systemd as PID 1 requires `--privileged` + a cgroup mount. This
@@ -136,5 +146,5 @@ to add — do not guess credentials.
   `proxy_buffering off` and a long `proxy_read_timeout`; without them nginx buffers the SSE stream and
   the client sees a hung session. The fa-mcp-sdk template sets this — check it wasn't flattened to a
   single `location /`.
-- **No Telegram notifications** → verify `configLocalYaml.telegram.botToken` / `chatId`; the verdict
+- **No Telegram notifications** → verify `config.yml`'s `telegram.botToken` / `chatId`; the verdict
   is sent by `update.cjs` only when both are set.

@@ -1,0 +1,26 @@
+# Copy this file to config.yml (kept out of version control).
+#
+# config.yml becomes the container's deploy/config.yml, read by update.cjs (proper YAML).
+# It holds ALL settings the deploy skill's notifications need.
+
+branch: master
+
+# ── Telegram — the deploy skill's build/restart notifications (read by update.cjs) ──
+# This is separate from the app's own telegram in local.yaml. Remove to disable Telegram.
+telegram:
+  botToken: '<bot token>'
+  chatId: '<chat id>'
+
+# ── E-mail (optional) ──
+# Sent to `email` below when it is set. Two modes:
+#   * email + smtp block  → over SMTP via nodemailer — WORKS INSIDE THE CONTAINER (no MTA).
+#   * email only          → via the host `mail` command — only on a classic host deploy.
+email: <recipient email>
+
+# OPTIONAL SMTP relay. Remove the block to disable SMTP. nodemailer must be a project dependency.
+smtp:
+  from: 'SERVER <server@corp.com>'   # From / envelope sender
+  host: <smtp.host>
+  port: 25                           # 465 = implicit TLS; 587 / 25 = STARTTLS or plain
+  user: <user>                       # omit user + pass for an IP-authenticated relay
+  pass: <password>

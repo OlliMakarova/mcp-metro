@@ -10,7 +10,7 @@
 //
 // Model: a self-contained systemd Docker image (docker/Dockerfile) carrying no app
 // code; at boot it clones the repo (read-only Deploy Key passed via env), writes
-// config/local.yaml (from configLocalYaml) + deploy/config.yml + .env, builds,
+// config/local.yaml (from config/local.yaml) + deploy/config.yml + .env, builds,
 // installs the app as a systemd service, and runs update.cjs from cron every minute.
 //
 // This orchestrator only: builds the image on the server context-lessly
@@ -33,7 +33,14 @@ const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
 
-const CONFIG_FILE = path.join(__dirname, '..', 'remote-server-config.local.yaml');
+// Settings live in the sibling config/ folder, split into three files:
+//   remote-server-config.local.yaml — connection + deploy params (server/git/project/mcp/env)
+//   local.yaml                       — the app's config/local.yaml, copied verbatim into the container
+//   config.yml                       — the container's deploy/config.yml base (branch, email)
+const CONFIG_DIR = path.join(__dirname, '..', 'config');
+const CONFIG_FILE = path.join(CONFIG_DIR, 'remote-server-config.local.yaml');
+const LOCAL_YAML_FILE = path.join(CONFIG_DIR, 'local.yaml');
+const CONFIG_YML_FILE = path.join(CONFIG_DIR, 'config.yml');
 const DOCKERFILE = path.join(__dirname, '..', 'docker', 'Dockerfile');
 // Host project root: .claude/skills/<skill>/scripts/remote.cjs -> up four levels.
 const PROJECT_ROOT = path.resolve(__dirname, '..', '..', '..', '..');
@@ -68,37 +75,6 @@ function parseYaml(text) {
     }
   }
   return root;
-}
-
-// Extract the raw text under a top-level key, dedented by one level — used to
-// reproduce config/local.yaml verbatim (comments, quoting) without a lossy
-// parse/emit round-trip.
-function extractRawBlock(text, topKey) {
-  const lines = text.split('\n');
-  const out = [];
-  let inside = false;
-  let baseIndent = 2;
-  for (const line of lines) {
-    if (!inside) {
-      if (new RegExp(`^${topKey}:\\s*$`).test(line)) {
-        inside = true;
-        // Detect the child indent from the first non-blank child line later.
-      }
-      continue;
-    }
-    if (line.trim() === '') {
-      out.push('');
-      continue;
-    }
-    const indent = line.length - line.trimStart().length;
-    if (indent === 0) break; // next top-level key ends the block
-    if (out.length === 0 || out.every((l) => l === '')) baseIndent = indent;
-    out.push(line.slice(baseIndent));
-  }
-  // Drop leading/trailing blank lines.
-  while (out.length && out[0] === '') out.shift();
-  while (out.length && out[out.length - 1] === '') out.pop();
-  return out.join('\n') + '\n';
 }
 
 // Container paths of the update.cjs bookkeeping logs (VON = parent of the project dir,
@@ -157,27 +133,32 @@ function readNodeVersion(cfg) {
 
 function loadConfig() {
   if (!fs.existsSync(CONFIG_FILE)) {
-    fail(`Config not found: ${CONFIG_FILE}\nCopy remote-server-config.example.yaml to it and fill it in.`);
+    fail(`Config not found: ${CONFIG_FILE}\nCopy config/remote-server-config.example.yaml to it and fill it in.`);
   }
-  const raw = fs.readFileSync(CONFIG_FILE, 'utf8');
-  const cfg = parseYaml(raw);
+  if (!fs.existsSync(LOCAL_YAML_FILE)) {
+    fail(`Missing ${LOCAL_YAML_FILE}\nCopy config/local.example.yaml to config/local.yaml (the app's config/local.yaml).`);
+  }
+  const cfg = parseYaml(fs.readFileSync(CONFIG_FILE, 'utf8'));
   const server = cfg.server || {};
   const project = cfg.project || {};
   const git = cfg.git || {};
   const mcp = cfg.mcp || {};
   const envSection = cfg.env || {};
-  const local = cfg.configLocalYaml || {};
-  const telegram = local.telegram || {};
   const req = (v, name) => {
     if (!v) fail(`Missing required config value: ${name}`);
     return v;
   };
-  // deploy/config.yml content = the deployConfigYaml block verbatim (branch, email)
-  // plus the Telegram credentials pulled from configLocalYaml.telegram, so the
-  // container's update.cjs can notify via Telegram without duplicating them by hand.
-  const telegramLines =
-    (telegram.botToken ? `telegramBotToken: ${telegram.botToken}\n` : '') +
-    (telegram.chatId ? `telegramChatId: ${telegram.chatId}\n` : '');
+
+  // The app's config/local.yaml, copied verbatim into the container. Parsed only for the
+  // listening port (webServer.port) — nothing else is read from it.
+  const localYaml = fs.readFileSync(LOCAL_YAML_FILE, 'utf8');
+  const local = parseYaml(localYaml);
+
+  // The container's deploy/config.yml = config.yml verbatim (branch, email, optional smtp and the
+  // deploy skill's telegram block, all read by update.cjs).
+  const deployYml = fs.existsSync(CONFIG_YML_FILE) ? fs.readFileSync(CONFIG_YML_FILE, 'utf8') : 'branch: master\n';
+  const dcfg = parseYaml(deployYml);
+
   const name = readProjectName(cfg);
   const instance = (cfg.service && cfg.service.instance) || 'prod';
   return {
@@ -190,18 +171,18 @@ function loadConfig() {
     keyPath: req(server.keyPath, 'server.keyPath'),
     repoUrl: req(project.repoUrl || git.repoUrl, 'project.repoUrl'),
     deployKeyPath: git.deployKeyPath || project.deployKeyPath || '',
-    branch: project.branch || 'master',
+    branch: dcfg.branch || project.branch || 'master',
     projectPath: project.projectPath || `/opt/node/${name}`,
     statePath: project.statePath || `/opt/${name}`,
     // Subdir inside the project the persistent statePath is bind-mounted onto
     // (the app's on-disk cache). Default suits fa-mcp-sdk apps; override if needed.
     cacheDir: project.cacheDir || 'data-cache',
     dns: req(mcp.dns, 'mcp.dns'),
-    email: (cfg.deployConfigYaml && cfg.deployConfigYaml.email) || '',
+    email: dcfg.email || '',
     debug: envSection.DEBUG || 'config-info',
     appPort: (local.webServer && local.webServer.port) || '9049',
-    localYaml: extractRawBlock(raw, 'configLocalYaml'),
-    deployConfigYaml: extractRawBlock(raw, 'deployConfigYaml') + telegramLines,
+    localYaml, // verbatim -> container config/local.yaml
+    deployConfigYaml: `${deployYml.replace(/\n*$/, '')}\n`, // verbatim -> container deploy/config.yml
   };
 }
 
@@ -467,7 +448,7 @@ function cmdKeygen(cfg) {
   console.log(pub);
   console.log('──────────────────────────────────────────────────────────────');
   if (!cfg.deployKeyPath) {
-    console.log(`Then set  git.deployKeyPath: ${target}  in remote-server-config.local.yaml`);
+    console.log(`Then set  git.deployKeyPath: ${target}  in config/remote-server-config.local.yaml`);
   }
 }
 

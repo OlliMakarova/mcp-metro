@@ -1,19 +1,21 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # Example configuration for the deploy-mcp-to-remote-server skill (project-agnostic).
 #
-# Copy to remote-server-config.local.yaml (kept out of version control) and fill
-# in real values. The orchestrator scripts/remote.cjs reads the .local.yaml only.
+# This is the CONNECTION + DEPLOY config. Copy the three example files in this folder:
+#   remote-server-config.example.yaml -> remote-server-config.local.yaml  (this file)
+#   local.example.yaml                -> local.yaml    (the app's config/local.yaml, verbatim)
+#   config.example.yml                -> config.yml     (the container's deploy/config.yml)
+# All three real files are kept out of version control (see config/.gitignore).
 #
 # The skill hard-codes NOTHING project-specific. The service/container/image/volume
 # name is derived from this project's package.json `name`, and the node version from
-# its .envrc (`nvm use <ver>`). Everything else comes from this file.
+# its .envrc (`nvm use <ver>`). Everything else comes from these three files.
 #
 # Deployment model: a self-contained systemd Docker container run with --network host.
 # On the server nothing lives but Docker + one reverse-proxy vhost (Caddy or nginx —
-# auto-detected). The container clones the repo, writes config/local.yaml (from the
-# whole `configLocalYaml` block below) and deploy/config.yml (from `deployConfigYaml`
-# + Telegram creds), builds, runs the app as a systemd service, and a cron inside it
-# runs update.cjs every minute (rebuild on change + notify).
+# auto-detected). The container clones the repo, writes config/local.yaml (from local.yaml)
+# and deploy/config.yml (from config.yml + Telegram creds pulled from local.yaml), builds,
+# runs the app as a systemd service, and a cron inside it runs update.cjs every minute.
 #
 # Format is a small subset of YAML: nested maps with 2-space indentation and scalar
 # values. Do not quote Windows key paths — backslashes are literal.
@@ -52,47 +54,3 @@ mcp:
 
 env:
   DEBUG: config-info   # DEBUG value passed into the container (optional; default: config-info)
-
-# ── deployConfigYaml — written verbatim to deploy/config.yml inside the container ──
-# update.cjs reads it. Telegram credentials are auto-appended from configLocalYaml.telegram,
-# so you do not repeat them here. `email` is used only on a classic host deploy (where a
-# `mail` agent exists); in the container the verdict goes to Telegram instead.
-deployConfigYaml:
-  branch: master
-  email: <email for the classic host deploy>
-
-# ── configLocalYaml — written verbatim to config/local.yaml inside the container ──
-# The full runtime config of the app (secrets included). Its telegram section is
-# reused for the deploy/rebuild notifications.
-configLocalYaml:
-  agentTester:
-    enabled: true
-    showFooterLink: false
-    useAuth: true
-    openAi:
-      apiKeyName: '***'
-      apiKey: '***'
-      baseURL: '***'
-      exposeToClient: false
-
-  homePage:
-    helpLink:
-      href: ''
-
-  telegram:
-    enabled: true
-    botToken: '***'   # also used for deploy/rebuild notifications
-    chatId: '***'     # also used for deploy/rebuild notifications
-
-  widgetData:
-    # Permanent HMAC secret for signing widget-data links — so issued links stay valid across restarts.
-    signSecret: '***'
-
-  webServer:
-    port: 9049
-    # NOTE: publicBaseUrl is NOT set here — the orchestrator derives it as
-    # https://<mcp.dns> and injects it into the container (WS_PUBLIC_BASE_URL).
-    auth:
-      jwtToken:
-        encryptKey: '***'
-    trustProxy: true

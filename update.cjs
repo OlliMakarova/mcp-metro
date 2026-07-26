@@ -5,6 +5,7 @@
 const fs = require('fs');
 const path = require('path');
 const https = require('https');
+const YAML = require('yaml');
 const { execSync, spawn } = require('child_process');
 const os = require('os');
 
@@ -264,57 +265,30 @@ function showHelp() {
 }
 
 /**
- * Parse simple YAML content (key: value format)
- */
-function parseSimpleYAML(content) {
-  const config = {};
-  const lines = content.split('\n');
-
-  for (const line of lines) {
-    const trimmed = line.trim();
-    // Skip empty lines and comments
-    if (trimmed && !trimmed.startsWith('#')) {
-      // Parse key: value pairs
-      const colonIndex = trimmed.indexOf(':');
-      if (colonIndex > 0) {
-        const [, key, valueRaw] = trimmed.match(/^\s*([^:]+?)\s*:\s*(.*)\s*$/) || [];
-        let value = valueRaw ? valueRaw.replace(/^(['"])(.*)\1$/, '$2') : '';
-        // Handle empty values
-        if (value === 'null' || value === '~') {
-          value = '';
-        }
-        config[key] = value;
-      }
-    }
-  }
-
-  return config;
-}
-
-/**
- * Load configuration from YAML file
+ * Load configuration from deploy/config.yml (proper YAML via the `yaml` package).
+ * Telegram, SMTP and the rest are read as nested blocks: `telegram: { botToken, chatId }`,
+ * `smtp: { from, host, port, user, pass }`.
  */
 function loadConfig() {
   // Load NVM environment from .envrc
   loadNVMEnvironment();
 
   const configFile = path.join(process.cwd(), 'deploy', 'config.yml');
-
-  // Get Node.js version from NVM environment if available
   if (!fs.existsSync(configFile)) {
     return { ...DEFAULT_CONFIG };
   }
 
   try {
-    const configContent = fs.readFileSync(configFile, 'utf8');
-    const config = parseSimpleYAML(configContent);
-
+    const config = YAML.parse(fs.readFileSync(configFile, 'utf8')) || {};
+    const telegram = config.telegram || {};
+    const smtp = config.smtp && config.smtp.host ? config.smtp : null;
     return {
       branch: config.branch || DEFAULT_CONFIG.branch,
       nodeVersion: config.nodeVersion,
       email: config.email || DEFAULT_CONFIG.email,
-      telegramBotToken: config.telegramBotToken || DEFAULT_CONFIG.telegramBotToken,
-      telegramChatId: config.telegramChatId || DEFAULT_CONFIG.telegramChatId,
+      smtp,
+      telegramBotToken: telegram.botToken || DEFAULT_CONFIG.telegramBotToken,
+      telegramChatId: telegram.chatId || DEFAULT_CONFIG.telegramChatId,
     };
   } catch (error) {
     console.warn(`Warning: Could not parse config file ${configFile}:`, error.message);
@@ -495,6 +469,57 @@ ${colorizeHTML(clearColors(body))}
 }
 
 /**
+ * Send a build/restart verdict by e-mail over SMTP via nodemailer. Used when a `smtp:`
+ * block is set in deploy/config.yml — works inside the container (no local MTA needed).
+ * Recipient is `email`; sender is `smtp.from` (falling back to `smtp.user`).
+ */
+async function sendSmtpNotification(config, status, body, serviceName) {
+  const { smtp, email } = config;
+  if (!smtp) {
+    return;
+  }
+  if (!email) {
+    logIt('SMTP configured but no recipient (email) set — notification skipped');
+    return;
+  }
+  let nodemailer;
+  try {
+    nodemailer = require('nodemailer');
+  } catch {
+    logIt('SMTP configured but nodemailer is not installed — notification skipped');
+    return;
+  }
+  const s = status === 'FAIL' ? '<r>FAIL</r> ' : status === 'SUCCESS' ? '<g>SUCCESS</g> ' : '';
+  const hostname = os.hostname();
+  const port = Number(smtp.port) || 25;
+  const html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"></head><body><pre>
+${colorizeHTML(clearColors(body.replace('<status>', s)))}
+</pre></body></html>`;
+  const transporter = nodemailer.createTransport({
+    host: smtp.host,
+    port,
+    secure: port === 465, // 465 = implicit TLS; 587/25 = STARTTLS/plain
+    auth: smtp.user && smtp.pass ? { user: smtp.user, pass: smtp.pass } : undefined,
+    // Internal corporate relays often present self-signed certs; this is only a deploy notice.
+    tls: { rejectUnauthorized: false },
+    connectionTimeout: 15000,
+    greetingTimeout: 15000,
+    socketTimeout: 20000,
+  });
+  try {
+    logIt(`Sending SMTP notification to ${email} via ${smtp.host}:${port}`);
+    await transporter.sendMail({
+      from: smtp.from || smtp.user,
+      to: email,
+      subject: `${status} Update: ${serviceName} (on ${hostname})`,
+      html,
+    });
+  } catch (error) {
+    console.error(`SMTP send failed: ${error.message}`);
+  }
+}
+
+/**
  * Send a build/restart verdict to Telegram. Used on the Docker deployment (and
  * anywhere a bot is configured). Credentials come from deploy/config.yml →
  * telegramBotToken / telegramChatId.
@@ -548,13 +573,18 @@ function sendTelegramNotification(config, status, body, serviceName) {
 }
 
 /**
- * Universal dispatcher: fire every configured notification channel. E-mail is used
- * on the classic host deployment (when a `mail` command and an address exist);
- * Telegram is used on the Docker deployment (when bot credentials exist). Both may
- * fire; each is a no-op when its prerequisites are absent.
+ * Universal dispatcher: fire every configured notification channel.
+ *   * E-mail — via SMTP (nodemailer) when a `smtp:` block is set (works in the container),
+ *     otherwise via the system `mail` command (classic host deploy).
+ *   * Telegram — when bot credentials exist.
+ * Each channel is a no-op when its prerequisites are absent.
  */
 async function sendNotifications(config, status, body, serviceName) {
-  await sendEmailNotification(config.email, status, body, serviceName);
+  if (config.smtp) {
+    await sendSmtpNotification(config, status, body, serviceName);
+  } else {
+    await sendEmailNotification(config.email, status, body, serviceName);
+  }
   await sendTelegramNotification(config, status, body, serviceName);
 }
 

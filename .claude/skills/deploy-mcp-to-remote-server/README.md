@@ -1,7 +1,8 @@
 # deploy-mcp-to-remote-server — операции вручную
 
 Скилл обезличен: его можно скопировать в любой проект MCP-сервера на `fa-mcp-sdk`, заполнить
-`remote-server-config.local.yaml` — и он заработает. Ничего проектно-специфичного здесь не
+три файла в `config/` (`remote-server-config.local.yaml`, `local.yaml`, `config.yml`) — и он
+заработает. Ничего проектно-специфичного здесь не
 захардкожено: имя сервиса и версия Node определяются автоматически из проекта, всё остальное —
 из настроек.
 
@@ -25,7 +26,7 @@ node .claude/skills/deploy-mcp-to-remote-server/scripts/remote.cjs <команд
 | Имя контейнера / образа / тома | `<NAME>` / `<NAME>:latest` / `<NAME>-data` | `<CONTAINER>` |
 | Каталог проекта внутри контейнера | `project.projectPath` (по умолчанию `/opt/node/<NAME>`) | `<PROJECT_DIR>` |
 | Постоянный кэш на хосте | `project.statePath` (по умолчанию `/opt/<NAME>`) | — |
-| Внутренний порт приложения | `configLocalYaml.webServer.port` | `<PORT>` |
+| Внутренний порт приложения | `config/local.yaml` → `webServer.port` | `<PORT>` |
 | Публичный домен | `mcp.dns` | `<DNS>` |
 | Node внутри контейнера | стабильный симлинк `/usr/local/bin/node` (версия — из `.envrc` проекта) | — |
 
