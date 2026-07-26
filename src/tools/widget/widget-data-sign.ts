@@ -7,7 +7,9 @@
 // The link carries an HMAC signature over `from|to|lang` only. Its purpose is to keep the endpoint
 // serving links the tool itself issued (the k-shortest-paths search is not cheap). The signature
 // deliberately does NOT cover `at`, so the widget's "Refresh route" button can drop `at` to rebuild
-// for "now" without breaking the signature.
+// for "now" without breaking the signature. `walk` (the user's walk time to the departure station)
+// is likewise outside the signature: it is display-only presentation data with no compute cost, and
+// keeping it unsigned lets the Refresh path reuse the link untouched.
 
 import { createHmac, timingSafeEqual } from 'node:crypto';
 
@@ -15,6 +17,9 @@ import { TLang, toLang } from '../../lib/metro-data/localized-name.js';
 
 /** Length (hex chars) the HMAC signature is truncated to in the link */
 export const SIG_HEX_LEN = 32;
+
+/** Upper bound (minutes) accepted for the walk-to-metro time — anything above is malformed input */
+export const WALK_MIN_MAX = 600;
 
 /** Parameters fully describing how to (re)build the widget's route data */
 export interface IWidgetDataParams {
@@ -26,6 +31,8 @@ export interface IWidgetDataParams {
   lang: TLang;
   /** Moment the route is built for; absent means "now" (the Refresh button path) */
   at?: Date;
+  /** Walk time (minutes) from the user's origin to the departure station; absent — not mentioned */
+  walkMin?: number;
 }
 
 /** Thrown by parseSignedQuery on malformed input or a signature mismatch (maps to HTTP 400) */
@@ -53,6 +60,9 @@ export const buildSignedUrl = (baseUrl: string, secret: string, params: IWidgetD
   const search = new URLSearchParams({ from: fromStr, to: toStr, lang: params.lang });
   if (params.at) {
     search.set('at', params.at.toISOString());
+  }
+  if (params.walkMin !== undefined) {
+    search.set('walk', String(params.walkMin));
   }
   search.set('sig', signSig(secret, fromStr, toStr, params.lang));
   return `${baseUrl}/api/widget-data?${search.toString()}`;
@@ -121,5 +131,14 @@ export const parseSignedQuery = (secret: string, query: Record<string, unknown>)
     }
   }
 
-  return { fromIds, toIds, lang, ...(at ? { at } : {}) };
+  let walkMin: number | undefined;
+  const walkStr = firstQueryValue(query.walk);
+  if (walkStr) {
+    walkMin = Number(walkStr);
+    if (!Number.isInteger(walkMin) || walkMin < 1 || walkMin > WALK_MIN_MAX) {
+      throw new WidgetLinkError(`Invalid "walk" parameter: expected an integer between 1 and ${WALK_MIN_MAX}.`);
+    }
+  }
+
+  return { fromIds, toIds, lang, ...(at ? { at } : {}), ...(walkMin !== undefined ? { walkMin } : {}) };
 };

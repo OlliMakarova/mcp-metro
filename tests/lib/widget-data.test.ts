@@ -46,6 +46,32 @@ describe('widget-data-sign', () => {
     expect(parsed.fromIds).toEqual(fromIds);
   });
 
+  it('round-trips the walk-to-metro time and omits it when not set', () => {
+    const withWalk = parseSignedQuery(
+      SECRET,
+      queryOf(buildSignedUrl(BASE, SECRET, { fromIds, toIds, lang: 'ru', walkMin: 10 })),
+    );
+    expect(withWalk.walkMin).toBe(10);
+    const without = parseSignedQuery(SECRET, queryOf(buildSignedUrl(BASE, SECRET, { fromIds, toIds, lang: 'ru' })));
+    expect(without.walkMin).toBeUndefined();
+  });
+
+  it('keeps the signature valid after removing at while walk is present (Refresh with walk)', () => {
+    const url = buildSignedUrl(BASE, SECRET, { fromIds, toIds, lang: 'en', at: AT, walkMin: 7 });
+    const u = new URL(url);
+    u.searchParams.delete('at');
+    const parsed = parseSignedQuery(SECRET, queryOf(u.toString()));
+    expect(parsed.at).toBeUndefined();
+    expect(parsed.walkMin).toBe(7);
+  });
+
+  it('rejects a malformed walk parameter', () => {
+    const q = queryOf(buildSignedUrl(BASE, SECRET, { fromIds, toIds, lang: 'en' }));
+    for (const bad of ['abc', '0', '-5', '3.5', '601']) {
+      expect(() => parseSignedQuery(SECRET, { ...q, walk: bad })).toThrow(WidgetLinkError);
+    }
+  });
+
   it('rejects a tampered signature', () => {
     const q = queryOf(buildSignedUrl(BASE, SECRET, { fromIds, toIds, lang: 'en' }));
     q.sig = 'f'.repeat(32);

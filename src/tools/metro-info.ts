@@ -73,6 +73,15 @@ Pass station names exactly as the user writes them.`,
         default: 'en',
         description: `Language the user communicates in, when it is clear from the conversation context`,
       },
+      walk_to_metro_minutes: {
+        type: 'integer',
+        minimum: 1,
+        maximum: 600,
+        description: `Walk time in minutes from the user's starting point to the departure metro station.
+Set it ONLY when the conversation context explicitly states this time; NEVER guess or estimate it yourself — omit the parameter when
+the context says nothing. When set, it is added to the total travel time and shown as a walking segment.
+Used only with action=search_route.`,
+      },
     },
     required: ['first_metro_station', 'action'],
     additionalProperties: false,
@@ -139,6 +148,10 @@ export const handleMetroInfo = async (params: IToolHandlerParams): Promise<TTool
   const second = String(args?.second_metro_station ?? '').trim();
   const action = args?.action;
   const lang = toLang(args?.language);
+  // Walk time to the departure station: taken into account only when the model passed a sane
+  // positive number (the model is instructed to set it only when the context mentions it).
+  const walkRaw = Number(args?.walk_to_metro_minutes);
+  const walkMin = Number.isFinite(walkRaw) && walkRaw >= 1 && walkRaw <= 600 ? Math.round(walkRaw) : undefined;
   // The city parameter is accepted for forward compatibility: St. Petersburg metro data is not
   // wired in yet, so 'StPetersburg' currently falls back to the Moscow dataset like any other value.
 
@@ -213,20 +226,26 @@ The departure and arrival stations are the same: **${fromName}**. They belong to
     // with the same arguments, so the wording is identical across the first and later turns. The
     // link records the moment of this call; the widget's "Refresh route" button drops `at`.
     if (hostSupportsMcpApps(params.clientCapabilities)) {
-      const summary = buildModelSummary(result, fromName, toName, lang);
+      const summary = buildModelSummary(result, fromName, toName, lang, walkMin);
       // No usable summary (no route variants) — fall back to the plain text answer, exactly as for a
       // text-only host, so the model is never left with an empty result.
       if (!summary) {
-        return asTextContent(renderRoutes(result, fromName, toName, lang));
+        return asTextContent(renderRoutes(result, fromName, toName, lang, walkMin));
       }
-      const dataUrl = buildWidgetDataUrl({ fromIds: fromOpt.ids, toIds: toOpt.ids, lang, at: new Date() });
+      const dataUrl = buildWidgetDataUrl({
+        fromIds: fromOpt.ids,
+        toIds: toOpt.ids,
+        lang,
+        at: new Date(),
+        ...(walkMin !== undefined ? { walkMin } : {}),
+      });
       return {
         content: [{ type: 'text', text: summary }],
         structuredContent: { widget: 'metro-routes', dataUrl },
       };
     }
     // Text-only host: the full route markdown is the answer.
-    return asTextContent(renderRoutes(result, fromName, toName, lang));
+    return asTextContent(renderRoutes(result, fromName, toName, lang, walkMin));
   } catch (e) {
     const msg = hideSourceNames(e instanceof Error ? e.message : String(e));
     return asTextError(`Failed to build a route ${fromName} → ${toName}: ${msg}`);

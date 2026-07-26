@@ -35,10 +35,27 @@ describe('buildModelSummary', () => {
     expect(summary).toContain('min');
   });
 
+  it('adds the walk-to-metro time to the fastest total and calls it out', () => {
+    const base = buildModelSummary(result, 'Университет', 'Комсомольская', 'ru');
+    const withWalk = buildModelSummary(result, 'Университет', 'Комсомольская', 'ru', 10);
+    const baseMin = Number(/быстрейший ~(\d+) мин/.exec(base)![1]);
+    const walkMin = Number(/быстрейший ~(\d+) мин/.exec(withWalk)![1]);
+    expect(walkMin).toBe(baseMin + 10);
+    expect(withWalk).toContain('включая ~10 мин пешком до метро');
+    expect(base).not.toContain('пешком до метро');
+  });
+
   it('is the single source: widget-data.modelSummary equals buildModelSummary on the same args', () => {
     const fromName = 'Университет';
     const toName = 'Комсомольская';
     const data = buildRoutesWidgetData(result, fromName, toName, 'ru');
     expect(data.modelSummary).toBe(buildModelSummary(result, fromName, toName, 'ru'));
+    expect(data.walkToMetroSec).toBeUndefined();
+  });
+
+  it('widget-data carries the walk segment and a matching summary when walkMin is set', () => {
+    const data = buildRoutesWidgetData(result, 'Университет', 'Комсомольская', 'ru', 10);
+    expect(data.walkToMetroSec).toBe(600);
+    expect(data.modelSummary).toBe(buildModelSummary(result, 'Университет', 'Комсомольская', 'ru', 10));
   });
 });

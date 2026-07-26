@@ -209,18 +209,24 @@ const renderEndpoint = (role: string, ep: IRouteEndpoint, lang: TLang): string =
   return `- **${role}: ${pickName(ep.station.name, lang)}** (${lineName(ep.line, lang)})${tail}`;
 };
 
-const renderVariant = (v: IRouteVariant, n: number, lang: TLang): string => {
+const renderVariant = (v: IRouteVariant, n: number, lang: TLang, walkSec: number): string => {
   const extraEnter = v.departure.enterTimeSec ?? 0;
   const extraExit = v.arrival.exitTimeSec ?? 0;
-  const doorToDoor = v.totalTimeSec + extraEnter + extraExit;
+  const totalWithWalk = v.totalTimeSec + walkSec;
+  const doorToDoor = totalWithWalk + extraEnter + extraExit;
 
   const out: string[] = [];
   // Per-leg times already show the ride/transfer split; only the wait share and the
   // door-to-door total are not derivable from the legs
   const extras = extraEnter || extraExit ? `; ~${fmtDuration(doorToDoor)} door-to-door` : '';
-  out.push(`## Option ${n} — ${fmtDuration(v.totalTimeSec)}, transfers: ${v.transfersCount}`);
-  out.push(`(incl. expected train wait ~${fmtDuration(v.waitTimeSec)}${extras})`);
+  const walkNote = walkSec ? `, walk to the metro ~${fmtDuration(walkSec)}` : '';
+  out.push(`## Option ${n} — ${fmtDuration(totalWithWalk)}, transfers: ${v.transfersCount}`);
+  out.push(`(incl. expected train wait ~${fmtDuration(v.waitTimeSec)}${walkNote}${extras})`);
   let i = 1;
+  if (walkSec) {
+    out.push(`${i}. 🚶 Walk to the departure station — ${fmtDuration(walkSec)}`);
+    i += 1;
+  }
   for (const leg of v.legs) {
     out.push(leg.kind === 'ride' ? renderRideLeg(leg, i, lang) : renderTransferLeg(leg, i, lang));
     i += 1;
@@ -294,12 +300,24 @@ const operatingWarning = (result: IFindRoutesResult): string | undefined => {
   return parts.join(' ');
 };
 
-/** Full markdown response for the found routes */
-export const renderRoutes = (result: IFindRoutesResult, fromName: string, toName: string, lang: TLang): string => {
+/**
+ * Full markdown response for the found routes. `walkMin` — the user's walk time to the departure
+ * station (minutes), when the conversation mentioned it: added to every option's total and shown
+ * as the first (walking) segment.
+ */
+export const renderRoutes = (
+  result: IFindRoutesResult,
+  fromName: string,
+  toName: string,
+  lang: TLang,
+  walkMin?: number,
+): string => {
+  const walkSec = (walkMin ?? 0) * 60;
+  const walkIncluded = walkSec ? ` and a ~${fmtDuration(walkSec)} walk to the departure station` : '';
   const head = [
     `# Routes: ${fromName} → ${toName}`,
     '',
-    `**${result.variants.length}** options${result.closuresApplied ? ' (closures/repairs applied)' : ''}. Times include expected train waits.`,
+    `**${result.variants.length}** options${result.closuresApplied ? ' (closures/repairs applied)' : ''}. Times include expected train waits${walkIncluded}.`,
     '',
   ];
   const hasMcd = result.variants.some((v) => v.legs.some((l) => l.kind === 'ride' && l.line?.isMcd));
@@ -316,7 +334,7 @@ export const renderRoutes = (result: IFindRoutesResult, fromName: string, toName
     head.push('No route could be built between the given stations.');
     return head.join('\n');
   }
-  const body = result.variants.map((v, idx) => renderVariant(v, idx + 1, lang));
+  const body = result.variants.map((v, idx) => renderVariant(v, idx + 1, lang, walkSec));
 
   // Departure/arrival details are identical across variants in the common case — render each
   // distinct block once at the end instead of repeating it under every option

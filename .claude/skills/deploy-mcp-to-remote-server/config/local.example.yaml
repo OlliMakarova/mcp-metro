@@ -16,7 +16,7 @@ webServer:
   # auth:
   #   jwtToken:
   #     encryptKey: '***'
-  # permanentServerTokens: [ '***' ]
+  #   permanentServerTokens: [ '***' ]
 
 # The app's OWN Telegram (e.g. fa-mcp-sdk data-source alerts) — optional, independent of the deploy
 # skill's notifications (those come from config.yml). Omit this block if the app does not use it.

@@ -14,7 +14,10 @@ interface ISummaryVals {
   from: string;
   to: string;
   count: number;
+  /** Fastest total (minutes), including the walk to the departure station when it is known */
   fastestMin: number;
+  /** Walk time (minutes) to the departure station; undefined — not mentioned by the user */
+  walkMin?: number;
   transfers: number;
   lines: string[];
   closed: boolean;
@@ -51,7 +54,8 @@ const FORMAT: Record<TLang, (v: ISummaryVals) => string> = {
         ? ` Metro closes in ~${v.closingMin} min.`
         : '';
     const warn = v.warnings ? ` Advisories: ${v.warnings}.` : '';
-    return `Moscow Metro route ${v.from} → ${v.to}: ${v.count} option${v.count === 1 ? '' : 's'}, fastest ~${v.fastestMin} min, ${transfers}${linesSuffix(v.lines, '(', ')')}.${op}${warn}`;
+    const walk = v.walkMin !== undefined ? ` (incl. ~${v.walkMin} min walk to the metro)` : '';
+    return `Moscow Metro route ${v.from} → ${v.to}: ${v.count} option${v.count === 1 ? '' : 's'}, fastest ~${v.fastestMin} min${walk}, ${transfers}${linesSuffix(v.lines, '(', ')')}.${op}${warn}`;
   },
   ru: (v) => {
     const transfers =
@@ -65,7 +69,8 @@ const FORMAT: Record<TLang, (v: ISummaryVals) => string> = {
         : '';
     const warn = v.warnings ? ` Предупреждений: ${v.warnings}.` : '';
     const options = ruPlural(v.count, ['вариант', 'варианта', 'вариантов']);
-    return `Метро Москвы, маршрут ${v.from} → ${v.to}: ${v.count} ${options}, быстрейший ~${v.fastestMin} мин, ${transfers}${linesSuffix(v.lines, '(', ')')}.${op}${warn}`;
+    const walk = v.walkMin !== undefined ? ` (включая ~${v.walkMin} мин пешком до метро)` : '';
+    return `Метро Москвы, маршрут ${v.from} → ${v.to}: ${v.count} ${options}, быстрейший ~${v.fastestMin} мин${walk}, ${transfers}${linesSuffix(v.lines, '(', ')')}.${op}${warn}`;
   },
   ar: (v) => {
     const transfers = v.transfers === 0 ? 'بدون تبديل' : `${v.transfers} تبديل`;
@@ -75,7 +80,8 @@ const FORMAT: Record<TLang, (v: ISummaryVals) => string> = {
         ? ` يُغلق المترو خلال ~${v.closingMin} د.`
         : '';
     const warn = v.warnings ? ` تنبيهات: ${v.warnings}.` : '';
-    return `مترو موسكو، المسار ${v.from} → ${v.to}: ${v.count} مسار، الأسرع ~${v.fastestMin} د، ${transfers}${linesSuffix(v.lines, '(', ')')}.${op}${warn}`;
+    const walk = v.walkMin !== undefined ? ` (شاملاً ~${v.walkMin} د مشيًا إلى المترو)` : '';
+    return `مترو موسكو، المسار ${v.from} → ${v.to}: ${v.count} مسار، الأسرع ~${v.fastestMin} د${walk}، ${transfers}${linesSuffix(v.lines, '(', ')')}.${op}${warn}`;
   },
   cn: (v) => {
     const transfers = v.transfers === 0 ? '无需换乘' : `${v.transfers} 次换乘`;
@@ -85,7 +91,8 @@ const FORMAT: Record<TLang, (v: ISummaryVals) => string> = {
         ? ` 地铁将于约 ${v.closingMin} 分钟后停止进站。`
         : '';
     const warn = v.warnings ? ` 注意事项：${v.warnings}。` : '';
-    return `莫斯科地铁，路线 ${v.from} → ${v.to}：${v.count} 个方案，最快约 ${v.fastestMin} 分钟，${transfers}${linesSuffix(v.lines, '（', '）')}。${op}${warn}`;
+    const walk = v.walkMin !== undefined ? `（含步行至地铁约 ${v.walkMin} 分钟）` : '';
+    return `莫斯科地铁，路线 ${v.from} → ${v.to}：${v.count} 个方案，最快约 ${v.fastestMin} 分钟${walk}，${transfers}${linesSuffix(v.lines, '（', '）')}。${op}${warn}`;
   },
 };
 
@@ -109,9 +116,16 @@ const fastestLines = (result: IFindRoutesResult, lang: TLang): string[] => {
 
 /**
  * Builds the concise, localized model-context summary for a route result. Returns an empty string
- * when no variants were found (nothing meaningful to record).
+ * when no variants were found (nothing meaningful to record). `walkMin` — the user's walk time to
+ * the departure station (minutes); when given, it is added to the fastest total and called out.
  */
-export const buildModelSummary = (result: IFindRoutesResult, fromName: string, toName: string, lang: TLang): string => {
+export const buildModelSummary = (
+  result: IFindRoutesResult,
+  fromName: string,
+  toName: string,
+  lang: TLang,
+  walkMin?: number,
+): string => {
   const first = result.variants[0];
   if (!first) {
     return '';
@@ -122,7 +136,8 @@ export const buildModelSummary = (result: IFindRoutesResult, fromName: string, t
     from: fromName,
     to: toName,
     count: result.variants.length,
-    fastestMin: Math.round(first.totalTimeSec / 60),
+    fastestMin: Math.round(first.totalTimeSec / 60) + (walkMin ?? 0),
+    ...(walkMin !== undefined ? { walkMin } : {}),
     transfers: first.transfersCount,
     lines: fastestLines(result, lang),
     closed: op.isOpen === false,

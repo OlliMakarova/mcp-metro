@@ -266,6 +266,7 @@
         transfers: (n) => n === 0 ? 'без пересадок' : `${n} ${ruPlural(n, ['пересадка', 'пересадки', 'пересадок'])}`,
         stations: (n) => `${n} ${ruPlural(n, ['станция', 'станции', 'станций'])}`,
         walkToStation: 'Пройдите на станцию', makeTransfer: 'Сделайте пересадку',
+        walkToMetro: 'Пешком до метро', walkToMetroLc: 'пешком до метро',
         streetTransfer: 'пересадка по улице', detour: 'временный обход закрытого участка',
         forTransfer: 'Для пересадки:', wagonFront: 'первый вагон', wagonMiddle: 'центр состава', wagonRear: 'последний вагон',
         exitToCity: 'Выход в город', noRoutes: 'Маршрут между указанными станциями построить не удалось.',
@@ -285,6 +286,7 @@
         transfers: (n) => n === 0 ? 'no transfers' : `${n} transfer${n === 1 ? '' : 's'}`,
         stations: (n) => `${n} station${n === 1 ? '' : 's'}`,
         walkToStation: 'Walk to the station', makeTransfer: 'Make a transfer',
+        walkToMetro: 'Walk to the metro', walkToMetroLc: 'walk to the metro',
         streetTransfer: 'street-level transfer', detour: 'temporary detour around a closed section',
         forTransfer: 'For the transfer:', wagonFront: 'front car', wagonMiddle: 'middle of the train', wagonRear: 'rear car',
         exitToCity: 'Exit to the city', noRoutes: 'No route could be built between the given stations.',
@@ -304,6 +306,7 @@
         transfers: (n) => n === 0 ? 'بدون تبديل' : `${n} تبديل`,
         stations: (n) => `${n} محطات`,
         walkToStation: 'امشِ إلى المحطة', makeTransfer: 'قم بالتبديل',
+        walkToMetro: 'المشي إلى المترو', walkToMetroLc: 'المشي إلى المترو',
         streetTransfer: 'تبديل عبر الشارع', detour: 'التفاف مؤقت حول قسم مغلق',
         forTransfer: 'للتبديل:', wagonFront: 'العربة الأولى', wagonMiddle: 'منتصف القطار', wagonRear: 'العربة الأخيرة',
         exitToCity: 'الخروج إلى المدينة', noRoutes: 'تعذّر إنشاء مسار بين المحطتين المحددتين.',
@@ -323,6 +326,7 @@
         transfers: (n) => n === 0 ? '无需换乘' : `${n} 次换乘`,
         stations: (n) => `${n} 站`,
         walkToStation: '步行至车站', makeTransfer: '换乘',
+        walkToMetro: '步行至地铁', walkToMetroLc: '步行至地铁',
         streetTransfer: '地面换乘', detour: '临时绕行关闭区段',
         forTransfer: '换乘建议：', wagonFront: '头节车厢', wagonMiddle: '列车中部', wagonRear: '尾节车厢',
         exitToCity: '出站', noRoutes: '无法在所选车站之间规划路线。',
@@ -419,16 +423,16 @@
       return name;
     }
 
-    /** Summary card of one variant */
-    function variantCard(v, idx, startClock) {
+    /** Summary card of one variant; walkSec — the user's walk to the departure station (0 if unknown) */
+    function variantCard(v, idx, startClock, walkSec) {
       const arr = startClock
-        ? addToClock(startClock, (v.departure.enterTimeSec || 0) + v.totalTimeSec + (v.arrival.exitTimeSec || 0))
+        ? addToClock(startClock, walkSec + (v.departure.enterTimeSec || 0) + v.totalTimeSec + (v.arrival.exitTimeSec || 0))
         : null;
       const badges = v.legs.filter((l) => l.kind === 'ride').map((l) => badgeHtml(l.line))
         .join('<span class="sep"></span>');
       return `<div class="vcard${idx === selected ? ' active' : ''}" data-idx="${idx}" role="button" tabindex="0">
         <div class="vrow">
-          <span class="vtime">${fmtDur(v.totalTimeSec)}</span>
+          <span class="vtime">${fmtDur(v.totalTimeSec + walkSec)}</span>
           ${arr ? `<span class="varr">~${arr}</span>` : ''}
           <span class="vtransfers">${L.transfers(v.transfersCount)}</span>
         </div>
@@ -446,14 +450,17 @@
       </div>
     </div>`;
 
-    /** Timeline rows of the selected variant */
-    function timelineHtml(v, startClock) {
+    /** Timeline rows of the selected variant; walkSec — the walk to the departure station (0 if unknown) */
+    function timelineHtml(v, startClock, walkSec) {
       const rows = [];
       // Average expected wait before each boarding — used only to shift clock marks
       const rideLegs = v.legs.filter((l) => l.kind === 'ride');
       const waitPerBoard = rideLegs.length ? v.waitTimeSec / rideLegs.length : 0;
-      let t = (v.departure.enterTimeSec || 0); // seconds since "now"
+      let t = walkSec + (v.departure.enterTimeSec || 0); // seconds since "now"
 
+      if (walkSec) {
+        rows.push(walkRow(L.walkToMetro, walkSec));
+      }
       if (v.departure.enterTimeSec !== undefined) {
         rows.push(walkRow(L.walkToStation, v.departure.enterTimeSec));
       } else {
@@ -502,8 +509,9 @@
       return `<div class="tl">${rows.join('')}</div>`;
     }
 
-    function breakdownHtml(v) {
+    function breakdownHtml(v, walkSec) {
       const parts = [
+        walkSec ? `${L.walkToMetroLc} ${fmtDur(walkSec)}` : null,
         `${L.ride} ${fmtDur(v.rideTimeSec)}`,
         v.transfersCount ? `${L.transferTime} ${fmtDur(v.transferTimeSec)}` : null,
         `${L.wait} ~${fmtDur(v.waitTimeSec)}`,
@@ -545,6 +553,8 @@
       const op = d.operating || {};
       // Clock marks only make sense while the metro is open: the search assumes boarding now
       const startClock = op.isOpen ? op.moscowTime : null;
+      // The user's walk to the departure station (mentioned in the conversation); 0 — unknown
+      const walkSec = d.walkToMetroSec || 0;
 
       let banner = '';
       if (op.isOpen === false) {
@@ -566,10 +576,10 @@
         ${banner}
         <div class="sect">${L.routes}</div>
         ${d.variants.length
-          ? `<div class="variants">${d.variants.map((x, i) => variantCard(x, i, startClock)).join('')}</div>
+          ? `<div class="variants">${d.variants.map((x, i) => variantCard(x, i, startClock, walkSec)).join('')}</div>
              <div class="sect">${L.details}</div>
-             ${timelineHtml(v, startClock)}
-             ${breakdownHtml(v)}
+             ${timelineHtml(v, startClock, walkSec)}
+             ${breakdownHtml(v, walkSec)}
              ${groundTransportHtml(v)}`
           : `<div class="banner warn">${esc(L.noRoutes)}</div>`}
         ${warningsHtml(d.warnings)}
