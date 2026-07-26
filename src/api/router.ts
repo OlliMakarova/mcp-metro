@@ -18,6 +18,7 @@ import { appConfig, createAuthMW, logger } from 'fa-mcp-sdk';
 import { CustomAppConfig } from '../_types_/custom-config.js';
 import { getMetroDatasetOrNull } from '../lib/metro-data/cache.js';
 import { hideSourceNames } from '../lib/metro-data/public-source.js';
+import { TMetroCity } from '../lib/metro-data/types.js';
 import { findBestRoutes } from '../lib/routing/find-routes.js';
 import { resolveStation } from '../lib/station-search/resolve-station.js';
 import { fuzzySearchStations } from '../lib/station-search/search-stations.js';
@@ -67,9 +68,17 @@ const rateLimitMW = async (req: Request, res: Response, next: (err?: unknown) =>
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-/** Returns the active dataset or responds with 503 when no data is available */
-const requireDataset = (res: Response) => {
-  const dataset = getMetroDatasetOrNull();
+/** `city` query parameter → internal city id: `spb` selects Saint Petersburg, anything else — Moscow */
+const cityParam = (req: Request): TMetroCity => {
+  const raw = String(req.query.city ?? '')
+    .trim()
+    .toLowerCase();
+  return raw === 'spb' || raw === 'stpetersburg' ? 'spb' : 'moscow';
+};
+
+/** Returns the active dataset of the requested city or responds with 503 when no data is available */
+const requireDataset = (req: Request, res: Response) => {
+  const dataset = getMetroDatasetOrNull(cityParam(req));
   if (!dataset) {
     res.status(503).json({
       success: false,
@@ -97,7 +106,7 @@ apiRouter.get('/stations/search', rateLimitMW, authMW, (req: Request, res: Respo
       res.status(400).json({ success: false, error: 'Missing query parameter q (station name).' });
       return;
     }
-    const dataset = requireDataset(res);
+    const dataset = requireDataset(req, res);
     if (!dataset) {
       return;
     }
@@ -129,7 +138,7 @@ apiRouter.get('/stations/info', rateLimitMW, authMW, (req: Request, res: Respons
       res.status(400).json({ success: false, error: 'Missing query parameter q (station name).' });
       return;
     }
-    const dataset = requireDataset(res);
+    const dataset = requireDataset(req, res);
     if (!dataset) {
       return;
     }
@@ -163,7 +172,7 @@ apiRouter.get('/routes', rateLimitMW, authMW, (req: Request, res: Response) => {
       res.status(400).json({ success: false, error: 'Missing query parameters from and to (station names).' });
       return;
     }
-    const dataset = requireDataset(res);
+    const dataset = requireDataset(req, res);
     if (!dataset) {
       return;
     }
@@ -209,7 +218,8 @@ apiRouter.get('/widget-data', rateLimitMW, (req: Request, res: Response) => {
     // Malformed parameters or a bad signature — before touching the data layer
     const params = parseWidgetDataQuery(req.query);
 
-    const dataset = getMetroDatasetOrNull();
+    // The city is part of the signed link, so the widget always hits its own city's dataset
+    const dataset = getMetroDatasetOrNull(params.city ?? 'moscow');
     if (!dataset) {
       res.status(503).json({ success: false, error: 'Metro data is temporarily unavailable.' });
       return;

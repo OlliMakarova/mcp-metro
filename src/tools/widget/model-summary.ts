@@ -6,11 +6,19 @@
 // advisory count — not the full route text.
 
 import { pickName, TLang } from '../../lib/metro-data/localized-name.js';
+import { TMetroCity } from '../../lib/metro-data/types.js';
 import { IFindRoutesResult } from '../../lib/routing/find-routes.js';
 import { endpointWarnings } from '../lib/render.js';
 
+/** Localized metro-network label per city — the summary's opening words */
+const METRO_LABEL: Record<TMetroCity, Record<TLang, string>> = {
+  moscow: { en: 'Moscow Metro', ru: 'Метро Москвы', ar: 'مترو موسكو', cn: '莫斯科地铁' },
+  spb: { en: 'Saint Petersburg Metro', ru: 'Метро Санкт-Петербурга', ar: 'مترو سانت بطرسبرغ', cn: '圣彼得堡地铁' },
+};
+
 /** Facts extracted from the result, formatted per language below. */
 interface ISummaryVals {
+  metroLabel: string;
   from: string;
   to: string;
   count: number;
@@ -79,7 +87,7 @@ const FORMAT: Record<TLang, (v: ISummaryVals) => string> = {
       ' and ',
       (body) => ` (incl. ${body})`,
     );
-    return `Moscow Metro route ${v.from} → ${v.to}: ${v.count} option${v.count === 1 ? '' : 's'}, fastest ~${v.fastestMin} min${walk}, ${transfers}${linesSuffix(v.lines, '(', ')')}.${op}${warn}`;
+    return `${v.metroLabel} route ${v.from} → ${v.to}: ${v.count} option${v.count === 1 ? '' : 's'}, fastest ~${v.fastestMin} min${walk}, ${transfers}${linesSuffix(v.lines, '(', ')')}.${op}${warn}`;
   },
   ru: (v) => {
     const transfers =
@@ -99,7 +107,7 @@ const FORMAT: Record<TLang, (v: ISummaryVals) => string> = {
       ' и ',
       (body) => ` (включая ${body})`,
     );
-    return `Метро Москвы, маршрут ${v.from} → ${v.to}: ${v.count} ${options}, быстрейший ~${v.fastestMin} мин${walk}, ${transfers}${linesSuffix(v.lines, '(', ')')}.${op}${warn}`;
+    return `${v.metroLabel}, маршрут ${v.from} → ${v.to}: ${v.count} ${options}, быстрейший ~${v.fastestMin} мин${walk}, ${transfers}${linesSuffix(v.lines, '(', ')')}.${op}${warn}`;
   },
   ar: (v) => {
     const transfers = v.transfers === 0 ? 'بدون تبديل' : `${v.transfers} تبديل`;
@@ -115,7 +123,7 @@ const FORMAT: Record<TLang, (v: ISummaryVals) => string> = {
       ' و',
       (body) => ` (شاملاً ${body})`,
     );
-    return `مترو موسكو، المسار ${v.from} → ${v.to}: ${v.count} مسار، الأسرع ~${v.fastestMin} د${walk}، ${transfers}${linesSuffix(v.lines, '(', ')')}.${op}${warn}`;
+    return `${v.metroLabel}، المسار ${v.from} → ${v.to}: ${v.count} مسار، الأسرع ~${v.fastestMin} د${walk}، ${transfers}${linesSuffix(v.lines, '(', ')')}.${op}${warn}`;
   },
   cn: (v) => {
     const transfers = v.transfers === 0 ? '无需换乘' : `${v.transfers} 次换乘`;
@@ -131,7 +139,7 @@ const FORMAT: Record<TLang, (v: ISummaryVals) => string> = {
       '、',
       (body) => `（含${body}）`,
     );
-    return `莫斯科地铁，路线 ${v.from} → ${v.to}：${v.count} 个方案，最快约 ${v.fastestMin} 分钟${walk}，${transfers}${linesSuffix(v.lines, '（', '）')}。${op}${warn}`;
+    return `${v.metroLabel}，路线 ${v.from} → ${v.to}：${v.count} 个方案，最快约 ${v.fastestMin} 分钟${walk}，${transfers}${linesSuffix(v.lines, '（', '）')}。${op}${warn}`;
   },
 };
 
@@ -166,6 +174,7 @@ export const buildModelSummary = (
   lang: TLang,
   walkToMin?: number,
   walkFromMin?: number,
+  city: TMetroCity = 'moscow',
 ): string => {
   const first = result.variants[0];
   if (!first) {
@@ -174,6 +183,7 @@ export const buildModelSummary = (
   const op = result.operating;
   const closingSoon = op.isOpen && op.minutesToClose !== undefined && op.minutesToClose <= 30;
   const vals: ISummaryVals = {
+    metroLabel: METRO_LABEL[city][lang],
     from: fromName,
     to: toName,
     count: result.variants.length,

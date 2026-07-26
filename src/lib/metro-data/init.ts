@@ -1,8 +1,10 @@
 // Initialization of the metro data layer at server startup:
-//   1) instant load of the latest copy from disk (no network) — the server starts fast;
+//   1) instant load of the latest copies from disk (no network) — the server starts fast;
 //   2) background refresh from the network right after startup;
 //   3) scheduled refresh every refreshIntervalHours (24 hours by default);
 //   4) Telegram notification on source-state changes (both degradation and recovery).
+// Both cities (Moscow and Saint Petersburg) are initialized and refreshed together; the
+// source state is tracked and reported per city.
 
 import { appConfig, logger as lgr } from 'fa-mcp-sdk';
 import { CustomAppConfig } from '../../_types_/custom-config.js';
@@ -10,20 +12,28 @@ import { ITelegramConfig, isTelegramConfigured, sendTelegramMessage } from '../t
 import { setMetroDataset } from './cache.js';
 import { getMetroConfig } from './metro-config.js';
 import { IRefreshDeps, loadMetroDataFromDisk, refreshMetroData } from './refresh.js';
+import { ISpbRefreshDeps, loadSpbMetroDataFromDisk, refreshSpbMetroData } from './refresh-spb.js';
 import { TMetroDataState, buildStateChangeMessage, stateFromOrigin } from './source-state.js';
 import { MetroStorage } from './storage.js';
+import { TMetroCity } from './types.js';
 
 const logger = lgr.getSubLogger({ name: 'metro-data' });
 
 let refreshTimer: NodeJS.Timeout | null = null;
 
-// Current source state. Initially 'ok': the first successful refresh produces no noise,
-// while the first degraded one immediately triggers a notification (including after a restart).
-let currentState: TMetroDataState = 'ok';
+// Current source state per city. Initially 'ok': the first successful refresh produces no
+// noise, while the first degraded one immediately triggers a notification (incl. after restart).
+const currentState: Record<TMetroCity, TMetroDataState> = { moscow: 'ok', spb: 'ok' };
 
 const getTelegramConfig = (): ITelegramConfig => {
   const t = (appConfig as CustomAppConfig).telegram ?? {};
   return { enabled: !!t.enabled, botToken: t.botToken ?? '', chatId: t.chatId ?? '' };
+};
+
+const logBridge = {
+  info: (msg: string) => logger.info(msg),
+  warn: (msg: string) => logger.warn(msg),
+  error: (msg: string) => logger.error(msg),
 };
 
 const buildDeps = (): IRefreshDeps => {
@@ -33,67 +43,87 @@ const buildDeps = (): IRefreshDeps => {
     urls: cfg.urls,
     requestTimeoutMs: cfg.requestTimeoutMs,
     notificationsTtlMs: cfg.notificationsTtlMs,
-    log: {
-      info: (msg) => logger.info(msg),
-      warn: (msg) => logger.warn(msg),
-      error: (msg) => logger.error(msg),
-    },
+    log: logBridge,
   };
 };
 
-/** One-off refresh from the network, storing the result in the cache and sending a notification */
-export const refreshMetroDataNow = async (): Promise<void> => {
-  const result = await refreshMetroData(buildDeps());
-  if (result.dataset) {
-    setMetroDataset(result.dataset);
-  }
-  // When result.dataset === null the cache is deliberately NOT cleared: data left in memory
-  // from the last successful refresh is better than an empty cache.
+const buildSpbDeps = (): ISpbRefreshDeps => {
+  const cfg = getMetroConfig();
+  return {
+    storage: new MetroStorage(cfg.dataDir),
+    urls: cfg.urls,
+    requestTimeoutMs: cfg.requestTimeoutMs,
+    log: logBridge,
+  };
+};
 
-  await notifyStateChange(stateFromOrigin(result.origin), result.dataset !== null ? result.dataset : null);
+/** One-off refresh of both cities from the network, storing results in the cache and notifying */
+export const refreshMetroDataNow = async (): Promise<void> => {
+  const moscow = await refreshMetroData(buildDeps());
+  if (moscow.dataset) {
+    setMetroDataset('moscow', moscow.dataset);
+  }
+  // When dataset === null the cache is deliberately NOT cleared: data left in memory
+  // from the last successful refresh is better than an empty cache.
+  await notifyStateChange('moscow', stateFromOrigin(moscow.origin), moscow.dataset);
+
+  const spb = await refreshSpbMetroData(buildSpbDeps());
+  if (spb.dataset) {
+    setMetroDataset('spb', spb.dataset);
+  }
+  await notifyStateChange('spb', stateFromOrigin(spb.origin), spb.dataset);
 };
 
 /**
- * Telegram notification on transitions between source states.
+ * Telegram notification on transitions between source states of a city.
  * Send failures are only logged and never break the data refresh.
  */
 const notifyStateChange = async (
+  city: TMetroCity,
   next: TMetroDataState,
-  dataset: Parameters<typeof buildStateChangeMessage>[3],
+  dataset: Parameters<typeof buildStateChangeMessage>[4],
 ): Promise<void> => {
-  const prev = currentState;
-  currentState = next;
+  const prev = currentState[city];
+  currentState[city] = next;
   if (prev === next) {
     return;
   }
-  logger.info(`Metro data source state changed: ${prev} → ${next}`);
+  logger.info(`Metro data source state changed (${city}): ${prev} → ${next}`);
 
   const tg = getTelegramConfig();
   if (!isTelegramConfigured(tg)) {
     return;
   }
-  const text = buildStateChangeMessage(appConfig.name ?? 'mcp-metro', prev, next, dataset);
+  const text = buildStateChangeMessage(appConfig.name ?? 'mcp-metro', city, prev, next, dataset);
   if (!text) {
     return;
   }
   const sent = await sendTelegramMessage(tg, text, { onError: (msg) => logger.warn(msg) });
   if (sent) {
-    logger.info('Source-state change notification sent to Telegram');
+    logger.info(`Source-state change notification sent to Telegram (${city})`);
   }
 };
 
-/** Data layer startup: load from disk, background refresh, daily scheduler */
+/** Data layer startup: load both cities from disk, background refresh, daily scheduler */
 export const initMetroData = async (): Promise<void> => {
   const cfg = getMetroConfig();
-  const deps = buildDeps();
 
-  // Fast start: the latest disk copy, if present
-  const disk = await loadMetroDataFromDisk(deps);
-  if (disk.dataset) {
-    setMetroDataset(disk.dataset);
-    logger.info(`Metro data loaded from disk (${disk.origin}): ${disk.dataset.stations.length} stations`);
+  // Fast start: the latest disk copies, if present
+  const moscowDisk = await loadMetroDataFromDisk(buildDeps());
+  if (moscowDisk.dataset) {
+    setMetroDataset('moscow', moscowDisk.dataset);
+    logger.info(
+      `Moscow metro data loaded from disk (${moscowDisk.origin}): ${moscowDisk.dataset.stations.length} stations`,
+    );
   } else {
-    logger.info('No disk copy of metro data — waiting for the first refresh from the network');
+    logger.info('No disk copy of Moscow metro data — waiting for the first refresh from the network');
+  }
+  const spbDisk = await loadSpbMetroDataFromDisk(buildSpbDeps());
+  if (spbDisk.dataset) {
+    setMetroDataset('spb', spbDisk.dataset);
+    logger.info(`SPb metro data loaded from disk (${spbDisk.origin}): ${spbDisk.dataset.stations.length} stations`);
+  } else {
+    logger.info('No disk copy of SPb metro data — waiting for the first refresh from the network');
   }
 
   // First refresh from the network — in the background, without delaying server startup

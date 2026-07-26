@@ -18,6 +18,9 @@ export const STORAGE_FILES = {
   mosmetroSchema: 'mosmetro-schema.json',
   mosmetroNotifications: 'mosmetro-notifications.json',
   metrobookGraph: 'metrobook-graph.json',
+  spbMetrobookGraph: 'spb-metrobook-graph.json',
+  spbHhMetro: 'spb-hh-metro.json',
+  spbOfficialHours: 'spb-official-hours.json',
   meta: 'meta.json',
 } as const;
 
@@ -130,9 +133,11 @@ export class MetroStorage {
     return this.read('mosmetroNotifications');
   }
 
-  /** Typed read of the saved metrobook graph */
-  async readMetrobookGraph(): Promise<IMetrobookGraphFile | null> {
-    const raw = await this.read('metrobookGraph');
+  /** Typed read of a saved metrobook-format graph (Moscow fallback or the SPb graph source) */
+  async readMetrobookGraph(
+    key: 'metrobookGraph' | 'spbMetrobookGraph' = 'metrobookGraph',
+  ): Promise<IMetrobookGraphFile | null> {
+    const raw = await this.read(key);
     if (raw && typeof raw === 'object' && 'stationInstances' in raw && 'edges' in raw) {
       return raw as IMetrobookGraphFile;
     }

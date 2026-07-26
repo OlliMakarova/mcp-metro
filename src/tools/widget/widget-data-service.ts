@@ -64,10 +64,10 @@ const cache = new Map<string, ICacheEntry>();
 const datasetVersion = (dataset: IMetroDataset): string =>
   `${dataset.schemaFetchedAt}|${dataset.notificationsFetchedAt ?? ''}`;
 
-/** Cache key: route identity + walk-to/from-metro times + effective minute + dataset version */
+/** Cache key: city + route identity + walk-to/from-metro times + effective minute + dataset version */
 const cacheKey = (dataset: IMetroDataset, params: IWidgetDataParams, effectiveAt: Date): string => {
   const minute = Math.floor(effectiveAt.getTime() / 60000);
-  return `${params.fromIds.join(',')}|${params.toIds.join(',')}|${params.lang}|${params.walkToMin ?? ''}|${params.walkFromMin ?? ''}|${minute}|${datasetVersion(dataset)}`;
+  return `${params.city ?? 'moscow'}|${params.fromIds.join(',')}|${params.toIds.join(',')}|${params.lang}|${params.walkToMin ?? ''}|${params.walkFromMin ?? ''}|${minute}|${datasetVersion(dataset)}`;
 };
 
 const cacheGet = (key: string, now: number): IRoutesWidgetData | undefined => {
@@ -124,7 +124,15 @@ export const getRoutesWidgetData = (dataset: IMetroDataset, params: IWidgetDataP
   const result = findBestRoutes(dataset, params.fromIds, params.toIds, { k: ROUTE_COUNT, at: effectiveAt });
   const fromName = stationName(dataset, params.fromIds, params.lang);
   const toName = stationName(dataset, params.toIds, params.lang);
-  const data = buildRoutesWidgetData(result, fromName, toName, params.lang, params.walkToMin, params.walkFromMin);
+  const data = buildRoutesWidgetData(
+    result,
+    fromName,
+    toName,
+    params.lang,
+    params.walkToMin,
+    params.walkFromMin,
+    params.city ?? 'moscow',
+  );
 
   cacheSet(key, data, now);
   return data;

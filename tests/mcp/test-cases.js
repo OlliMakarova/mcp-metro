@@ -82,7 +82,8 @@ export const METRO_TESTS = {
         const resp = await client.readResource('metro://lines');
         const r = resp?.result || resp;
         const text = r?.contents?.[0]?.text || r?.resource?.text || r?.text;
-        const good = typeof text === 'string' && /Moscow Metro lines/.test(text);
+        // Ресурс содержит секции обоих городов
+        const good = typeof text === 'string' && /Metro lines/.test(text) && /Saint Petersburg/.test(text);
         return good ? ok(name, { sample: String(text).slice(0, 120) }) : fail(name, { response: r });
       } catch (e) {
         return fail(name, { error: e?.message });
@@ -220,6 +221,40 @@ export const METRO_TESTS = {
         );
         const good = typeof text === 'string' && /arrival station/i.test(text);
         return good ? ok(name, { sample: String(text).slice(0, 160) }) : fail(name, { text });
+      } catch (e) {
+        return fail(name, { error: e?.message });
+      }
+    },
+    async (client) => {
+      const name = 'get_station_info по «Адмиралтейская» с city=StPetersburg возвращает сведения о станции СПб';
+      try {
+        const text = extractToolText(
+          await client.callTool('metro_info', {
+            first_metro_station: 'Адмиралтейская',
+            action: 'get_station_info',
+            city: 'StPetersburg',
+            language: 'ru',
+          }),
+        );
+        const good = typeof text === 'string' && text.includes('# Station') && text.includes('Адмиралтейская');
+        return good ? ok(name, { sample: String(text).slice(0, 160) }) : fail(name, { text });
+      } catch (e) {
+        return fail(name, { error: e?.message });
+      }
+    },
+    async (client) => {
+      const name = 'search_route «Девяткино» → «Купчино» с city=StPetersburg строит маршруты по СПб';
+      try {
+        const text = extractToolText(
+          await client.callTool('metro_info', {
+            first_metro_station: 'Девяткино',
+            second_metro_station: 'Купчино',
+            action: 'search_route',
+            city: 'StPetersburg',
+          }),
+        );
+        const good = typeof text === 'string' && text.includes('# Routes') && /Option 1/.test(text) && /min/.test(text);
+        return good ? ok(name, { sample: String(text).slice(0, 200) }) : fail(name, { text });
       } catch (e) {
         return fail(name, { error: e?.message });
       }

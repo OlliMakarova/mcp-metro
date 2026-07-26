@@ -58,7 +58,8 @@ const connectSrc = new URL(getPublicBaseUrl()).origin;
 export const routesWidgetResource: IResourceData = {
   uri: ROUTES_WIDGET_URI,
   name: 'mos-metro-routes-widget',
-  description: 'MCP Apps widget that renders Moscow Metro route variants returned by the metro_info tool.',
+  description:
+    'MCP Apps widget that renders Moscow or Saint Petersburg Metro route variants returned by the metro_info tool.',
   mimeType: MCP_APPS_RESOURCE_MIME_TYPE,
   content: () => WIDGET_HTML,
   _meta: {

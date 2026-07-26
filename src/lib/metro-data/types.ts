@@ -6,8 +6,11 @@
 // type: a missing optional field just means less information in the response, without any
 // per-source branching.
 
+/** The city the dataset describes */
+export type TMetroCity = 'moscow' | 'spb';
+
 /** The source the dataset was obtained from */
-export type TMetroSource = 'mosmetro' | 'metrobook';
+export type TMetroSource = 'mosmetro' | 'metrobook' | 'spb-combined';
 
 /** Line kind: regular metro, Moscow Central Circle, Moscow Central Diameters */
 export type TLineKind = 'metro' | 'mcc' | 'mcd';
@@ -159,6 +162,8 @@ export interface IMetroNotification {
 }
 
 export interface IMetroDataset {
+  /** City of the dataset; absent means Moscow (the field predates multi-city support) */
+  city?: TMetroCity;
   source: TMetroSource;
   /** When the schema was downloaded (ISO UTC) */
   schemaFetchedAt: string;

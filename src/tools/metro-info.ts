@@ -5,6 +5,7 @@ import { asTextContent, asTextError, hostSupportsMcpApps, IToolHandlerParams, TT
 import { debugFuzzySearch } from '../debug.js';
 import { getMetroDatasetOrNull } from '../lib/metro-data/cache.js';
 import { pickName, toLang } from '../lib/metro-data/localized-name.js';
+import { TMetroCity } from '../lib/metro-data/types.js';
 import { hideSourceNames } from '../lib/metro-data/public-source.js';
 import { findBestRoutes } from '../lib/routing/find-routes.js';
 import { buildStationInfo } from '../lib/station-info.js';
@@ -112,6 +113,9 @@ const sanitizeWalkMinutes = (value: unknown): number | undefined => {
   return Number.isFinite(raw) && raw >= 1 && raw <= 600 ? Math.round(raw) : undefined;
 };
 
+/** City tool argument → internal city id (anything unrecognized falls back to Moscow) */
+const toCity = (value: unknown): TMetroCity => (value === 'StPetersburg' ? 'spb' : 'moscow');
+
 // ─── DEBUG=fuzzy-search: console tables of clarification alternatives ────────
 
 /** Aligned text table of station alternatives: name, cluster id, platform ids, similarity */
@@ -168,8 +172,8 @@ export const handleMetroInfo = async (params: IToolHandlerParams): Promise<TTool
   // context mentions them).
   const walkToMin = sanitizeWalkMinutes(args?.walk_to_metro_minutes);
   const walkFromMin = sanitizeWalkMinutes(args?.walk_from_metro_minutes);
-  // The city parameter is accepted for forward compatibility: St. Petersburg metro data is not
-  // wired in yet, so 'StPetersburg' currently falls back to the Moscow dataset like any other value.
+  // Each city has its own dataset; an unrecognized value falls back to Moscow
+  const city = toCity(args?.city);
 
   if (!first) {
     return asTextError('The first_metro_station parameter is not specified.');
@@ -178,7 +182,7 @@ export const handleMetroInfo = async (params: IToolHandlerParams): Promise<TTool
     return asTextError('The action parameter must be "search_route" or "get_station_info".');
   }
 
-  const dataset = getMetroDatasetOrNull();
+  const dataset = getMetroDatasetOrNull(city);
   if (!dataset) {
     return asTextError(DATA_UNAVAILABLE_MD);
   }
@@ -242,7 +246,7 @@ The departure and arrival stations are the same: **${fromName}**. They belong to
     // with the same arguments, so the wording is identical across the first and later turns. The
     // link records the moment of this call; the widget's "Refresh route" button drops `at`.
     if (hostSupportsMcpApps(params.clientCapabilities)) {
-      const summary = buildModelSummary(result, fromName, toName, lang, walkToMin, walkFromMin);
+      const summary = buildModelSummary(result, fromName, toName, lang, walkToMin, walkFromMin, city);
       // No usable summary (no route variants) — fall back to the plain text answer, exactly as for a
       // text-only host, so the model is never left with an empty result.
       if (!summary) {
@@ -252,6 +256,7 @@ The departure and arrival stations are the same: **${fromName}**. They belong to
         fromIds: fromOpt.ids,
         toIds: toOpt.ids,
         lang,
+        ...(city !== 'moscow' ? { city } : {}),
         at: new Date(),
         ...(walkToMin !== undefined ? { walkToMin } : {}),
         ...(walkFromMin !== undefined ? { walkFromMin } : {}),

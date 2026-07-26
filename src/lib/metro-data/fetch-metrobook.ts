@@ -33,7 +33,19 @@ export interface IMetrobookFetchOpts {
   timeoutMs: number;
   fetchImpl?: typeof fetch;
   now?: () => Date;
+  /** Plausibility floor for the extracted graph; defaults to the Moscow network size */
+  limits?: IMetrobookGraphLimits;
 }
+
+/** Minimal plausible graph size — protects against silently broken markup */
+export interface IMetrobookGraphLimits {
+  minInstances: number;
+  minEdges: number;
+  minNamed: number;
+}
+
+/** Moscow network floor (metro + MCC + MCD: ~380 vertices) */
+export const MOSCOW_GRAPH_LIMITS: IMetrobookGraphLimits = { minInstances: 300, minEdges: 300, minNamed: 250 };
 
 interface IMbRuntime {
   arrS: Record<string, { sdids: number[] }>;
@@ -49,7 +61,12 @@ interface IMbRuntime {
  * Extracts the graph from the main page HTML. Throws a clear error if the markup has changed.
  * The result format is compatible with the metrobook-graph.json file on disk.
  */
-export const parseMetrobookHtml = (html: string, fetchedAt: string, sourceUrl: string): IMetrobookGraphFile => {
+export const parseMetrobookHtml = (
+  html: string,
+  fetchedAt: string,
+  sourceUrl: string,
+  limits: IMetrobookGraphLimits = MOSCOW_GRAPH_LIMITS,
+): IMetrobookGraphFile => {
   const scripts = [...html.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/g)].map((m) => m[1] ?? '');
   const dataScript = scripts.find((s) => s.includes('mb.arrSD[') && s.includes('mb.arrR['));
   if (!dataScript) {
@@ -75,41 +92,50 @@ export const parseMetrobookHtml = (html: string, fetchedAt: string, sourceUrl: s
     source: sourceUrl,
     fetchedAt,
     mapId: Number((dataScript.match(/mb\.mid=(\d+)/) || [])[1] ?? 0),
-    lines: Object.fromEntries(Object.entries(mb.arrL).map(([lid, l]) => [lid, { type: l.type }])),
+    // The runtime containers may be sparse arrays instead of objects (the SPb mirror) — filter
+    // out empty slots before mapping
+    lines: Object.fromEntries(
+      Object.entries(mb.arrL)
+        .filter(([, l]) => !!l)
+        .map(([lid, l]) => [lid, { type: l.type }]),
+    ),
     stationInstances: Object.fromEntries(
-      Object.entries(mb.arrSD).map(([sdid, sd]) => [
-        sdid,
-        { stationId: sd.sid, lineId: sd.lid, name: names[sdid] ?? null },
-      ]),
+      Object.entries(mb.arrSD)
+        .filter(([, sd]) => !!sd)
+        .map(([sdid, sd]) => [sdid, { stationId: sd.sid, lineId: sd.lid, name: names[sdid] ?? null }]),
     ),
     stations: Object.fromEntries(
-      Object.entries(mb.arrS).map(([sid, s]) => [
-        sid,
-        { sdids: s.sdids, name: s.sdids.map((d) => names[String(d)]).find(Boolean) ?? null },
-      ]),
+      Object.entries(mb.arrS)
+        .filter(([, s]) => !!s?.sdids)
+        .map(([sid, s]) => [sid, { sdids: s.sdids, name: s.sdids.map((d) => names[String(d)]).find(Boolean) ?? null }]),
     ),
-    edges: Object.entries(mb.arrR).map(([rid, r]) => ({
-      id: Number(rid),
-      sdid1: r.sdid1,
-      sdid2: r.sdid2,
-      lineId: r.lid,
-      time: r.ttime,
-    })),
+    edges: Object.entries(mb.arrR)
+      .filter(([, r]) => !!r)
+      .map(([rid, r]) => ({
+        id: Number(rid),
+        sdid1: r.sdid1,
+        sdid2: r.sdid2,
+        lineId: r.lid,
+        time: r.ttime,
+      })),
     transfers: Object.entries(mb.arrTT).flatMap(([from, row]) =>
       Object.entries(row ?? {}).map(([to, time]) => ({ from: Number(from), to: Number(to), time })),
     ),
   };
 
-  validateMetrobookGraph(graph);
+  validateMetrobookGraph(graph, limits);
   return graph;
 };
 
 /** Plausibility check: the markup is undocumented and may change at any moment */
-export const validateMetrobookGraph = (g: IMetrobookGraphFile): void => {
+export const validateMetrobookGraph = (
+  g: IMetrobookGraphFile,
+  limits: IMetrobookGraphLimits = MOSCOW_GRAPH_LIMITS,
+): void => {
   const instances = Object.keys(g.stationInstances).length;
   const edges = g.edges.length;
   const named = Object.values(g.stations).filter((s) => s.name).length;
-  if (instances < 300 || edges < 300 || named < 250) {
+  if (instances < limits.minInstances || edges < limits.minEdges || named < limits.minNamed) {
     throw new Error(
       `metrobook.ru: extracted graph is implausible (${instances} vertices, ${edges} ride segments, ${named} named stations) — the site markup has changed`,
     );
@@ -126,7 +152,7 @@ export const fetchMetrobookGraph = async (opts: IMetrobookFetchOpts): Promise<IM
     throw new Error(`HTTP ${res.status} ${res.statusText} while requesting ${opts.url}`);
   }
   const html = await res.text();
-  return parseMetrobookHtml(html, (opts.now?.() ?? new Date()).toISOString(), opts.url);
+  return parseMetrobookHtml(html, (opts.now?.() ?? new Date()).toISOString(), opts.url, opts.limits);
 };
 
 // ─── Normalization into the unified format ───────────────────────────────────
@@ -181,6 +207,7 @@ export const normalizeMetrobook = (g: IMetrobookGraphFile): IMetroDataset => {
   ];
 
   return {
+    city: 'moscow',
     source: 'metrobook',
     schemaFetchedAt: g.fetchedAt,
     stations,

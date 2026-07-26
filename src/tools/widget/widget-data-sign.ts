@@ -15,6 +15,7 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
 
 import { TLang, toLang } from '../../lib/metro-data/localized-name.js';
+import { TMetroCity } from '../../lib/metro-data/types.js';
 
 /** Length (hex chars) the HMAC signature is truncated to in the link */
 export const SIG_HEX_LEN = 32;
@@ -30,6 +31,12 @@ export interface IWidgetDataParams {
   toIds: number[];
   /** Response language */
   lang: TLang;
+  /**
+   * City of the metro network the ids belong to; absent means Moscow. Part of the signature:
+   * station ids of the two cities overlap, so a link must not be replayable across cities.
+   * Moscow links omit the field entirely, keeping links issued before multi-city support valid.
+   */
+  city?: TMetroCity;
   /** Moment the route is built for; absent means "now" (the Refresh button path) */
   at?: Date;
   /** Walk time (minutes) from the user's origin to the departure station; absent — not mentioned */
@@ -46,13 +53,18 @@ export class WidgetLinkError extends Error {
   }
 }
 
-/** Canonical string the signature is computed over — the route identity, without the moment `at` */
-const canonical = (fromStr: string, toStr: string, lang: string): string => `${fromStr}|${toStr}|${lang}`;
+/**
+ * Canonical string the signature is computed over — the route identity, without the moment `at`.
+ * For Moscow the city component is omitted (not `|moscow`), so links issued before multi-city
+ * support keep verifying.
+ */
+const canonical = (fromStr: string, toStr: string, lang: string, city?: TMetroCity): string =>
+  `${fromStr}|${toStr}|${lang}${city && city !== 'moscow' ? `|${city}` : ''}`;
 
 /** HMAC-SHA256 of the canonical string, truncated to SIG_HEX_LEN hex chars */
-export const signSig = (secret: string, fromStr: string, toStr: string, lang: string): string =>
+export const signSig = (secret: string, fromStr: string, toStr: string, lang: string, city?: TMetroCity): string =>
   createHmac('sha256', secret)
-    .update(canonical(fromStr, toStr, lang))
+    .update(canonical(fromStr, toStr, lang, city))
     .digest('hex')
     .slice(0, SIG_HEX_LEN);
 
@@ -61,6 +73,9 @@ export const buildSignedUrl = (baseUrl: string, secret: string, params: IWidgetD
   const fromStr = params.fromIds.join(',');
   const toStr = params.toIds.join(',');
   const search = new URLSearchParams({ from: fromStr, to: toStr, lang: params.lang });
+  if (params.city && params.city !== 'moscow') {
+    search.set('city', params.city);
+  }
   if (params.at) {
     search.set('at', params.at.toISOString());
   }
@@ -70,7 +85,7 @@ export const buildSignedUrl = (baseUrl: string, secret: string, params: IWidgetD
   if (params.walkFromMin !== undefined) {
     search.set('walkFrom', String(params.walkFromMin));
   }
-  search.set('sig', signSig(secret, fromStr, toStr, params.lang));
+  search.set('sig', signSig(secret, fromStr, toStr, params.lang, params.city));
   return `${baseUrl}/api/widget-data?${search.toString()}`;
 };
 
@@ -133,8 +148,14 @@ export const parseSignedQuery = (secret: string, query: Record<string, unknown>)
     throw new WidgetLinkError('Missing required parameters: from, to, lang and sig are all required.');
   }
 
+  const cityStr = firstQueryValue(query.city);
+  if (cityStr && cityStr !== 'moscow' && cityStr !== 'spb') {
+    throw new WidgetLinkError('Invalid "city" parameter.');
+  }
+  const city: TMetroCity = cityStr === 'spb' ? 'spb' : 'moscow';
+
   const lang = toLang(langStr);
-  if (!signaturesMatch(sig, signSig(secret, fromStr, toStr, lang))) {
+  if (!signaturesMatch(sig, signSig(secret, fromStr, toStr, lang, city))) {
     throw new WidgetLinkError('Invalid signature.');
   }
 
@@ -157,6 +178,7 @@ export const parseSignedQuery = (secret: string, query: Record<string, unknown>)
     fromIds,
     toIds,
     lang,
+    ...(city !== 'moscow' ? { city } : {}),
     ...(at ? { at } : {}),
     ...(walkToMin !== undefined ? { walkToMin } : {}),
     ...(walkFromMin !== undefined ? { walkFromMin } : {}),

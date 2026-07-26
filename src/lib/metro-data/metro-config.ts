@@ -18,6 +18,9 @@ export const METRO_URLS = {
   mosmetroSchema: 'https://prodapp.mosmetro.ru/api/schema/v1.0',
   mosmetroNotifications: 'https://prodapp.mosmetro.ru/api/notifications/v2',
   metrobook: 'https://metrobook.ru/',
+  spbMetrobook: 'https://spb.metrobook.ru/',
+  spbHhMetro: 'https://api.hh.ru/metro/2',
+  spbOfficialHours: 'https://metro.spb.ru/rejimrabotystancii.html',
 } as const;
 
 const DEFAULT_REFRESH_INTERVAL_HOURS = 24;
@@ -37,6 +40,9 @@ export interface IMetroConfigResolved {
     mosmetroSchema: string;
     mosmetroNotifications: string;
     metrobook: string;
+    spbMetrobook: string;
+    spbHhMetro: string;
+    spbOfficialHours: string;
   };
 }
 

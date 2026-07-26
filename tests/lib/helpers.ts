@@ -10,7 +10,11 @@ import {
   validateMosmetroNotifications,
   validateMosmetroSchema,
 } from '../../src/lib/metro-data/fetch-mosmetro.js';
-import { normalizeMetrobook } from '../../src/lib/metro-data/fetch-metrobook.js';
+import { normalizeMetrobook, parseMetrobookHtml } from '../../src/lib/metro-data/fetch-metrobook.js';
+import { ISpbHhMetroFile, validateSpbHhMetro } from '../../src/lib/metro-data/fetch-spb-hh.js';
+import { ISpbOfficialFile, parseSpbOfficialHtml } from '../../src/lib/metro-data/fetch-spb-official.js';
+import { buildSpbDataset } from '../../src/lib/metro-data/normalize-spb.js';
+import { SPB_GRAPH_LIMITS } from '../../src/lib/metro-data/refresh-spb.js';
 import { IMetroDataset, IMetrobookGraphFile } from '../../src/lib/metro-data/types.js';
 
 export const FIXTURES_DIR = path.resolve(__dirname, '..', 'fixtures');
@@ -69,3 +73,48 @@ export const getMetrobookDataset = (): IMetroDataset => {
 /** Station identifiers by exact Russian name */
 export const stationIdsByName = (dataset: IMetroDataset, ru: string): number[] =>
   dataset.stations.filter((s) => s.name.ru === ru).map((s) => s.id);
+
+// ─── Saint Petersburg fixtures (real data downloaded on 2026-07-26) ──────────
+
+const SPB_FETCHED_AT = '2026-07-26T00:00:00.000Z';
+
+let spbGraphCache: IMetrobookGraphFile | null = null;
+let spbHhCache: ISpbHhMetroFile | null = null;
+let spbOfficialCache: ISpbOfficialFile | null = null;
+let spbDatasetCache: IMetroDataset | null = null;
+
+/** SPb graph parsed from the saved metrobook-mirror page */
+export const loadSpbGraphFile = (): IMetrobookGraphFile => {
+  spbGraphCache ??= parseMetrobookHtml(
+    readFileSync(path.join(FIXTURES_DIR, 'spb-metrobook-index.html'), 'utf8'),
+    SPB_FETCHED_AT,
+    'https://spb.metrobook.ru/',
+    SPB_GRAPH_LIMITS,
+  );
+  return spbGraphCache;
+};
+
+/** SPb hh.ru reference from the saved JSON */
+export const loadSpbHhFile = (): ISpbHhMetroFile => {
+  spbHhCache ??= { ...validateSpbHhMetro(readJson('spb-hh-metro.json')), fetchedAt: SPB_FETCHED_AT };
+  return spbHhCache;
+};
+
+/** SPb official operating hours parsed from the saved page */
+export const loadSpbOfficialFile = (): ISpbOfficialFile => {
+  spbOfficialCache ??= parseSpbOfficialHtml(
+    readFileSync(path.join(FIXTURES_DIR, 'spb-official-hours.html'), 'utf8'),
+    SPB_FETCHED_AT,
+    'https://metro.spb.ru/rejimrabotystancii.html',
+  );
+  return spbOfficialCache;
+};
+
+/** Full Saint Petersburg dataset: graph + hh enrichment + official hours */
+export const getSpbDataset = (): IMetroDataset => {
+  spbDatasetCache ??= buildSpbDataset(loadSpbGraphFile(), loadSpbHhFile(), loadSpbOfficialFile());
+  return spbDatasetCache;
+};
+
+/** Bare Saint Petersburg dataset: graph only, no enrichment sources */
+export const getSpbDatasetBare = (): IMetroDataset => buildSpbDataset(loadSpbGraphFile(), null, null);

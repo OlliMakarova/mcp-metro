@@ -86,30 +86,44 @@ describe('Состояние источников и тексты оповеще
     expect(stateFromOrigin('metrobook-fresh')).toBe('backup');
     expect(stateFromOrigin('mosmetro-disk')).toBe('disk');
     expect(stateFromOrigin('metrobook-disk')).toBe('disk');
+    expect(stateFromOrigin('spb-fresh')).toBe('ok');
+    expect(stateFromOrigin('spb-disk')).toBe('disk');
     expect(stateFromOrigin('none')).toBe('none');
   });
 
   test('без смены состояния сообщения нет', () => {
-    expect(buildStateChangeMessage('svc', 'ok', 'ok', getMosmetroDataset())).toBeNull();
-    expect(buildStateChangeMessage('svc', 'none', 'none', null)).toBeNull();
+    expect(buildStateChangeMessage('svc', 'moscow', 'ok', 'ok', getMosmetroDataset())).toBeNull();
+    expect(buildStateChangeMessage('svc', 'moscow', 'none', 'none', null)).toBeNull();
   });
 
   test('ухудшение: понятные тексты с именем сервиса', () => {
-    const backup = buildStateChangeMessage('mcp-metro', 'ok', 'backup', getMetrobookDataset());
+    const backup = buildStateChangeMessage('mcp-metro', 'moscow', 'ok', 'backup', getMetrobookDataset());
     expect(backup).toContain('mcp-metro');
     expect(backup).toContain('mosmetro.ru source is unavailable');
     expect(backup).toContain('metrobook.ru');
 
-    const disk = buildStateChangeMessage('mcp-metro', 'backup', 'disk', getMosmetroDataset());
+    const disk = buildStateChangeMessage('mcp-metro', 'moscow', 'backup', 'disk', getMosmetroDataset());
     expect(disk).toContain('disk copy');
     expect(disk).toContain('2026-07-22');
 
-    const none = buildStateChangeMessage('mcp-metro', 'disk', 'none', null);
+    const none = buildStateChangeMessage('mcp-metro', 'moscow', 'disk', 'none', null);
     expect(none).toContain('no disk copy');
   });
 
   test('восстановление: сообщение о возврате к полным данным', () => {
-    const ok = buildStateChangeMessage('mcp-metro', 'disk', 'ok', getMosmetroDataset());
+    const ok = buildStateChangeMessage('mcp-metro', 'moscow', 'disk', 'ok', getMosmetroDataset());
+    expect(ok).toContain('available again');
+  });
+
+  test('тексты для Санкт-Петербурга: свой источник и свои формулировки', () => {
+    const disk = buildStateChangeMessage('mcp-metro', 'spb', 'ok', 'disk', getMosmetroDataset());
+    expect(disk).toContain('spb.metrobook.ru');
+    expect(disk).toContain('disk copy');
+
+    const none = buildStateChangeMessage('mcp-metro', 'spb', 'disk', 'none', null);
+    expect(none).toContain('Saint Petersburg');
+
+    const ok = buildStateChangeMessage('mcp-metro', 'spb', 'none', 'ok', null);
     expect(ok).toContain('available again');
   });
 });

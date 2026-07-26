@@ -6,7 +6,7 @@
 // normalized to front/middle/rear codes, line badges carry the public line number and color.
 
 import { pickName, TLang } from '../../lib/metro-data/localized-name.js';
-import { IWagonHint, TLineKind } from '../../lib/metro-data/types.js';
+import { IWagonHint, TLineKind, TMetroCity } from '../../lib/metro-data/types.js';
 import {
   IFindRoutesResult,
   ILineInfo,
@@ -242,6 +242,7 @@ export const buildRoutesWidgetData = (
   lang: TLang,
   walkToMin?: number,
   walkFromMin?: number,
+  city: TMetroCity = 'moscow',
 ): IRoutesWidgetData => {
   const op = result.operating;
   const warnings: IWidgetWarning[] = endpointWarnings(result.variants).map((w) => ({
@@ -255,7 +256,7 @@ export const buildRoutesWidgetData = (
     lang,
     from: fromName,
     to: toName,
-    modelSummary: buildModelSummary(result, fromName, toName, lang, walkToMin, walkFromMin),
+    modelSummary: buildModelSummary(result, fromName, toName, lang, walkToMin, walkFromMin, city),
     ...(walkToMin !== undefined ? { walkToMetroSec: walkToMin * 60 } : {}),
     ...(walkFromMin !== undefined ? { walkFromMetroSec: walkFromMin * 60 } : {}),
     closuresApplied: result.closuresApplied,

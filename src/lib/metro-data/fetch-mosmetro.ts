@@ -352,6 +352,7 @@ export const normalizeMosmetro = (
     : null;
 
   return {
+    city: 'moscow',
     source: 'mosmetro',
     schemaFetchedAt: opts.schemaFetchedAt,
     ...(notifications && opts.notificationsFetchedAt ? { notificationsFetchedAt: opts.notificationsFetchedAt } : {}),
