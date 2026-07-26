@@ -2,9 +2,11 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+
 ## What This Is
 
 An MCP (Model Context Protocol) server built on the `fa-mcp-sdk` framework. It exposes tools, prompts, and resources to AI agents via STDIO or HTTP/SSE transports.
+
 
 ## Commands
 
@@ -44,6 +46,7 @@ node scripts/generate-jwt.js -u <username> -ttl <duration> [-s <service>] [-p <p
 yarn consul:unreg          # deregister from Consul
 ```
 
+
 ## JWT Token Generation (Skill /gen-jwt)
 
 Generate JWT tokens for MCP server authentication using the `/gen-jwt` skill.
@@ -52,6 +55,7 @@ Triggers: user asks to generate/create a JWT token, mentions "jwt", "token for u
 **Start/stop the server**: `yarn build && yarn start`. Stop with Ctrl+C. Port is in `config/default.yaml` → `webServer.port`. Force stop: `node scripts/kill-port.js <port>`.
 
 **Server endpoints** (HTTP mode): `/mcp/*` (MCP protocol), `/docs` (Swagger UI), `/admin` (token generator), `/health`, `/agent-tester` (chat UI for testing tools).
+
 
 ## Architecture
 
@@ -142,6 +146,7 @@ When multiple auth methods configured, detection from `Authorization` header:
 3. `jwtToken` — standard signed JWT, HS256 (optional IP restriction via `isCheckIP` + `ip` field in payload; legacy `<expire>.<hex>` tokens still accepted for backward compatibility)
 4. `custom` — user-defined validator (fallback)
 
+
 ## Framework Documentation
 
 Detailed fa-mcp-sdk docs are in `FA-MCP-SDK-DOC/`:
@@ -162,6 +167,7 @@ Detailed fa-mcp-sdk docs are in `FA-MCP-SDK-DOC/`:
 | `10-mcp-apps.md` | Building / extending MCP Apps (UI-augmented tools) — protocol contract, SDK surface, patterns, pitfalls |
 | `11-public-contract.md` | Formal SDK public contract — transports, endpoints, JWT claims, tool/prompt/resource format, error mapping, headers, semver & deprecation policy |
 | `12-implementation-standard.md` | Corporate MCP server implementation standard (Avatar profile over MCP 2025-11-25) — tool side-effects & risk level, error codes, limits, observability, deprecation, compliance checklist |
+
 
 ## Development and Testing Through Agent Tester
 
@@ -384,11 +390,13 @@ This log serves as:
 - **Progress tracker** — which tools/scenarios are covered, which remain
 - **Handoff document** — if the session is interrupted, the next session can read the log and continue
 
+
 ## Editing files in `.claude/` (Skill /edit-claude-files)
 
 Any edit or new file under `.claude/**` (SKILL.md, scripts, hooks, agents, `settings.json`) is blocked
 by `settings.json` — direct `Write`/`Edit` will fail. Invoke the `/edit-claude-files` skill, which
 describes the required `scripts/fcp.js` temp-copy protocol.
+
 
 ## MCP Apps Reference Clone (`scripts/clone-mcp-ext-apps.js`)
 
@@ -427,3 +435,47 @@ fragments. Use `${expr}` interpolation rather than `'…' + value` to splice val
 fit within 120 columns stay as plain quotes. For user-facing text where the exact spacing matters (no stray line
 breaks), keep the wording on one logical line inside the backticks even if that line is long — the formatter leaves
 template-literal contents untouched, which is exactly why they replace `+` wrapping.
+
+
+
+## Writing prompt-plan documents
+
+When you produce a prompt-plan (an implementation plan written as a prompt for an executor, human or agent):
+
+- **Open with `## Суть`, and put nothing above it.** The very first section under the `# ` title — ahead of the
+  note to the executor, ahead of any description of how the system works today — is `## Суть`: a plain-language
+  block that tells a NON-PROGRAMMER what this plan changes and why. Everything technical — the state of the system
+  today, the code map, the contract, the stages — starts only after it.
+
+  **Structure it; never write a wall of text.** Break the block into short subsections with `### ` headings, in
+  this order, using the ones that carry meaning for this plan and dropping the rest:\
+  `### Проблема` — what hurts today, from the person's point of view.\
+  `### Текущее состояние` — how it behaves now, only where that is needed to see the problem.\
+  `### Решение` — what we do about it, in one or two sentences per idea.\
+  `### Как будет` — what a person will see or be able to do once the plan is carried out.
+
+  Inside each subsection: short paragraphs of one to three sentences, a blank line whenever a new thought starts,
+  and bullet lists for any enumeration. One long unbroken paragraph is a defect — the reader must be able to scan
+  the block, not decipher it.
+
+  Nothing technical belongs in `## Суть`: no file paths, no function, field or flag names, no protocol,
+  specification or standard names, no abbreviation left unexpanded. If a term truly cannot be avoided, explain it in
+  plain words in the same sentence. The test to apply: a reader must be able to decide whether this plan is worth
+  doing without opening a single source file.
+
+  The register to aim for: "Сегодня человек нажимает кнопку прямо в карточке, но бот об этом не узнаёт. На
+  следующий вопрос он отвечает по устаревшей картине и уверенно описывает то, чего уже нет." Not one file name in
+  it, and it still says exactly what changes.
+- **The note to the executor lives under `## Исполнителю (LLM)`**, immediately after `## Суть`. It carries the
+  standing instructions for whoever carries the plan out — ticking the checklist, asking when a fork is not
+  covered, and anything else the executor must keep in mind for the whole run.
+- **Always include a checklist** of implementation stages, each item a `- [ ]` checkbox grouped by stage.
+- **Tell the executor to tick the boxes as it goes.** Every plan must carry an explicit instruction near the
+  top that the executor (CLI agent or human) marks each checklist item `- [x]` in this same file the moment that
+  item is genuinely done — so the document always reflects real progress, not intent. Make this a standing note,
+  not a per-item reminder.
+- **The last stage is always documentation update** — reflect the changes in the docs (see "Updating documentation").
+- **Write in the target state, not as a transition.** State decisions as "We do it this way!", never as
+  before/after. When a decision is "remove `search` completely", write the schema already without `search` —
+  do NOT write "the `search` flag is now removed" or any "moved from X to Y" phrasing. No was/became wording
+  inside the plan; the plan describes only the final state.
