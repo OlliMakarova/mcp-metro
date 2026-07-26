@@ -35,6 +35,7 @@ node .claude/skills/deploy-mcp-to-remote-server/scripts/remote.cjs <subcommand>
 | stop | `stop` | Stop the container (the in-container auto-update stops with it). |
 | start | `start` | Start the container again. |
 | restart | `restart` | Restart just the app service inside the container (fast, no rebuild). |
+| change config only / push local.yaml, config.yml | `push-config` | Copy the skill's `config/local.yaml` and `config.yml` into the running container and restart the app service. Nothing is rebuilt, git is not touched. `--container` restarts the whole container instead; `--no-restart` only pushes. Skips the restart when both files are already identical. |
 | update now | `update` | Run `update.cjs --force` inside the container (immediate rebuild from the branch). |
 | logs | `logs [N]` | Last N app-service journal lines (default 200). |
 | bootstrap/build logs | `bootlog [N]` | Last N first-boot (clone/build) journal lines — use when a fresh deploy is still building. |
@@ -70,6 +71,19 @@ version control via `config/.gitignore`; each has an `*.example.*` template besi
 The real files hold secrets and may be blocked from the Read tool — inspect them with a small
 `node -e "fs.readFileSync(...)"` if needed, and rely on `status`/`logs`/`updatelog` for debugging.
 If the script reports a file or key is missing, tell the user which one — do not guess credentials.
+
+**Changing a setting after the first deploy.** These local files stay the source of truth, and
+`push-config` is the fast way to apply an edit: it copies `local.yaml` and `config.yml` into the
+running container and restarts the app service — no image rebuild, no git operation, seconds instead
+of minutes. It is safe because the bootstrap materialises those two files only on the FIRST boot
+(its unit carries `ConditionPathExists=!/var/lib/deploy-bootstrap-done`), so a later container
+restart does not overwrite them from the now-stale PID 1 environment. A subsequent `deploy` does
+recreate the container from the current local files, so the two paths stay consistent. File contents
+are never printed — both hold secrets; the command reports only created / updated / unchanged.
+
+Two cases still need `deploy` rather than `push-config`: a changed `webServer.port` (the reverse
+proxy points at the old one — the command warns about exactly this) and anything under
+`remote-server-config.local.yaml`, since that drives the container's own run-time environment.
 
 ## First-time deploy — order of steps
 

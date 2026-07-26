@@ -22,6 +22,7 @@
 //   node remote.cjs stop        # stop the container (auto-update stops with it)
 //   node remote.cjs start       # start the container
 //   node remote.cjs restart     # restart just the app service (fast, no rebuild)
+//   node remote.cjs push-config # copy local.yaml + config.yml into the container and restart
 //   node remote.cjs update      # force update.cjs --force inside the container
 //   node remote.cjs logs [N]    # last N app-service journal lines (default 200)
 //   node remote.cjs updatelog   # auto-update verdict + error scan + last-run log
@@ -578,6 +579,113 @@ function cmdUpdate(cfg) {
   sshRun(cfg, `docker exec ${CONTAINER} ${NODE_BIN} ${cfg.projectPath}/update.cjs --force`);
 }
 
+// Push the two local config files into the already-running container and restart — the fast path
+// for a settings change (tokens, telegram, rate limits) that would otherwise need a full `deploy`.
+//
+//   node remote.cjs push-config                  # push both files + restart the app service
+//   node remote.cjs push-config --container      # push both files + restart the whole container
+//   node remote.cjs push-config --no-restart     # push only, restart later with `restart`
+//
+// config/local.yaml (from the skill's config/local.yaml) and deploy/config.yml (from config.yml)
+// are copied into the checkout inside the container. Nothing is rebuilt and git is not touched.
+//
+// Why this is safe: the bootstrap writes those two files only on FIRST boot — its systemd unit
+// carries `ConditionPathExists=!/var/lib/deploy-bootstrap-done`. So a later container restart does
+// NOT re-materialise them from the (now stale) PID 1 environment, and what is pushed here survives.
+// The next `deploy`, however, recreates the container with fresh env values, so keep the local files
+// as the source of truth.
+//
+// File contents are never echoed: both hold secrets (JWT keys, permanent tokens, bot tokens). Only
+// created / updated / unchanged is reported, and the previous version is kept in /tmp inside the
+// container for the current session.
+function cmdPushConfig(cfg, args) {
+  const restartContainer = args.includes('--container');
+  const noRestart = args.includes('--no-restart');
+  if (restartContainer && noRestart) fail('Use either --container or --no-restart, not both.');
+
+  const hasDeployYml = fs.existsSync(CONFIG_YML_FILE);
+  if (!hasDeployYml) {
+    say(`No ${CONFIG_YML_FILE} — pushing config/local.yaml only (deploy/config.yml left untouched).`);
+  }
+
+  // Applied inside the container: compare by hash, replace only what differs, exit 10 when nothing
+  // changed so the caller can skip a pointless restart.
+  const inner = `
+set -uo pipefail
+cd ${cfg.projectPath} 2>/dev/null || { echo 'Project dir ${cfg.projectPath} not found inside the container.'; exit 2; }
+mkdir -p config deploy
+CHANGED=0
+push_file() {
+  src="$1"; dst="$2"
+  [ -f "$src" ] || return
+  if [ ! -f "$dst" ]; then
+    cp "$src" "$dst"; echo "  $dst — created"; CHANGED=1; return
+  fi
+  if [ "$(sha256sum "$src" | cut -d' ' -f1)" = "$(sha256sum "$dst" | cut -d' ' -f1)" ]; then
+    echo "  $dst — unchanged"; return
+  fi
+  cp "$dst" "/tmp/pc-prev-$(basename "$dst")"
+  cp "$src" "$dst"
+  echo "  $dst — updated (previous kept as /tmp/pc-prev-$(basename "$dst"))"
+  CHANGED=1
+}
+push_file /tmp/pc-local.yaml config/local.yaml
+push_file /tmp/pc-config.yml deploy/config.yml
+rm -f /tmp/pc-local.yaml /tmp/pc-config.yml
+[ "$CHANGED" = "1" ] || exit 10
+exit 0`;
+
+  const restartBlock = noRestart
+    ? `echo 'Restart skipped (--no-restart). Apply the new config with: node remote.cjs restart'`
+    : restartContainer
+      ? `echo 'Restarting the whole container...'
+docker restart ${CONTAINER} >/dev/null && echo 'Container restarted.'
+sleep 8`
+      : `echo 'Restarting the app service inside the container...'
+docker exec ${CONTAINER} systemctl restart ${SERVICE} && echo 'App service restarted.'
+sleep 3`;
+
+  const healthBlock = noRestart
+    ? ''
+    : `curl -fsS -m 8 "http://127.0.0.1:${cfg.appPort}/health" && echo || echo 'local /health FAILED — check: node remote.cjs logs 100'`;
+
+  const script = `
+set -uo pipefail
+docker inspect ${CONTAINER} >/dev/null 2>&1 || { echo 'Container ${CONTAINER} does not exist — run: node remote.cjs deploy'; exit 1; }
+RUNNING=$(docker inspect -f '{{.State.Running}}' ${CONTAINER} 2>/dev/null || echo false)
+[ "$RUNNING" = 'true' ] || { echo 'Container is not running — run: node remote.cjs start'; exit 1; }
+docker exec ${CONTAINER} test -f /var/lib/deploy-bootstrap-done || {
+  echo 'First boot has not finished yet — it writes these files itself and would overwrite the push.';
+  echo 'Watch it with: node remote.cjs status'; exit 1; }
+umask 077
+printf '%s' ${sq(b64(cfg.localYaml))} | base64 -d > /tmp/pc-local.yaml
+docker cp /tmp/pc-local.yaml ${CONTAINER}:/tmp/pc-local.yaml >/dev/null
+${hasDeployYml
+      ? `printf '%s' ${sq(b64(cfg.deployConfigYaml))} | base64 -d > /tmp/pc-config.yml
+docker cp /tmp/pc-config.yml ${CONTAINER}:/tmp/pc-config.yml >/dev/null`
+      : ''}
+rm -f /tmp/pc-local.yaml /tmp/pc-config.yml
+echo 'Applying config inside the container:'
+docker exec ${CONTAINER} bash -lc ${sq(inner)}
+RC=$?
+if [ "$RC" = '10' ]; then
+  echo 'Nothing to do — the container already has these exact files. Restart skipped.'
+  exit 0
+fi
+[ "$RC" = '0' ] || { echo "Config push FAILED (exit $RC) — nothing was restarted."; exit "$RC"; }
+${restartBlock}
+${healthBlock}
+if grep -qs "127.0.0.1:${cfg.appPort}" /etc/caddy/Caddyfile || grep -qs "127.0.0.1:${cfg.appPort}" /etc/nginx/sites-available/${cfg.dns}.conf; then
+  :
+else
+  echo '⚠ The reverse proxy does not forward to 127.0.0.1:${cfg.appPort} — webServer.port changed? Re-run: node remote.cjs deploy'
+fi
+`;
+  say(`Pushing config to ${CONTAINER} on ${cfg.user}@${cfg.host}`);
+  const code = sshRun(cfg, script);
+  if (code !== 0) fail(`push-config failed (exit ${code}). Diagnose with: node remote.cjs status`);
+}
+
 function cmdLogs(cfg, n) {
   const lines = /^\d+$/.test(String(n)) ? n : '200';
   say(`Last ${lines} app-service log lines`);
@@ -685,6 +793,8 @@ function main() {
     case 'stop': return cmdStop(cfg);
     case 'start': return cmdStart(cfg);
     case 'restart': return cmdRestart(cfg);
+    case 'push-config':
+    case 'config': return cmdPushConfig(cfg, rest);
     case 'update': return cmdUpdate(cfg);
     case 'logs': return cmdLogs(cfg, rest[0]);
     case 'bootlog': return cmdBootlog(cfg, rest[0]);
@@ -701,6 +811,9 @@ function main() {
   stop              Stop the container (auto-update stops with it)
   start             Start the container
   restart           Restart just the app service (fast, no rebuild)
+  push-config       Copy config/local.yaml + config.yml into the container and restart
+                      [--container] restart the whole container instead of the app service
+                      [--no-restart] push only, restart later
   update            Force update.cjs --force inside the container
   logs [N]          Last N app-service journal lines (default 200)
   bootlog [N]       Last N bootstrap (clone/build) journal lines (default 200)

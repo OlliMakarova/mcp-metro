@@ -10,6 +10,7 @@ The normal way to operate it is the orchestrator subcommands (run from the proje
 ```bash
 node .claude/skills/deploy-mcp-to-remote-server/scripts/remote.cjs <command>
 # keygen | deploy | status | stop | start | restart | update
+# push-config [--container | --no-restart]
 # logs [N] | bootlog [N] | updatelog [N] | shell | exec -- <cmd...> | uninstall --yes | ssh
 ```
 
@@ -76,6 +77,34 @@ docker exec <CONTAINER> systemctl start <SERVICE>
 docker stop <CONTAINER>
 docker start <CONTAINER>
 ```
+
+## Updating the config files without a rebuild
+
+The two config files inside the container are written by the bootstrap on the **first boot only**
+(its unit has `ConditionPathExists=!/var/lib/deploy-bootstrap-done`), so replacing them by hand is
+enough — a container restart will not overwrite them. The orchestrator does the whole sequence:
+
+```bash
+node .../remote.cjs push-config                # push both files + restart the app service
+node .../remote.cjs push-config --container     # push both files + restart the whole container
+node .../remote.cjs push-config --no-restart    # push only; apply later with `restart`
+```
+
+It compares by SHA-256 and replaces only what differs, keeping the previous version as
+`/tmp/pc-prev-<file>` inside the container; when both files already match, the restart is skipped.
+File contents are never printed, since both hold secrets. By hand the same thing looks like this:
+
+```bash
+# from the workstation, with the skill's config/ files as the source
+base64 -w0 .claude/skills/deploy-mcp-to-remote-server/config/local.yaml   # copy the output
+# on the server:
+echo '<base64>' | base64 -d > /tmp/local.yaml
+docker cp /tmp/local.yaml <CONTAINER>:<PROJECT_DIR>/config/local.yaml
+docker exec <CONTAINER> systemctl restart <SERVICE>
+```
+
+A changed `webServer.port` still needs a full `deploy`, because the reverse-proxy vhost points at the
+old port; `push-config` prints a warning when it detects that mismatch.
 
 ## Force a rebuild inside the container (update.cjs -f)
 
