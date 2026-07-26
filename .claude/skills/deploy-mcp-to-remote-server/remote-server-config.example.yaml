@@ -1,18 +1,22 @@
 # ─────────────────────────────────────────────────────────────────────────────
-# Example configuration for the deploy-mcp-to-remote-server skill.
+# Example configuration for the deploy-mcp-to-remote-server skill (project-agnostic).
 #
 # Copy to remote-server-config.local.yaml (kept out of version control) and fill
 # in real values. The orchestrator scripts/remote.cjs reads the .local.yaml only.
 #
-# Deployment model: a self-contained systemd Docker container. On the server
-# nothing lives but Docker + one Caddy block. The container clones the repo,
-# writes config/local.yaml (from `configLocalYaml`) and deploy/config.yml (from
-# `deployConfigYaml` + Telegram creds), builds, runs the app as a systemd service,
-# and a cron inside it runs update.cjs every minute. update.cjs is universal: it
-# notifies by e-mail on a classic host deploy and by Telegram in the container.
+# The skill hard-codes NOTHING project-specific. The service/container/image/volume
+# name is derived from this project's package.json `name`, and the node version from
+# its .envrc (`nvm use <ver>`). Everything else comes from this file.
 #
-# Format is a small subset of YAML: nested maps with 2-space indentation and
-# scalar values. Do not quote the Windows key paths — backslashes are literal.
+# Deployment model: a self-contained systemd Docker container run with --network host.
+# On the server nothing lives but Docker + one reverse-proxy vhost (Caddy or nginx —
+# auto-detected). The container clones the repo, writes config/local.yaml (from the
+# whole `configLocalYaml` block below) and deploy/config.yml (from `deployConfigYaml`
+# + Telegram creds), builds, runs the app as a systemd service, and a cron inside it
+# runs update.cjs every minute (rebuild on change + notify).
+#
+# Format is a small subset of YAML: nested maps with 2-space indentation and scalar
+# values. Do not quote Windows key paths — backslashes are literal.
 # ─────────────────────────────────────────────────────────────────────────────
 
 server:
@@ -27,16 +31,24 @@ git:
   # GitHub Deploy Key — create one with:  node scripts/remote.cjs keygen
   # then add the printed public key to the repo (Settings → Deploy keys, read-only).
   # You may also point this at an existing key that already has GitHub access.
-  deployKeyPath: <path to git private key>   # e.g. C:\Users\you\.ssh\mcp-metro-deploy
+  deployKeyPath: <path to git private key>   # e.g. C:\Users\you\.ssh\<name>-deploy
 
 project:
-  branch: master                    # Branch the container tracks and auto-updates from
-  projectPath: /opt/node/mcp-metro  # Where the repo is cloned INSIDE the container
-  statePath: /opt/mcp-metro         # HOST directory that persistently holds the
-                                    # downloaded metro data (bind-mounted as the cache)
+  branch: master     # Branch the container tracks and auto-updates from
+  # projectPath and statePath are OPTIONAL — default to /opt/node/<name> and /opt/<name>.
+  # projectPath: /opt/node/<name>   # where the repo is cloned INSIDE the container
+  # statePath:   /opt/<name>        # HOST dir that persistently holds the app's data cache
+  # cacheDir:    data-cache         # subdir inside the project that statePath is mounted onto
 
 mcp:
-  dns: <mcp DNS>       # Public domain served by Caddy, e.g. mcp-metro.time-gold.com
+  dns: <public domain>   # Public domain the reverse proxy serves, e.g. app.example.com
+
+# OPTIONAL overrides (auto-detected if omitted):
+# service:
+#   name: <name>     # container/image/volume/service base name (default: package.json name)
+#   instance: prod   # systemd instance suffix -> <name>--<instance>
+# container:
+#   nodeVersion: <x.y.z>   # node version baked into the image (default: from .envrc)
 
 env:
   DEBUG: config-info   # DEBUG value passed into the container (optional; default: config-info)

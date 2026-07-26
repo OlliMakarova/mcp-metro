@@ -1,16 +1,21 @@
 ---
 name: deploy-mcp-to-remote-server
 description: >-
-  Deploy, stop, restart, update and diagnose the mcp-metro MCP server on the remote
-  production server as a self-contained systemd Docker container behind Caddy, with
-  a once-a-minute in-container git auto-update and Telegram notifications. Use when
+  Deploy, stop, restart, update and diagnose this fa-mcp-sdk MCP server on a remote
+  production server as a self-contained systemd Docker container behind a reverse
+  proxy (Caddy or nginx), with a once-a-minute in-container git auto-update. Use when
   the user asks to deploy / roll out / stop / restart / update or check the status of
-  mcp-metro on the server (развернуть, выключить, перезапустить, обновить, диагностика).
+  the MCP server on the server (развернуть, выключить, перезапустить, обновить, диагностика).
 disable-model-invocation: true
 allowed-tools: Bash, Read
 ---
 
-# Deploy mcp-metro to the remote server (self-contained systemd Docker)
+# Deploy an fa-mcp-sdk MCP server to a remote server (self-contained systemd Docker)
+
+Project-agnostic skill: nothing here is hard-coded to a particular project, server or domain.
+The service/container name is derived from the host project's `package.json` name and the node
+version from its `.envrc`; everything else comes from the config file. Copy this whole skill folder
+into another fa-mcp-sdk project, fill in `remote-server-config.local.yaml`, and it works.
 
 Almost everything is done by scripts. Your job: pick the right subcommand, run it, and report the
 output to the user in clear Russian. Do not hand-craft SSH or docker commands — the orchestrator
@@ -35,7 +40,7 @@ node .claude/skills/deploy-mcp-to-remote-server/scripts/remote.cjs <subcommand>
 | bootstrap/build logs | `bootlog [N]` | Last N first-boot (clone/build) journal lines — use when a fresh deploy is still building. |
 | auto-update log / errors | `updatelog [N]` | Last auto-update verdict (SUCCESS/FAIL), an `[ERROR]` scan, and the last update-run log. Use to check whether the once-a-minute rebuild is succeeding or failing. |
 | shell into container | `shell` | Open an interactive bash shell inside the container. |
-| run a command inside | `exec -- <cmd>` | Run an arbitrary command inside the container (runs from `/`; node is at `/root/.nvm/versions/node/v22.17.1/bin/node`). |
+| run a command inside | `exec -- <cmd>` | Run an arbitrary command inside the container (runs from `/`; node is at `/usr/local/bin/node`). |
 | uninstall / удали с сервера | `uninstall --yes` | Remove container, image, volume and the Caddy block. Destructive — needs `--yes`. |
 | raw ssh access | `ssh` | Print the ssh command for manual login. |
 
@@ -80,8 +85,8 @@ to add — do not guess credentials.
   service, then posts a SUCCESS/FAIL verdict. `update.cjs` is **universal**: it e-mails (only where a
   `mail` agent exists, i.e. a classic host deploy) and posts to **Telegram** (whenever bot creds are
   set) — inside the container only Telegram fires. The checkout and `node_modules` live in the Docker
-  volume `mcp-metro-data` (fast restarts); the downloaded metro data (`data-cache`) is bind-mounted
-  to the host `project.statePath` so it persists even across container/volume removal.
+  volume `<name>-data` (fast restarts); the app's data cache (`data-cache`, or `project.cacheDir`) is
+  bind-mounted to the host `project.statePath` so it persists even across container/volume removal.
 - **Server footprint.** Only Docker + one reverse-proxy vhost for `<dns>` → `127.0.0.1:<port>`. The
   port is published on loopback only. The deploy auto-detects the proxy: **Caddy** (transactional
   edit of the shared `/etc/caddy/Caddyfile`, auto-TLS) or **nginx** (writes a site under
@@ -98,10 +103,12 @@ to add — do not guess credentials.
 - **`git.deployKeyPath is not set` / key not found** → run `keygen`, add the public key to
   GitHub (read-only), set `git.deployKeyPath`, then `deploy`.
 - **First boot seems stuck** → `status` shows `bootstrap: still running` during the first clone +
-  build (a few minutes). Use `logs` and, for the build phase, check
-  `docker exec mcp-metro journalctl -u mcp-bootstrap.service` via `ssh`.
+  build (a few minutes). Use `bootlog` for the build phase.
 - **Container won't start / systemd errors** → the host must allow `--privileged` and expose cgroup;
-  check `docker logs mcp-metro` and that cgroup v2 is mounted.
+  check the container logs (`logs` / `docker logs <container>`) and that cgroup v2 is mounted.
+- **Notifications not arriving** → the container runs with `--network host`, so it uses the host's
+  connectivity; if the host itself cannot reach the notification endpoint (e.g. a blocked network),
+  neither can the container. Check what the host can reach.
 - **Public `/health` fails but local works** → Caddy issue: check the block in `/etc/caddy/Caddyfile`
   and `journalctl -u caddy`; the DNS `A` record for `<dns>` must point at the server.
 - **No Telegram notifications** → verify `configLocalYaml.telegram.botToken` / `chatId`; the verdict

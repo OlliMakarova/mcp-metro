@@ -1,27 +1,29 @@
 # syntax=docker/dockerfile:1
 # ─────────────────────────────────────────────────────────────────────────────
-# Self-contained systemd image for mcp-metro.
+# Project-agnostic self-contained systemd image for an fa-mcp-sdk MCP server.
 #
-# The image carries NO application code. On first boot the baked-in
-# mcp-bootstrap.service clones the repository (read-only Deploy Key passed via
-# env), writes config/local.yaml + deploy/config.yml + .env from env, builds the
-# project and installs it as a systemd service through the repo's own
-# deploy/srv.cjs. A cron job then runs the repo's update.cjs every minute, which
-# git-pulls the branch and, on change, rebuilds and `systemctl restart`s the
-# service — sending the verdict to Telegram.
+# The image carries NO application code and hard-codes NOTHING project-specific.
+# On first boot the baked-in mcp-bootstrap.service clones the repository (read-only
+# Deploy Key passed via env), writes config/local.yaml + deploy/config.yml + .env
+# from env, builds the project and installs it as a systemd service through the
+# repo's own deploy/srv.cjs. A cron job then runs the repo's update.cjs every
+# minute, which git-pulls the branch and, on change, rebuilds and restarts the
+# service (and notifies, if the project configures it).
 #
 # Because it runs a real systemd as PID 1, the container must be started with
 # --privileged and a cgroup mount (see the deploy orchestrator / SKILL.md).
 #
-# It is built context-less by the orchestrator:  docker build -t mcp-metro:latest -
+# The node version is a build arg (the orchestrator passes it from the project's
+# .envrc). Built context-less:  docker build --build-arg NODE_VERSION=x -t <name> -
 # ─────────────────────────────────────────────────────────────────────────────
 FROM ubuntu:22.04
 
+ARG NODE_VERSION=22.17.1
 ENV DEBIAN_FRONTEND=noninteractive \
     container=docker \
     TZ=Europe/Moscow \
     NVM_DIR=/root/.nvm \
-    NODE_VERSION=22.17.1
+    NODE_VERSION=${NODE_VERSION}
 
 # System packages: systemd (init), cron (auto-update trigger), git/openssh (clone),
 # build toolchain (native npm modules), curl/ca-certificates (health + nvm install).
@@ -38,11 +40,14 @@ RUN find /etc/systemd/system /lib/systemd/system \
          -o -name 'systemd-resolved*' -o -name 'systemd-timesyncd*' \) \
       -exec rm -f {} + 2>/dev/null || true
 
-# nvm + pinned Node so the repo's .envrc (`nvm use 22.17.1`) and yarn work unchanged.
+# nvm + the project's pinned Node (from .envrc's `nvm use <ver>`, passed as NODE_VERSION)
+# so the repo's .envrc and yarn work unchanged. A stable /usr/local/bin/node symlink
+# lets cron/tools call node without knowing the exact version directory.
 RUN curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash \
  && . "$NVM_DIR/nvm.sh" \
  && nvm install "$NODE_VERSION" \
  && nvm alias default "$NODE_VERSION" \
+ && ln -sf "$NVM_DIR/versions/node/v$NODE_VERSION/bin/node" /usr/local/bin/node \
  && npm i -g yarn@1.22.22 \
  && nvm cache clear
 
@@ -56,14 +61,14 @@ set -euo pipefail
 while IFS= read -r -d '' kv; do
   case "$kv" in
     REPO_URL=*|BRANCH=*|PROJECT_DIR=*|GIT_SSH_KEY_B64=*|CONFIG_LOCAL_YAML_B64=*|\
-DEPLOY_CONFIG_YAML_B64=*|DEBUG=*|PUBLIC_BASE_URL=*|SERVICE_NAME=*|SERVICE_INSTANCE=*) export "$kv" ;;
+DEPLOY_CONFIG_YAML_B64=*|DEBUG=*|PUBLIC_BASE_URL=*|NODE_VERSION=*|SERVICE_NAME=*|SERVICE_INSTANCE=*) export "$kv" ;;
   esac
 done < /proc/1/environ
 
-: "${PROJECT_DIR:=/opt/node/mcp-metro}"
+: "${PROJECT_DIR:=/opt/node/app}"
 : "${BRANCH:=master}"
 : "${DEBUG:=config-info}"
-: "${SERVICE_NAME:=mcp-metro}"
+: "${SERVICE_NAME:=$(basename "$PROJECT_DIR")}"
 : "${SERVICE_INSTANCE:=prod}"
 : "${NODE_VERSION:=22.17.1}"
 
@@ -128,11 +133,10 @@ yarn cb
 # Install (or reinstall) the app as a systemd service via the repo's own script.
 node deploy/srv.cjs install
 
-# Auto-update every minute: absolute node path (cron PATH is minimal); update.cjs
+# Auto-update every minute: stable node symlink (cron PATH is minimal); update.cjs
 # itself sources .envrc for its yarn/build steps.
-NODE_BIN="$NVM_DIR/versions/node/v$NODE_VERSION/bin/node"
 cat > /etc/cron.d/mcp-update <<CRON
-* * * * * root $NODE_BIN $PROJECT_DIR/update.cjs >/tmp/mcp-update.log 2>&1
+* * * * * root /usr/local/bin/node $PROJECT_DIR/update.cjs >/tmp/mcp-update.log 2>&1
 CRON
 chmod 0644 /etc/cron.d/mcp-update
 
@@ -144,19 +148,19 @@ RUN chmod +x /usr/local/bin/mcp-bootstrap.sh
 # ── systemd oneshot that runs the bootstrap at boot ──────────────────────────
 COPY <<'UNIT' /etc/systemd/system/mcp-bootstrap.service
 [Unit]
-Description=mcp-metro bootstrap (clone, build, install service)
+Description=MCP deploy bootstrap (clone, build, install service)
 # Docker configures the network namespace before init runs, so network.target
 # (which is always reached) is enough. network-online.target would hang here
 # because systemd-networkd is intentionally absent in this image.
 After=network.target
-ConditionPathExists=!/opt/node/.mcp-bootstrap-done
+ConditionPathExists=!/var/lib/deploy-bootstrap-done
 
 [Service]
 Type=oneshot
 RemainAfterExit=yes
 Environment=HOME=/root
 ExecStart=/usr/local/bin/mcp-bootstrap.sh
-ExecStartPost=/bin/touch /opt/node/.mcp-bootstrap-done
+ExecStartPost=/bin/touch /var/lib/deploy-bootstrap-done
 
 [Install]
 WantedBy=multi-user.target

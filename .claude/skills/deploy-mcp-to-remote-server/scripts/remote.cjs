@@ -2,16 +2,19 @@
 'use strict';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// mcp-metro — remote deployment orchestrator (runs on the developer workstation).
+// Generic remote deployment orchestrator for an fa-mcp-sdk MCP server
+// (runs on the developer workstation). Project-agnostic: copy this skill into any
+// such project, fill in the config, and it works. Everything project-specific is
+// derived from the host project (package.json name, .envrc node version) or read
+// from remote-server-config.local.yaml — nothing is hard-coded here.
 //
-// Model: a self-contained systemd Docker image. The server keeps NOTHING but
-// Docker + one Caddy block. The image (docker/Dockerfile) carries no app code;
-// at boot it clones the repo (read-only Deploy Key passed via env), writes
-// config/local.yaml + deploy/config.yml + .env, builds, installs the app as a
-// systemd service, and runs update.cjs from cron every minute (Telegram verdict).
+// Model: a self-contained systemd Docker image (docker/Dockerfile) carrying no app
+// code; at boot it clones the repo (read-only Deploy Key passed via env), writes
+// config/local.yaml (from configLocalYaml) + deploy/config.yml + .env, builds,
+// installs the app as a systemd service, and runs update.cjs from cron every minute.
 //
 // This orchestrator only: builds the image on the server context-lessly
-// (`docker build -`), runs the container, wires up Caddy, and drives lifecycle.
+// (`docker build -`), runs the container, wires up the reverse proxy, drives lifecycle.
 //
 //   node remote.cjs keygen      # create a read-only GitHub Deploy Key
 //   node remote.cjs deploy      # build image + (re)create container + Caddy
@@ -31,14 +34,16 @@ const path = require('path');
 const { spawnSync } = require('child_process');
 
 const CONFIG_FILE = path.join(__dirname, '..', 'remote-server-config.local.yaml');
-
-const CONTAINER = 'mcp-metro';
-const IMAGE = 'mcp-metro:latest';
-const VOLUME = 'mcp-metro-data';
-const SERVICE = 'mcp-metro--prod'; // SERVICE_NAME (mcp-metro) + --SERVICE_INSTANCE (prod)
-const NODE_VERSION = '22.17.1'; // must match docker/Dockerfile
-const NODE_BIN = `/root/.nvm/versions/node/v${NODE_VERSION}/bin/node`;
 const DOCKERFILE = path.join(__dirname, '..', 'docker', 'Dockerfile');
+// Host project root: .claude/skills/<skill>/scripts/remote.cjs -> up four levels.
+const PROJECT_ROOT = path.resolve(__dirname, '..', '..', '..', '..');
+
+// Stable node path baked into the image (a symlink to the nvm-installed node), so
+// nothing here depends on a specific node version directory.
+const NODE_BIN = '/usr/local/bin/node';
+
+// Derived names — set once in main() from the resolved config (see resolveNames()).
+let CONTAINER, IMAGE, VOLUME, SERVICE, UPSTREAM, NODE_VERSION;
 
 // ── Minimal nested-YAML reader (maps + scalars, 2-space indent, no arrays) ────
 function parseYaml(text) {
@@ -120,6 +125,36 @@ function sq(v) {
   return `'${String(v).replace(/'/g, `'\\''`)}'`;
 }
 
+// Docker/systemd-safe identifier derived from an arbitrary project name.
+function sanitizeName(n) {
+  return String(n).toLowerCase().replace(/^@/, '').replace(/\//g, '-').replace(/[^a-z0-9_.-]/g, '-') || 'mcp-app';
+}
+
+// Service/container base name — from config override, else the host project's package.json name.
+function readProjectName(cfg) {
+  if (cfg.service && cfg.service.name) return sanitizeName(cfg.service.name);
+  try {
+    const pkg = JSON.parse(fs.readFileSync(path.join(PROJECT_ROOT, 'package.json'), 'utf8'));
+    if (pkg.name) return sanitizeName(pkg.name);
+  } catch {
+    /* fall through */
+  }
+  return 'mcp-app';
+}
+
+// Node version to bake into the image — from config override, else the project's .envrc
+// (`nvm use X.Y.Z`); srv.cjs reads the same .envrc, so they must match.
+function readNodeVersion(cfg) {
+  if (cfg.container && cfg.container.nodeVersion) return String(cfg.container.nodeVersion);
+  try {
+    const m = fs.readFileSync(path.join(PROJECT_ROOT, '.envrc'), 'utf8').match(/nvm\s+use\s+([0-9]+\.[0-9]+\.[0-9]+)/);
+    if (m) return m[1];
+  } catch {
+    /* fall through */
+  }
+  return '22.17.1';
+}
+
 function loadConfig() {
   if (!fs.existsSync(CONFIG_FILE)) {
     fail(`Config not found: ${CONFIG_FILE}\nCopy remote-server-config.example.yaml to it and fill it in.`);
@@ -143,7 +178,12 @@ function loadConfig() {
   const telegramLines =
     (telegram.botToken ? `telegramBotToken: ${telegram.botToken}\n` : '') +
     (telegram.chatId ? `telegramChatId: ${telegram.chatId}\n` : '');
+  const name = readProjectName(cfg);
+  const instance = (cfg.service && cfg.service.instance) || 'prod';
   return {
+    name,
+    instance,
+    nodeVersion: readNodeVersion(cfg),
     host: req(server.host, 'server.host'),
     port: server.port || '22',
     user: req(server.user, 'server.user'),
@@ -151,8 +191,11 @@ function loadConfig() {
     repoUrl: req(project.repoUrl || git.repoUrl, 'project.repoUrl'),
     deployKeyPath: git.deployKeyPath || project.deployKeyPath || '',
     branch: project.branch || 'master',
-    projectPath: project.projectPath || '/opt/node/mcp-metro',
-    statePath: req(project.statePath, 'project.statePath'),
+    projectPath: project.projectPath || `/opt/node/${name}`,
+    statePath: project.statePath || `/opt/${name}`,
+    // Subdir inside the project the persistent statePath is bind-mounted onto
+    // (the app's on-disk cache). Default suits fa-mcp-sdk apps; override if needed.
+    cacheDir: project.cacheDir || 'data-cache',
     dns: req(mcp.dns, 'mcp.dns'),
     email: (cfg.deployConfigYaml && cfg.deployConfigYaml.email) || '',
     debug: envSection.DEBUG || 'config-info',
@@ -203,7 +246,7 @@ function sshPipe(cfg, remoteCmd, input) {
 
 function caddyBlock(cfg) {
   return [
-    `# mcp-metro — MCP Metro server (Docker container on 127.0.0.1:${cfg.appPort})`,
+    `# ${cfg.dns} — reverse proxy to the Docker container on 127.0.0.1:${cfg.appPort}`,
     `${cfg.dns} {`,
     '\tencode gzip',
     `\treverse_proxy 127.0.0.1:${cfg.appPort} {`,
@@ -222,7 +265,7 @@ function caddyBlock(cfg) {
 // nginx server block (HTTP). certbot --nginx later adds the 443 listener + redirect.
 function nginxBlock(cfg) {
   return [
-    `upstream mcp_metro_upstream { server 127.0.0.1:${cfg.appPort}; keepalive 8; }`,
+    `upstream ${UPSTREAM} { server 127.0.0.1:${cfg.appPort}; keepalive 8; }`,
     'server {',
     '    listen 80;',
     `    server_name ${cfg.dns};`,
@@ -242,7 +285,7 @@ function nginxBlock(cfg) {
     '        proxy_buffering off;',
     '        proxy_read_timeout 3600s;',
     '        proxy_send_timeout 3600s;',
-    '        proxy_pass http://mcp_metro_upstream;',
+    `        proxy_pass http://${UPSTREAM};`,
     '        proxy_redirect off;',
     '    }',
     '}',
@@ -327,12 +370,12 @@ fi`;
 
 // ── Subcommands ──────────────────────────────────────────────────────────────
 function cmdKeygen(cfg) {
-  const target = cfg.deployKeyPath || path.join(path.dirname(cfg.keyPath), 'mcp-metro-deploy');
+  const target = cfg.deployKeyPath || path.join(path.dirname(cfg.keyPath), `${cfg.name}-deploy`);
   if (fs.existsSync(target)) {
     say(`Key already exists: ${target}`);
   } else {
     say(`Generating read-only Deploy Key: ${target}`);
-    const res = spawnSync('ssh-keygen', ['-t', 'ed25519', '-N', '', '-f', target, '-C', 'mcp-metro-deploy'], {
+    const res = spawnSync('ssh-keygen', ['-t', 'ed25519', '-N', '', '-f', target, '-C', `${cfg.name}-deploy`], {
       stdio: 'inherit',
     });
     if (res.status !== 0) fail('ssh-keygen failed.');
@@ -341,7 +384,7 @@ function cmdKeygen(cfg) {
   console.log('\n──────────────────────────────────────────────────────────────');
   console.log('Add this PUBLIC key to GitHub as a READ-ONLY Deploy Key:');
   console.log('  repo → Settings → Deploy keys → Add deploy key');
-  console.log('  Title: mcp-metro server    Allow write access: LEAVE UNCHECKED');
+  console.log(`  Title: ${cfg.name} server    Allow write access: LEAVE UNCHECKED`);
   console.log('──────────────────────────────────────────────────────────────');
   console.log(pub);
   console.log('──────────────────────────────────────────────────────────────');
@@ -371,8 +414,8 @@ fi
 docker version >/dev/null`;
   if (sshRun(cfg, preflight) !== 0) fail('Docker is not available on the server.');
 
-  say(`Building image ${IMAGE} on ${cfg.user}@${cfg.host} (context-less)...`);
-  let code = sshPipe(cfg, `DOCKER_BUILDKIT=1 docker build -t ${IMAGE} -`, dockerfile);
+  say(`Building image ${IMAGE} (node ${NODE_VERSION}) on ${cfg.user}@${cfg.host} (context-less)...`);
+  let code = sshPipe(cfg, `DOCKER_BUILDKIT=1 docker build --build-arg NODE_VERSION=${NODE_VERSION} -t ${IMAGE} -`, dockerfile);
   if (code !== 0) fail('Image build failed. See output above.');
 
   const runScript = `
@@ -380,8 +423,8 @@ set -euo pipefail
 echo 'Recreating container...'
 docker rm -f ${CONTAINER} >/dev/null 2>&1 || true
 docker volume create ${VOLUME} >/dev/null
-# Host directory that persistently holds the downloaded metro data (data-cache),
-# bind-mounted over the app's cache dir so it survives container/volume removal.
+# Host directory that persistently holds the app's runtime data cache (data-cache),
+# bind-mounted over it so it survives container/volume removal.
 mkdir -p ${sq(cfg.statePath)}
 docker run -d --name ${CONTAINER} --restart unless-stopped \
   --privileged --cgroupns=host \
@@ -389,10 +432,12 @@ docker run -d --name ${CONTAINER} --restart unless-stopped \
   --tmpfs /run --tmpfs /run/lock \
   -v /sys/fs/cgroup:/sys/fs/cgroup:rw \
   -v ${VOLUME}:${cfg.projectPath} \
-  -v ${sq(cfg.statePath)}:${cfg.projectPath}/data-cache \
+  -v ${sq(cfg.statePath)}:${cfg.projectPath}/${cfg.cacheDir} \
   -e REPO_URL=${sq(cfg.repoUrl)} \
   -e BRANCH=${sq(cfg.branch)} \
   -e PROJECT_DIR=${sq(cfg.projectPath)} \
+  -e SERVICE_NAME=${sq(cfg.name)} \
+  -e SERVICE_INSTANCE=${sq(cfg.instance)} \
   -e DEBUG=${sq(cfg.debug)} \
   -e PUBLIC_BASE_URL=${sq('https://' + cfg.dns)} \
   -e GIT_SSH_KEY_B64=${sq(keyB64)} \
@@ -419,7 +464,7 @@ echo "health: $(docker inspect -f '{{.State.Health.Status}}' ${CONTAINER} 2>/dev
 echo
 echo '===== APP SERVICE (inside container) ====='
 docker exec ${CONTAINER} systemctl is-active ${SERVICE} 2>/dev/null || echo 'app service not active yet (may still be building)'
-docker exec ${CONTAINER} test -f /opt/node/.mcp-bootstrap-done 2>/dev/null && echo 'bootstrap: done' || echo 'bootstrap: still running (first-time clone/build)'
+docker exec ${CONTAINER} test -f /var/lib/deploy-bootstrap-done 2>/dev/null && echo 'bootstrap: done' || echo 'bootstrap: still running (first-time clone/build)'
 echo
 echo '===== GIT (inside container) ====='
 docker exec ${CONTAINER} bash -lc 'cd ${cfg.projectPath} 2>/dev/null && git log -1 --pretty="HEAD %h %ci %s"' 2>/dev/null || echo '(repo not cloned yet)'
@@ -555,7 +600,7 @@ fi
 echo 'Note: the TLS certificate for ${cfg.dns} is left in place (remove with: certbot delete --cert-name ${cfg.dns}).'
 echo 'Done.'
 `;
-  say('Uninstalling mcp-metro from the server');
+  say(`Uninstalling ${cfg.name} from the server`);
   sshRun(cfg, script);
 }
 
@@ -567,6 +612,13 @@ function cmdSsh(cfg) {
 function main() {
   const [cmd, ...rest] = process.argv.slice(2);
   const cfg = loadConfig();
+  // Resolve all project-specific names from the config once.
+  CONTAINER = cfg.name;
+  IMAGE = `${cfg.name}:latest`;
+  VOLUME = `${cfg.name}-data`;
+  SERVICE = `${cfg.name}--${cfg.instance}`;
+  UPSTREAM = `${cfg.name.replace(/[^a-z0-9]/gi, '_')}_upstream`;
+  NODE_VERSION = cfg.nodeVersion;
   switch (cmd) {
     case 'keygen': return cmdKeygen(cfg);
     case 'deploy': return cmdDeploy(cfg);
@@ -583,7 +635,7 @@ function main() {
     case 'uninstall': return cmdUninstall(cfg, rest.includes('--yes'));
     case 'ssh': return cmdSsh(cfg);
     default:
-      console.log(`mcp-metro remote orchestrator — subcommands:
+      console.log(`MCP deploy orchestrator (${cfg.name}) — subcommands:
   keygen            Create a read-only GitHub Deploy Key and print the public part
   deploy            Build the image on the server + (re)create the container + Caddy
   status            Diagnostics: container, app service, git, health, cron, Caddy
