@@ -8,6 +8,7 @@ Chinese — tolerating typos and transliteration. All tool answers are formatted
 Built on the `fa-mcp-sdk` framework. Exposes one MCP tool, two MCP resources, the built-in agent prompts, and a
 rate-limited REST API. Works over STDIO (Claude Desktop) or HTTP/SSE.
 
+
 ## What it can do
 
 - **Route search** — from 1 to 3 shortest route variants between two stations, each with:

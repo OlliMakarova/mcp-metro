@@ -533,13 +533,21 @@ function sendTelegramNotification(config, status, body, serviceName) {
 
   const hostname = os.hostname();
   const icon = status === 'SUCCESS' ? '✅' : '❌';
-  let text = `${icon} ${status} — ${serviceName} @ ${hostname}\n\n${clearColors(clearHtmlColors(body))}`;
-  // Telegram hard-limits a single message to 4096 characters.
-  if (text.length > 3900) {
-    text = `${text.slice(0, 3900)}\n…(truncated)`;
+  let raw = `${icon} ${status} — ${serviceName} @ ${hostname}\n\n${clearColors(clearHtmlColors(body))}`;
+  // Telegram hard-limits a single message to 4096 chars; leave room for the code fence + escaping.
+  if (raw.length > 3800) {
+    raw = `${raw.slice(0, 3800)}\n…(truncated)`;
   }
+  // Render as a MarkdownV2 fenced code block (monospace). Inside a code block only backslash and
+  // backtick are special, so those are the only characters that need escaping.
+  const fenced = '```\n' + raw.replace(/\\/g, '\\\\').replace(/`/g, '\\`') + '\n```';
 
-  const payload = JSON.stringify({ chat_id: telegramChatId, text, disable_web_page_preview: true });
+  const payload = JSON.stringify({
+    chat_id: telegramChatId,
+    text: fenced,
+    parse_mode: 'MarkdownV2',
+    disable_web_page_preview: true,
+  });
 
   return new Promise((resolve) => {
     const req = https.request(
