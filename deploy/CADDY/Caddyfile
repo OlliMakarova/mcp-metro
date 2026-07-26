@@ -64,10 +64,9 @@
 		}
 	}
 
-	header {
-		X-Content-Type-Options nosniff
-		Referrer-Policy strict-origin-when-cross-origin
-	}
+	# Security headers (X-Content-Type-Options, X-Frame-Options, Referrer-Policy) are set by
+	# fa-mcp-sdk itself on every response — do NOT add them here as well, or clients receive two
+	# conflicting values (e.g. two different Referrer-Policy headers).
 
 	# ── MCP protocol: Streamable HTTP (POST/GET/DELETE /mcp) ────────────────────────────────────
 	# POST carries the JSON-RPC calls, GET is the server-initiated event stream of the active session,

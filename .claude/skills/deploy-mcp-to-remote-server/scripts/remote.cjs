@@ -256,7 +256,7 @@ function caddyBlock(cfg) {
     '\t\t}',
     '\t}',
     `\tlog {`,
-    `\t\toutput file /opt/log/caddy/${cfg.dns}.log`,
+    `\t\toutput file /var/log/caddy/${cfg.dns}.log`,
     '\t}',
     '}',
   ].join('\n');
@@ -292,65 +292,143 @@ function nginxBlock(cfg) {
   ].join('\n');
 }
 
-// Caddy branch: transactional edit of the shared Caddyfile (validate a temp copy,
-// only overwrite the live file if it passes) so other sites are never broken.
+// fa-mcp-sdk reverse-proxy templates shipped in the project under deploy/.
+const TPL = {
+  nginxSite: path.join(PROJECT_ROOT, 'deploy', 'NGINX', 'sites-enabled', 'mcp-template.com.conf'),
+  nginxSnippet: path.join(PROJECT_ROOT, 'deploy', 'NGINX', 'snippets', 'mcp-proxy.conf'),
+  caddyfile: path.join(PROJECT_ROOT, 'deploy', 'CADDY', 'Caddyfile'),
+};
+
+function renderTemplate(text, cfg) {
+  return text
+    .replace(/\{\{mcp\.domain\}\}/g, cfg.dns)
+    .replace(/\{\{upstream\}\}/g, UPSTREAM)
+    .replace(/\{\{port\}\}/g, String(cfg.appPort));
+}
+
+// Render the fa-mcp-sdk nginx site for a certbot (Let's Encrypt per-domain) certificate:
+// swap the template's wildcard-cert SSL trio for certbot's own paths + shared params.
+function renderNginxSiteCertbot(cfg) {
+  if (!fs.existsSync(TPL.nginxSite)) return null;
+  let t = renderTemplate(fs.readFileSync(TPL.nginxSite, 'utf8'), cfg);
+  const certbotSsl =
+    `\n    ssl_certificate /etc/letsencrypt/live/${cfg.dns}/fullchain.pem;` +
+    `\n    ssl_certificate_key /etc/letsencrypt/live/${cfg.dns}/privkey.pem;` +
+    `\n    include /etc/letsencrypt/options-ssl-nginx.conf;`;
+  const swapped = t.replace(
+    /\n\s*include \{\{ssl-wildcard\.conf\.rel\.path\}\};\n\s*include snippets\/ssl-params\.conf;\n\s*ssl_protocols\s+TLSv1\.3;/,
+    certbotSsl,
+  );
+  return swapped === t ? null : swapped; // null if the SSL block wasn't found (template drift)
+}
+
+// Extract the `<dns> { … }` site block from the (rendered) Caddy template, balancing braces,
+// so it can be dropped into a shared Caddyfile that already serves other sites.
+function renderCaddySiteBlock(cfg) {
+  if (!fs.existsSync(TPL.caddyfile)) return null;
+  const t = renderTemplate(fs.readFileSync(TPL.caddyfile, 'utf8'), cfg);
+  // The site block opens with `<dns> {` at the START of a line — not the `<dns> { … }`
+  // reference that also appears inside the header comment.
+  const m = t.match(new RegExp(`^${cfg.dns.replace(/\./g, '\\.')} \\{`, 'm'));
+  if (!m) return null;
+  const start = m.index;
+  let depth = 0;
+  for (let i = t.indexOf('{', start); i < t.length; i++) {
+    if (t[i] === '{') depth++;
+    else if (t[i] === '}' && --depth === 0) return t.slice(start, i + 1);
+  }
+  return null;
+}
+
+// Caddy branch: append the rendered fa-mcp-sdk site block to the shared Caddyfile, transactionally
+// (validate a temp copy first, overwrite the live file only if it passes). Falls back to a minimal
+// block if the template is missing.
 function caddyBody(cfg) {
   const dnsEsc = cfg.dns.replace(/\./g, '\\.');
+  const block = renderCaddySiteBlock(cfg) || caddyBlock(cfg);
+  const source = renderCaddySiteBlock(cfg) ? 'fa-mcp-sdk template' : 'minimal fallback block';
   return `
 CF=/etc/caddy/Caddyfile
 if grep -qE "^\\s*${dnsEsc}\\s*\\{" "$CF" 2>/dev/null; then
-  echo "Caddy already has a block for ${cfg.dns}."
+  echo "Caddy already has a block for ${cfg.dns} — removing it to re-apply the current template."
+  BK="$(mktemp)"; cp "$CF" "$BK"
+  awk 'BEGIN{skip=0}
+    /^[[:space:]]*${dnsEsc}[[:space:]]*\\{/{skip=1; next}
+    skip==1 && /^\\}/{skip=0; next}
+    skip==0{print}' "$BK" > "$CF"; rm -f "$BK"
+fi
+echo "Appending Caddy block for ${cfg.dns} (${source})..."
+# Caddy runs as its own user; pre-create the per-site log owned like the log dir so reload can open it.
+mkdir -p /var/log/caddy
+touch /var/log/caddy/${cfg.dns}.log
+chown --reference=/var/log/caddy /var/log/caddy/${cfg.dns}.log 2>/dev/null || true
+TMP="$(mktemp)"
+cp "$CF" "$TMP"
+printf '\\n%s\\n' ${sq(block)} >> "$TMP"
+if caddy validate --adapter caddyfile --config "$TMP" >/dev/null 2>&1; then
+  cp "$TMP" "$CF"; rm -f "$TMP"
+  systemctl reload caddy && echo "Caddy reloaded — ${cfg.dns} is live."
 else
-  echo "Appending Caddy block for ${cfg.dns}..."
-  mkdir -p /opt/log/caddy
-  touch /opt/log/caddy/${cfg.dns}.log
-  chown --reference=/opt/log/caddy /opt/log/caddy/${cfg.dns}.log 2>/dev/null || true
-  TMP="$(mktemp)"
-  cp "$CF" "$TMP"
-  printf '\\n%s\\n' ${sq(caddyBlock(cfg))} >> "$TMP"
-  if caddy validate --adapter caddyfile --config "$TMP" >/dev/null 2>&1; then
-    cp "$TMP" "$CF"; rm -f "$TMP"
-    systemctl reload caddy && echo "Caddy reloaded — ${cfg.dns} is live."
-  else
-    rm -f "$TMP"
-    echo "ERROR: Caddy validation failed — the live Caddyfile was left UNCHANGED. Not adding ${cfg.dns}."
-    exit 1
-  fi
+  rm -f "$TMP"
+  echo "ERROR: Caddy validation failed — the live Caddyfile was left UNCHANGED. Not adding ${cfg.dns}."
+  exit 1
 fi`;
 }
 
-// nginx branch: write a site (HTTP), reload, then obtain/enable TLS via certbot.
+// nginx branch: install the shared proxy snippet, obtain a certbot certificate, then write the
+// rendered fa-mcp-sdk site (split locations, SSE-friendly). Falls back to a single-location block
+// if the template is missing.
 function nginxBody(cfg) {
   const email = cfg.email ? `-m ${cfg.email}` : '--register-unsafely-without-email';
+  const site = renderNginxSiteCertbot(cfg);
+  if (!site || !fs.existsSync(TPL.nginxSnippet)) return nginxBodyFallback(cfg, email);
+  const siteB64 = b64(site);
+  const snippetB64 = b64(fs.readFileSync(TPL.nginxSnippet, 'utf8'));
   return `
+echo 'nginx: applying fa-mcp-sdk template (split MCP/SSE locations).'
+mkdir -p /etc/nginx/snippets
+echo ${snippetB64} | base64 -d > /etc/nginx/snippets/mcp-proxy.conf
+# The site references the cert, so obtain it first (certonly does not touch other configs).
+if [ ! -d "/etc/letsencrypt/live/${cfg.dns}" ]; then
+  echo "Obtaining TLS certificate via certbot for ${cfg.dns}..."
+  certbot certonly --nginx -d ${cfg.dns} --non-interactive --agree-tos ${email} || {
+    echo "WARNING: certbot failed for ${cfg.dns} (DNS not pointing here yet, or port 80 blocked). HTTPS site not written."; exit 0; }
+fi
+if [ ! -f /etc/letsencrypt/options-ssl-nginx.conf ]; then
+  printf 'ssl_protocols TLSv1.2 TLSv1.3;\\nssl_prefer_server_ciphers off;\\n' > /etc/letsencrypt/options-ssl-nginx.conf
+fi
+SITE=/etc/nginx/sites-available/${cfg.dns}.conf
+LINK=/etc/nginx/sites-enabled/${cfg.dns}.conf
+echo ${siteB64} | base64 -d > "$SITE"
+ln -sf "$SITE" "$LINK"
+if nginx -t 2>&1 | tail -2; then
+  systemctl reload nginx && echo "nginx (fa-mcp-sdk template) + HTTPS live for ${cfg.dns}."
+else
+  echo "ERROR: nginx -t failed for ${cfg.dns}. Review $SITE."
+  exit 1
+fi`;
+}
+
+// Minimal single-location nginx site + certbot --nginx (used only if the template is absent).
+function nginxBodyFallback(cfg, email) {
+  return `
+echo 'nginx: template not found — using the minimal fallback block.'
 SITE=/etc/nginx/sites-available/${cfg.dns}.conf
 LINK=/etc/nginx/sites-enabled/${cfg.dns}.conf
 if [ ! -f "$SITE" ]; then
-  echo "Writing nginx site for ${cfg.dns}..."
   cat > "$SITE" <<'NGINXEOF'
 ${nginxBlock(cfg)}
 NGINXEOF
-  ln -sf "$SITE" "$LINK"
-else
-  echo "nginx site for ${cfg.dns} already present (keeping existing, incl. any TLS edits)."
-  ln -sf "$SITE" "$LINK"
 fi
-if ! nginx -t 2>&1 | tail -2; then
-  echo "ERROR: nginx -t failed for ${cfg.dns}. Review $SITE."
-  exit 1
-fi
+ln -sf "$SITE" "$LINK"
+if ! nginx -t 2>&1 | tail -2; then echo "ERROR: nginx -t failed for ${cfg.dns}."; exit 1; fi
 systemctl reload nginx
 if [ ! -d "/etc/letsencrypt/live/${cfg.dns}" ]; then
-  echo "Obtaining TLS certificate via certbot for ${cfg.dns}..."
-  if certbot --nginx -d ${cfg.dns} --non-interactive --agree-tos ${email} --redirect; then
-    nginx -t >/dev/null 2>&1 && systemctl reload nginx
-    echo "nginx + HTTPS live for ${cfg.dns}."
-  else
-    echo "WARNING: certbot failed for ${cfg.dns} (DNS may not point at this server yet, or port 80 is blocked)."
-    echo "         The HTTP (port 80) proxy is live; re-run 'deploy' once DNS resolves to enable HTTPS."
-  fi
+  certbot --nginx -d ${cfg.dns} --non-interactive --agree-tos ${email} --redirect \
+    && nginx -t >/dev/null 2>&1 && systemctl reload nginx && echo "nginx + HTTPS live for ${cfg.dns}." \
+    || echo "WARNING: certbot failed for ${cfg.dns} — HTTP proxy is live; re-run deploy once DNS resolves."
 else
-  echo "TLS certificate for ${cfg.dns} already present; nginx reloaded."
+  echo "TLS certificate for ${cfg.dns} already present."
 fi`;
 }
 
