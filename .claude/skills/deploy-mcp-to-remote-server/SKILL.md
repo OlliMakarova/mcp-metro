@@ -5,7 +5,7 @@ description: >-
   production server as a self-contained systemd Docker container behind a reverse
   proxy (Caddy or nginx), with a once-a-minute in-container git auto-update. Use when
   the user asks to deploy / roll out / stop / restart / update or check the status of
-  the MCP server on the server (развернуть, выключить, перезапустить, обновить, диагностика).
+  the MCP server on the server (deploy, stop, restart, update, diagnose).
 disable-model-invocation: true
 allowed-tools: Bash, Read
 ---
@@ -18,8 +18,8 @@ version from its `.envrc`; everything else comes from the `config/` files. Copy 
 folder into another fa-mcp-sdk project, fill in `config/*.yaml`, and it works.
 
 Almost everything is done by scripts. Your job: pick the right subcommand, run it, and report the
-output to the user in clear Russian. Do not hand-craft SSH or docker commands — the orchestrator
-encapsulates them.
+output to the user clearly (in the user's language). Do not hand-craft SSH or docker commands — the
+orchestrator encapsulates them.
 
 ## The one command you run
 
@@ -29,19 +29,19 @@ node .claude/skills/deploy-mcp-to-remote-server/scripts/remote.cjs <subcommand>
 
 | User intent | Subcommand | What it does |
 |-------------|------------|--------------|
-| create deploy key / нет ключа | `keygen` | Generate a read-only GitHub Deploy Key and print the public part with instructions. |
-| deploy / roll out / развернуть | `deploy` | Build the image on the server (context-less) and (re)create the container; wire up the reverse proxy (Caddy or nginx). |
-| status / diagnostics / диагностика | `status` | Container, app service, git head, local + public `/health`, cron, last update log, reverse-proxy vhost. |
-| stop / выключи | `stop` | Stop the container (the in-container auto-update stops with it). |
-| start / включи | `start` | Start the container again. |
-| restart / перезапусти | `restart` | Restart just the app service inside the container (fast, no rebuild). |
-| update now / обнови сейчас | `update` | Run `update.cjs --force` inside the container (immediate rebuild from the branch). |
-| logs / логи | `logs [N]` | Last N app-service journal lines (default 200). |
+| create deploy key / no key | `keygen` | Generate a read-only GitHub Deploy Key and print the public part with instructions. |
+| deploy / roll out | `deploy` | Build the image on the server (context-less) and (re)create the container; wire up the reverse proxy (Caddy or nginx). |
+| status / diagnostics | `status` | Container, app service, git head, local + public `/health`, cron, last update log, reverse-proxy vhost. |
+| stop | `stop` | Stop the container (the in-container auto-update stops with it). |
+| start | `start` | Start the container again. |
+| restart | `restart` | Restart just the app service inside the container (fast, no rebuild). |
+| update now | `update` | Run `update.cjs --force` inside the container (immediate rebuild from the branch). |
+| logs | `logs [N]` | Last N app-service journal lines (default 200). |
 | bootstrap/build logs | `bootlog [N]` | Last N first-boot (clone/build) journal lines — use when a fresh deploy is still building. |
 | auto-update log / errors | `updatelog [N]` | Last auto-update verdict (SUCCESS/FAIL), an `[ERROR]` scan, and the last update-run log. Use to check whether the once-a-minute rebuild is succeeding or failing. |
 | shell into container | `shell` | Open an interactive bash shell inside the container. |
 | run a command inside | `exec -- <cmd>` | Run an arbitrary command inside the container (runs from `/`; node is at `/usr/local/bin/node`). |
-| uninstall / удали с сервера | `uninstall --yes` | Remove container, image, volume and the reverse-proxy vhost (Caddy block or nginx site). Destructive — needs `--yes`. |
+| uninstall / remove from server | `uninstall --yes` | Remove container, image, volume and the reverse-proxy vhost (Caddy block or nginx site). Destructive — needs `--yes`. |
 | raw ssh access | `ssh` | Print the ssh command for manual login. |
 
 For manual server-side operations (reading logs, restart/stop, force rebuild, entering the

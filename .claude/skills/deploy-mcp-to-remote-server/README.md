@@ -1,110 +1,110 @@
-# deploy-mcp-to-remote-server — операции вручную
+# deploy-mcp-to-remote-server — manual operations
 
-Скилл обезличен: его можно скопировать в любой проект MCP-сервера на `fa-mcp-sdk`, заполнить
-три файла в `config/` (`remote-server-config.local.yaml`, `local.yaml`, `config.yml`) — и он
-заработает. Ничего проектно-специфичного здесь не
-захардкожено: имя сервиса и версия Node определяются автоматически из проекта, всё остальное —
-из настроек.
+The skill is project-agnostic: copy it into any `fa-mcp-sdk` MCP-server project, fill in the three
+files under `config/` (`remote-server-config.local.yaml`, `local.yaml`, `config.yml`), and it works.
+Nothing project-specific is hard-coded here: the service name and the Node version are derived
+automatically from the project, everything else comes from the config.
 
-Штатный способ управления — подкоманды оркестратора (запускать из корня проекта):
+The normal way to operate it is the orchestrator subcommands (run from the project root):
 
 ```bash
-node .claude/skills/deploy-mcp-to-remote-server/scripts/remote.cjs <команда>
+node .claude/skills/deploy-mcp-to-remote-server/scripts/remote.cjs <command>
 # keygen | deploy | status | stop | start | restart | update
 # logs [N] | bootlog [N] | updatelog [N] | shell | exec -- <cmd...> | uninstall --yes | ssh
 ```
 
-Ниже — те же операции «руками» по SSH, если оркестратор недоступен или нужна тонкая отладка.
+Below are the same operations done "by hand" over SSH, for when the orchestrator is unavailable or
+you need fine-grained debugging.
 
-## Откуда берутся имена и значения (ничего не захардкожено)
+## Where names and values come from (nothing is hard-coded)
 
-| Что | Откуда берётся | Обозначение ниже |
-|-----|----------------|------------------|
-| Хост, порт, SSH-пользователь, ключ | `server.*` в конфиге | — |
-| Имя сервиса/контейнера/образа/тома | из `package.json` `name` проекта (или `service.name` в конфиге) | `<NAME>` |
-| Имя systemd-сервиса приложения | `<NAME>--<instance>` (instance по умолчанию `prod`) | `<SERVICE>` |
-| Имя контейнера / образа / тома | `<NAME>` / `<NAME>:latest` / `<NAME>-data` | `<CONTAINER>` |
-| Каталог проекта внутри контейнера | `project.projectPath` (по умолчанию `/opt/node/<NAME>`) | `<PROJECT_DIR>` |
-| Постоянный кэш на хосте | `project.statePath` (по умолчанию `/opt/<NAME>`) | — |
-| Внутренний порт приложения | `config/local.yaml` → `webServer.port` | `<PORT>` |
-| Публичный домен | `mcp.dns` | `<DNS>` |
-| Node внутри контейнера | стабильный симлинк `/usr/local/bin/node` (версия — из `.envrc` проекта) | — |
+| What | Source | Notation below |
+|------|--------|----------------|
+| Host, port, SSH user, key | `server.*` in the config | — |
+| Service/container/image/volume name | project's `package.json` `name` (or `service.name` in the config) | `<NAME>` |
+| App systemd service name | `<NAME>--<instance>` (instance defaults to `prod`) | `<SERVICE>` |
+| Container / image / volume names | `<NAME>` / `<NAME>:latest` / `<NAME>-data` | `<CONTAINER>` |
+| Project directory inside the container | `project.projectPath` (default `/opt/node/<NAME>`) | `<PROJECT_DIR>` |
+| Persistent cache on the host | `project.statePath` (default `/opt/<NAME>`) | — |
+| App's internal port | `config/local.yaml` → `webServer.port` | `<PORT>` |
+| Public domain | `mcp.dns` | `<DNS>` |
+| Node inside the container | stable symlink `/usr/local/bin/node` (version from the project's `.envrc`) | — |
 
-Быстро увидеть текущие значения и состояние: `node .../remote.cjs status`.
-Получить готовую команду SSH: `node .../remote.cjs ssh`.
+To quickly see the current values and state: `node .../remote.cjs status`.
+To get a ready-to-use SSH command: `node .../remote.cjs ssh`.
 
-## Подключение к серверу
+## Connecting to the server
 
 ```bash
-# Печатает точную команду ssh из вашего конфига:
+# Prints the exact ssh command from your config:
 node .claude/skills/deploy-mcp-to-remote-server/scripts/remote.cjs ssh
-# затем подключиться выведенной командой, например:
+# then connect with the printed command, e.g.:
 # ssh -i <keyPath> -p <port> <user>@<host>
 ```
 
-## Чтение логов
+## Reading logs
 
 ```bash
-# Логи приложения (systemd-журнал сервиса), последние строки:
+# App logs (the service's systemd journal), last lines:
 docker exec <CONTAINER> journalctl -o cat --no-pager -n 200 -u <SERVICE>
-# Логи приложения в реальном времени:
+# App logs in real time:
 docker exec -it <CONTAINER> journalctl -o cat -xefu <SERVICE>
 
-# Логи первичной сборки (клон/установка/build) — если контейнер только поднялся:
+# First-boot logs (clone / install / build) — when the container has just come up:
 docker exec <CONTAINER> journalctl -o cat --no-pager -n 200 -u mcp-bootstrap.service
 
-# Вердикт и лог автообновления (что делал update.cjs) — проще через оркестратор:
+# Auto-update verdict and log (what update.cjs did) — easiest via the orchestrator:
 node .../remote.cjs updatelog
-# вручную: файлы deploy__<NAME>__status.log / __last_deploy.log / __cumulative.log
-# лежат в каталоге на уровень выше <PROJECT_DIR> внутри контейнера.
+# by hand: the files deploy__<NAME>__status.log / __last_deploy.log / __cumulative.log
+# live one level above <PROJECT_DIR> inside the container.
 
-# Логи самого контейнера (вывод systemd как PID 1):
+# The container's own logs (systemd output as PID 1):
 docker logs --tail 100 <CONTAINER>
 ```
 
-## Перезапуск и остановка сервиса
+## Restarting and stopping the service
 
 ```bash
-# Перезапустить приложение (без пересборки), контейнер продолжает работать:
+# Restart the app (no rebuild); the container keeps running:
 docker exec <CONTAINER> systemctl restart <SERVICE>
 
-# Остановить только приложение (контейнер и автообновление остаются живы):
+# Stop only the app (the container and auto-update stay alive):
 docker exec <CONTAINER> systemctl stop <SERVICE>
 docker exec <CONTAINER> systemctl start <SERVICE>
 
-# Полностью выключить (контейнер + внутренний cron автообновления):
+# Turn it off completely (container + the in-container auto-update cron):
 docker stop <CONTAINER>
 docker start <CONTAINER>
 ```
 
-## Принудительная пересборка внутри контейнера (update.cjs -f)
+## Force a rebuild inside the container (update.cjs -f)
 
-Заставить `update.cjs` немедленно подтянуть ветку, переустановить зависимости, пересобрать
-и перезапустить сервис (и отправить уведомление, если оно настроено), не дожидаясь минутного крона:
+Make `update.cjs` immediately pull the branch, reinstall dependencies, rebuild and restart the
+service (and send a notification, if configured), without waiting for the once-a-minute cron:
 
 ```bash
 docker exec <CONTAINER> /usr/local/bin/node <PROJECT_DIR>/update.cjs --force
-# или проще:
+# or simply:
 node .../remote.cjs update
 ```
 
-## Полная пересборка контейнера (образ + контейнер)
+## Full container rebuild (image + container)
 
 ```bash
 node .claude/skills/deploy-mcp-to-remote-server/scripts/remote.cjs deploy
 ```
 
-Собирает образ на сервере без контекста (`docker build -`, Dockerfile передаётся по SSH),
-пересоздаёт контейнер и настраивает обратный прокси. Полностью снести всё
-(контейнер, образ, том, блок прокси) — `... uninstall --yes`.
+Builds the image on the server context-lessly (`docker build -`, the Dockerfile is piped over SSH),
+recreates the container and wires up the reverse proxy. To remove everything (container, image,
+volume, proxy vhost) — `... uninstall --yes`.
 
-## Зайти внутрь контейнера для отладки
+## Getting a shell inside the container for debugging
 
 ```bash
 node .../remote.cjs shell
-# или вручную:
+# or by hand:
 docker exec -it <CONTAINER> bash -l
-# внутри, например:
+# inside, for example:
 cd <PROJECT_DIR>
 git log -1 --oneline
 cat config/local.yaml
@@ -113,20 +113,20 @@ systemctl status <SERVICE>
 /usr/local/bin/node -v
 ```
 
-## Диагностика обратного прокси (публичный доступ)
+## Diagnosing the reverse proxy (public access)
 
-Скилл сам определяет, что стоит на сервере — **Caddy** или **nginx** — и настраивает его для `<DNS>`.
+The skill auto-detects what is running on the server — **Caddy** or **nginx** — and configures it for `<DNS>`.
 
-- **Caddy**: блок в общем `/etc/caddy/Caddyfile`, TLS автоматический.
+- **Caddy**: a block in the shared `/etc/caddy/Caddyfile`, TLS handled automatically.
   ```bash
   grep -n "<DNS>" /etc/caddy/Caddyfile
   caddy validate --adapter caddyfile --config /etc/caddy/Caddyfile
   systemctl reload caddy
   ```
-- **nginx**: сайт в `/etc/nginx/sites-available/<DNS>.conf`, TLS через `certbot --nginx`.
+- **nginx**: a site in `/etc/nginx/sites-available/<DNS>.conf`, TLS via `certbot --nginx`.
   ```bash
   nginx -t && systemctl reload nginx
   certbot certificates | grep -A3 "<DNS>"
   ```
 
-Раздел «REVERSE PROXY» в `node .../remote.cjs status` показывает, какой прокси настроен и есть ли TLS.
+The "REVERSE PROXY" section of `node .../remote.cjs status` shows which proxy is configured and whether TLS is present.
