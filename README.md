@@ -56,7 +56,7 @@ curl http://localhost:9049/health
 ```
 
 MCP endpoint: `http://localhost:9049/mcp`. No database, no API keys, no credentials — it just runs.
-Connecting Claude Desktop, Claude Code, Codex or Qwen: [Getting Started](./readme-docs/getting-started.md).
+Client configs are one click away: [Connect your client](#connect-your-client) below.
 
 ## Documentation
 
@@ -74,6 +74,139 @@ Connecting Claude Desktop, Claude Code, Codex or Qwen: [Getting Started](./readm
 | [Testing](./readme-docs/testing.md)                            | Unit tests, MCP protocol tests, Agent Tester and the Headless API              |
 | [Deployment](./readme-docs/deployment.md)                      | Docker + systemd, reverse proxy, the self-update loop                          |
 | [Skills](./readme-docs/SKILLS.md)                              | Claude Code skills shipped with the project                                    |
+
+## The tool, up close
+
+One tool — `metro_info`, read-only. `action=search_route` builds up to 3 route variants between two stations;
+`action=get_station_info` describes one station. Answers are English Markdown; station and line names are
+localized to the user's language.
+
+<details><summary><b>Parameters and what the answers contain</b></summary><br>
+
+| Parameter              | Required   | Description                                                                                                                                              |
+|------------------------|------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `first_metro_station`  | yes        | Departure station (for a route) or the station to describe. Any of the four languages, typos allowed — resolved by fuzzy search.                           |
+| `second_metro_station` | for routes | Arrival station. Required for `action=search_route`, unused for `get_station_info`.                                                                        |
+| `action`               | yes        | `search_route` — build routes between two stations; `get_station_info` — describe `first_metro_station`.                                                   |
+| `city`                 | no         | `Moscow` (default) or `StPetersburg`. St. Petersburg data is not wired in yet: for now every value falls back to the Moscow dataset.                       |
+| `language`             | no         | Language the user communicates in: `en` (default), `ru`, `ar` or `cn`. Station and line names are localized to it; all other response text is English.     |
+
+A `search_route` answer contains: up to 3 route variants with travel time and a door-to-door estimate, the full
+station sequence of every leg, transfers with "board the first car" hints, which legs run on MCD / MCC, ground
+transport at both ends, advisories along the route, and the vestibule status of the departure hub.
+
+A `get_station_info` answer contains: lines at the station, city exits with nearby ground transport, on-station
+services, first and last train times per direction, available interchanges, and current advisories.
+
+When a name is ambiguous the answer is a numbered list to choose from; for a route request with two ambiguous
+names, both lists come at once.
+
+</details>
+
+Full reference, including MCP resources and prompts: [Tool Reference](./readme-docs/tool-reference.md).
+
+## Connect your client
+
+<details><summary><b>Claude Code</b> — <code>~/.claude.json</code></summary><br>
+
+```json
+{
+  "mcpServers": {
+    "mcp-metro": {
+      "type": "http",
+      "url": "http://localhost:9049/mcp",
+      "headers": {
+        "Authorization": "Bearer <jwt-token>"
+      }
+    }
+  }
+}
+```
+
+Omit the `headers` block entirely while authentication is off (the default).
+
+</details>
+
+<details><summary><b>Claude Desktop</b> — <code>claude_desktop_config.json</code>, STDIO or remote HTTP</summary><br>
+
+**Option 1 — STDIO (local build, direct spawn):**
+
+```json
+{
+  "mcpServers": {
+    "mcp-metro": {
+      "command": "node",
+      "args": ["<path-to-project>/dist/src/start.js", "stdio"],
+      "env": {}
+    }
+  }
+}
+```
+
+**Option 2 — HTTP (remote server via `mcp-remote`):**
+
+```json
+{
+  "mcpServers": {
+    "mcp-metro": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-remote@latest",
+        "https://mcp-metro.time-gold.com/mcp",
+        "--header",
+        "Authorization:Bearer <jwt-token>",
+        "--allow-http",
+        "--transport",
+        "http-only"
+      ]
+    }
+  }
+}
+```
+
+Important: in `--header` values there must be **no space** after the `:`. `"Authorization:Bearer abc"` is
+correct, `"Authorization: Bearer abc"` is not.
+
+</details>
+
+<details><summary><b>Qwen Code</b> — <code>~/.qwen/settings.json</code></summary><br>
+
+```json
+{
+  "mcpServers": {
+    "mcp-metro": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-remote@latest",
+        "https://mcp-metro.time-gold.com/mcp",
+        "--header",
+        "Authorization:Bearer <jwt-token>",
+        "--allow-http",
+        "--transport",
+        "http-only"
+      ]
+    }
+  }
+}
+```
+
+The same no-space-after-`:` rule applies to `--header` values.
+
+</details>
+
+<details><summary><b>Codex</b> — <code>~/.codex/config.toml</code></summary><br>
+
+```toml
+[mcp_servers.mcp-metro]
+url = "https://mcp-metro.time-gold.com/mcp"
+http_headers = { "Authorization" = "Bearer <jwt-token>" }
+```
+
+</details>
+
+Transports, endpoints and STDIO mode: [Getting Started](./readme-docs/getting-started.md).
 
 ## Under the hood
 

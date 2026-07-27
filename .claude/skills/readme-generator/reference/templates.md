@@ -1,36 +1,51 @@
-# Section Templates (Main README)
+# Section Templates
 
-Canonical blocks for the main `README.md` of an `fa-mcp-sdk`-based MCP server. Copy, then adapt
-placeholders (`<NAME>`, `<PORT>`, `<prefix>`, `<upstream>`) to the actual project.
+Canonical blocks for the showcase-style documentation of an `fa-mcp-sdk`-based MCP server. Copy,
+then adapt placeholders (`<NAME>`, `<PORT>`, `<prefix>`, `<upstream>`) to the actual project.
+
+Four parts:
+
+- **Part A** — the main `README.md` (the showcase page, incl. the two collapsed end sections)
+- **Part B** — the mandatory satellite `readme-docs/getting-started.md`
+- **Part C** — the mandatory satellite `readme-docs/tool-reference.md`
+- **Part D** — the `<details>` pattern: where it is allowed and the required markup
 
 ---
 
-## 1. Title + one-liner
+# Part A — Main `README.md`
+
+## A1. Title + hook
+
+H1 is the project name only. The hook is 2–4 lines: a **bold claim** first, phrased around what the
+user can ask or do — never around the implementation.
 
 ```markdown
 # <Project Name>
 
-<One-sentence description: "MCP server for <Upstream System> — lets AI agents <primary action>.">
+**<What it gives the user, as a claim.>** Ask *"<a real question a user would type>"* — get
+<the concrete, valuable answer>. <One more sentence with a distinguishing capability: languages,
+live data, tolerance to typos — whatever is true and impressive.>
 ```
 
 Example:
 
 ```markdown
-# MCP Wiki
+# MCP METRO
 
-MCP server for Atlassian Confluence. Lets AI agents search, read, create, and edit wiki pages via
-the Model Context Protocol.
+**Moscow Metro for AI agents.** Ask *"how do I get from Khovrino to Sportivnaya?"* in plain
+language — get real route variants with travel times, transfers, car-boarding hints and today's
+closures. Works in Russian, English, Arabic and Chinese. Typos welcome.
 ```
 
 ---
 
-## 2. Badges
+## A2. Badges
 
 Prefer shields.io. Include only badges that are meaningful (skip build status if no CI yet).
 
 ```markdown
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Node.js](https://img.shields.io/badge/node-%3E%3D18-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![Node.js](https://img.shields.io/badge/node-%3E%3D20-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![MCP](https://img.shields.io/badge/MCP-Server-DA7857)](https://modelcontextprotocol.io/)
 [![fa-mcp-sdk](https://img.shields.io/badge/built%20with-fa--mcp--sdk-526CFE)](https://github.com/Bazilio-san/fa-mcp-sdk)
@@ -38,136 +53,331 @@ Prefer shields.io. Include only badges that are meaningful (skip build status if
 
 ---
 
-## 2a. Quick Links
+## A3. Screenshots
 
-Navigation block for the main README. Sits immediately after the badges, before **Overview**. Lists
-only the major sections a reader is likely to jump to — never a full TOC.
-
-**Inclusion rule.** Include a link for every `##` section that is either (a) one of the headline
-topics below, or (b) a dynamic feature section produced in Step 3 of the workflow (Impersonation,
-Admin Panel, Webhooks, Agent Tester, Consul, Active Directory, Database, …). Exclude Overview,
-Transports, Stack, License, and every `###` sub-subsection. Target 8–14 entries.
+Immediately after the badges — the reader must *see* the server working before reading anything
+else. Two-column HTML table; captions in `<sub>` under each image. Store the images in
+`readme-docs/` so they travel with the satellites.
 
 ```markdown
-## Quick Links
-
-- [Tools](#tools)
-- [Quick Start](#quick-start)
-- [MCP Client Integration](#mcp-client-integration)
-- [Key Features](#key-features)
-- [Configuration](#configuration-basics)
-- [Build & Run](#build--run)
-- [Authentication](#authentication)
-- [Impersonation](#impersonation)
-- [Admin Panel](#admin-panel)
-- [Webhooks](#webhooks)
-- [Agent Tester + Headless Agent Tester API](#agent-tester)
-- [Claude Code Skills](#claude-code-skills)
+<table>
+  <tr>
+    <td width="56%" valign="top"><img src="readme-docs/<shot-1>.png" alt="<what it shows, e.g. 'A Telegram bot answers a route question'>"></td>
+    <td width="44%" valign="top"><img src="readme-docs/<shot-2>.png" alt="<what it shows, e.g. 'Interactive widget with route variants'>"></td>
+  </tr>
+  <tr>
+    <td><sub><One sentence: what the left image demonstrates.></sub></td>
+    <td><sub><One sentence: what the right image demonstrates.></sub></td>
+  </tr>
+</table>
 ```
 
-**Anchor-slug rules (GitHub Markdown).**
+Rules:
 
-- Lowercase the heading, replace spaces with `-`, strip punctuation (`,`, `.`, `:`, `?`, `!`, `()`).
-- `&` is dropped entirely and produces a double dash — `Build & Run` → `#build--run`.
-- `+` is dropped — `Agent Tester + Headless API` → `#agent-tester--headless-api`.
-- If the Quick Links label diverges from the exact heading text, anchor to the heading, not the
-  label (label is for humans, anchor must match the section's slug).
-- When two headings collide (e.g. two `## Configuration`), GitHub appends `-1`, `-2`; avoid that by
-  using distinct headings.
-
-Verify every anchor resolves after assembly — dead Quick Links are worse than no Quick Links.
+- Pick the column widths from the images' aspect ratios so the two images render at roughly the
+  same height (a wide chat screenshot next to a tall widget → ~56% / 44%).
+- `alt` text describes the content, never "screenshot 1".
+- One image is fine too (single full-width `<img>` or a plain Markdown image).
+- No images in the project yet → skip the block and tell the user that one or two screenshots
+  (a real chat answer + the widget/UI, if any) would noticeably strengthen the page.
 
 ---
 
-## 3. Overview
+## A4. What it does
 
-2–4 sentences. Answer: *what is this / for whom / core value*. Active voice. No marketing fluff.
+5–8 bullets, each ≤ 2 lines: emoji, **bold benefit**, then the mechanism that makes it true.
+No invented superlatives — every strong claim names its mechanism.
 
 ```markdown
-## Overview
+## What it does
 
-<Project> provides comprehensive <upstream> integration for AI agents via the Model Context Protocol.
-It exposes <N> tools covering <main domains>, supports <auth methods>, and ships with <one or two
-distinguishing features>. Use it when you need <primary use case>.
+- 🚇 **<Benefit as the user feels it>** — <the concrete capability behind it, with numbers>.
+- 🚧 **<Benefit>** — <mechanism, e.g. "closures are applied to the graph *before* the search runs">.
+- 🌍 **<Benefit>** — <mechanism>.
+- ⚡ **<Benefit>** — <mechanism, e.g. "a disk cache means the server answers within a second of starting">.
+- 🔌 **<Benefit>** — <mechanism, e.g. "MCP over STDIO / HTTP / SSE, a REST API with Swagger">.
 ```
+
+Close the section with the tool-surface one-liner:
+
+```markdown
+One tool — `<tool_name>` — answers <the main question(s)>. Full parameter and response reference:
+[Tool Reference](./readme-docs/tool-reference.md).
+```
+
+(or, for many tools: "N tools across M domains — <one clause on the split>." with the same link.)
 
 ---
 
-## 4. Tools
+## A5. Try it in 60 seconds
 
-Group by domain. Keep rows short — one-line descriptions only.
-
-The full grouped listing is wrapped in a `<details>` block so it doesn't dominate the page on first
-scroll. The `## Tools (<N>)` heading itself stays *outside* the block — it must remain visible and
-anchor-linkable from **Quick Links**.
+Install / build / start, one verification command, one closing line naming what is *not* needed.
+No open client JSON here — the configs sit collapsed in **Connect your client** at the end of the
+page (block A6b); link to that section by anchor.
 
 ````markdown
-## Tools (<N>)
+## Try it in 60 seconds
 
-<details><summary>Expand to view detailed list of tools</summary><br>
+```bash
+npm install
+npm run build
+npm start            # HTTP mode → http://localhost:<PORT>
+```
 
+```bash
+curl http://localhost:<PORT>/health
+```
 
-All tool names are prefixed with `<prefix>_`. Tools can be selectively enabled via
-`<upstream>.usedInstruments` — see [Configuration](./readme-docs/configuration.md).
+MCP endpoint: `http://localhost:<PORT>/mcp`. <What is NOT needed: "No database, no API keys, no
+credentials — it just runs."> Client configs are one click away:
+[Connect your client](#connect-your-client) below.
+````
+
+---
+
+## A6. Documentation table
+
+The navigation core of the main README — one row per satellite, one line per row. Every file in
+`readme-docs/` must appear here: an unlinked satellite never reaches the `doc://readme` resource.
+
+```markdown
+## Documentation
+
+| Topic                                                      | What's inside                                                |
+|------------------------------------------------------------|---------------------------------------------------------------|
+| [Getting Started](./readme-docs/getting-started.md)        | Install, run, connect MCP clients, transports, build commands |
+| [Tool Reference](./readme-docs/tool-reference.md)          | Tool parameters and answers, MCP resources and prompts        |
+| [Configuration](./readme-docs/configuration.md)            | Every setting, resolution order, environment variables        |
+| [Authentication](./readme-docs/authentication.md)          | Token types, resolution order, issuing tokens                 |
+| [Testing](./readme-docs/testing.md)                        | Unit tests, MCP protocol tests, Agent Tester and Headless API |
+| [<Feature>](./readme-docs/<feature>.md)                    | <One line>                                                    |
+| [Skills](./readme-docs/SKILLS.md)                          | Claude Code skills shipped with the project                   |
+```
+
+---
+
+## A6a. The tool, up close (collapsed, end of page)
+
+Sits right after the Documentation table. 1–3 *open* sentences name the tool(s), the actions and
+the response format; the reference detail is collapsed. This is a condensed copy of
+`tool-reference.md` — keep the two in sync.
+
+**Single tool — no tools table.** The open sentences name the tool; the block holds its parameter
+table and answer contents:
+
+````markdown
+## The tool, up close
+
+One tool — `<tool_name>`, read-only. `action=<a>` <what it does>; `action=<b>` <what it does>.
+<One sentence on response format and language handling.>
+
+<details><summary><b>Parameters and what the answers contain</b></summary><br>
+
+| Parameter | Required | Description                                     |
+|-----------|----------|--------------------------------------------------|
+| `<param>` | yes/no   | <What it means, defaults, constraints, examples> |
+
+A `<action-a>` answer contains: <the pieces, comma-separated or as short bullets>.
+
+A `<action-b>` answer contains: <the pieces>.
+
+</details>
+
+Full reference, including MCP resources and prompts: [Tool Reference](./readme-docs/tool-reference.md).
+````
+
+**Several tools** — the block opens with the grouped tool table instead:
+
+````markdown
+## The tools, up close
+
+<N> tools across <M> domains. All names are prefixed with `<prefix>_`.
+
+<details><summary><b>Expand the full tool list</b></summary><br>
 
 ### <Domain 1>
 
-| Tool                  | Description                                        |
-|-----------------------|----------------------------------------------------|
-| `<tool_name>`         | <Short description, verb-first, ≤ 80 chars>        |
-| `<tool_name>`         | <Short description>                                |
+| Tool          | Description                                 |
+|---------------|----------------------------------------------|
+| `<tool_name>` | <Short description, verb-first, ≤ 80 chars>  |
 
 ### <Domain 2>
 
-| Tool                  | Description                                        |
-|-----------------------|----------------------------------------------------|
-| `<tool_name>`         | <Short description>                                |
+| Tool          | Description        |
+|---------------|---------------------|
+| `<tool_name>` | <Short description> |
 
 </details>
+
+Per-tool parameters and answers: [Tool Reference](./readme-docs/tool-reference.md).
 ````
-
-Formatting rules specific to this block:
-
-- `<br>` immediately after `</summary>` is **mandatory** — without it GitHub collapses the first
-  child block against the summary line.
-- Keep one blank line between `<summary>` and the first `###` subsection, and one blank line
-  before `</details>`.
-- Column widths consistent within the file.
-- Tool names always inline-code.
-- If a tool has a caveat (e.g. server vs. cloud behaviour), use a footnote `*` and explain below
-  the table.
 
 ---
 
-## 5. Quick Start
+## A6b. Connect your client (collapsed, end of page)
 
-Three steps. Target: a user running the server in under 2 minutes.
+One `<details>` block per client; the summary line names the client and its config file. Condensed
+copy of the integration section of `getting-started.md` — keep the two in sync. Adapt header names
+to the server's actual scheme; when auth is off by default, say the header can be omitted.
+
+````markdown
+## Connect your client
+
+<details><summary><b>Claude Code</b> — <code>~/.claude.json</code></summary><br>
+
+```json
+{
+  "mcpServers": {
+    "<name>": {
+      "type": "http",
+      "url": "http[s]://<host[:port]>/mcp",
+      "headers": {
+        "Authorization": "Bearer <jwt-token>"
+      }
+    }
+  }
+}
+```
+
+</details>
+
+<details><summary><b>Claude Desktop</b> — <code>claude_desktop_config.json</code>, STDIO or remote HTTP</summary><br>
+
+**Option 1 — STDIO (local build, direct spawn):**
+
+```json
+{
+  "mcpServers": {
+    "<name>": {
+      "command": "node",
+      "args": ["<path>/<project>/dist/src/start.js", "stdio"],
+      "env": {}
+    }
+  }
+}
+```
+
+**Option 2 — HTTP (remote server via `mcp-remote`):**
+
+```json
+{
+  "mcpServers": {
+    "<name>": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-remote@latest",
+        "http[s]://<host[:port]>/mcp",
+        "--header",
+        "Authorization:Bearer <jwt-token>",
+        "--allow-http",
+        "--transport",
+        "http-only"
+      ]
+    }
+  }
+}
+```
+
+Important: in `--header` values there must be **no space** after the `:`.
+`"Authorization:Bearer abc"` is correct, `"Authorization: Bearer abc"` is not.
+
+</details>
+
+<details><summary><b>Qwen Code</b> — <code>~/.qwen/settings.json</code></summary><br>
+
+<Same `mcp-remote` block as Claude Desktop Option 2, and the same no-space-after-`:` rule.>
+
+</details>
+
+<details><summary><b>Codex</b> — <code>~/.codex/config.toml</code></summary><br>
+
+```toml
+[mcp_servers.<name>]
+url = "http[s]://<host[:port]>/mcp"
+http_headers = { "Authorization" = "Bearer <jwt-token>" }
+```
+
+</details>
+
+Transports, endpoints and STDIO mode: [Getting Started](./readme-docs/getting-started.md).
+````
+
+---
+
+## A7. Under the hood
+
+2–4 sentences: language, framework, the key algorithmic or data decisions. This replaces the old
+"Stack" bullet list.
 
 ```markdown
+## Under the hood
+
+TypeScript (ESM) on Node.js ≥ <N>, built on [fa-mcp-sdk](https://github.com/Bazilio-san/fa-mcp-sdk) —
+server core, transports, auth, Swagger and Agent Tester come from the SDK. <One sentence on the key
+algorithm or data decision, e.g. "Routing is Yen's k-shortest-paths over a weighted graph rebuilt
+for the requested moment. Data lives in JSON on disk — no database.">
+```
+
+---
+
+## A8. License
+
+```markdown
+## License
+
+<License name> © <Owner>. See [LICENSE](./LICENSE).
+```
+
+---
+
+# Part B — `readme-docs/getting-started.md`
+
+The *full* version of getting up and running: quick start with verification, client integration,
+transports, build & test commands. The main README's **Connect your client** section (A6b) is a
+condensed copy — keep them in sync. Opens with a lead (2–4 sentences, the lead rule).
+
+## B1. Lead + Quick Start
+
+````markdown
+# Getting Started
+
+From `npm install` to a connected AI client in a few minutes. The server needs <what it does NOT
+need: "no database, no API keys and no credentials to start — authentication is off by default">.
+This page covers running the server, wiring it into MCP clients (Claude Code, Claude Desktop,
+Qwen Code, Codex), the available transports, and the build and test commands.
+
 ## Quick Start
 
 ```bash
 npm install
-cp config/_local.yaml config/local.yaml   # configure <upstream> credentials
 npm run build
-npm start                                 # HTTP mode, port <PORT>
+npm start                       # HTTP mode, port <PORT>
 ```
 
-For STDIO mode (Claude Desktop direct spawn):
+Verify the server is up:
+
+```bash
+curl http://localhost:<PORT>/health
+<one more curl that proves the domain data/upstream connection works>
+```
+
+For STDIO mode (Claude Desktop spawns the process directly):
 
 ```bash
 node dist/src/start.js stdio
 ```
-```
+````
 
----
+## B2. MCP Client Integration
 
-## 6. MCP Client Integration
+Adapt custom header names (`x-<prefix>-*`) to this server's actual scheme; if the server only uses
+the standard `Authorization` header, say so and drop the custom-header rows.
 
-Always in main README. Adapt custom header names (`x-<prefix>-*`) to this server's actual scheme.
-
-```markdown
+````markdown
 ## MCP Client Integration
+
+The HTTP MCP endpoint is `http[s]://<host[:port]>/mcp`.
 
 ### Claude Code
 
@@ -180,19 +390,10 @@ Add to `~/.claude.json`:
       "type": "http",
       "url": "http[s]://<host[:port]>/mcp",
       "headers": {
-        "x-<prefix>-username": "<your username>",
-        "x-<prefix>-password": "<your password>"
+        "Authorization": "Bearer <jwt-token>"
       }
     }
   }
-}
-```
-
-Alternatively, use a Personal Access Token:
-
-```json
-"headers": {
-  "x-<prefix>-token": "<your PAT>"
 }
 ```
 
@@ -226,9 +427,7 @@ Add to `claude_desktop_config.json`.
         "mcp-remote@latest",
         "http[s]://<host[:port]>/mcp",
         "--header",
-        "x-<prefix>-username:<your username>",
-        "--header",
-        "x-<prefix>-password:<your password>",
+        "Authorization:Bearer <jwt-token>",
         "--allow-http",
         "--transport",
         "http-only"
@@ -240,34 +439,11 @@ Add to `claude_desktop_config.json`.
 
 ### Qwen Code
 
-Add to `~/.qwen/settings.json`:
+Add to `~/.qwen/settings.json` — same `mcp-remote` block as Claude Desktop Option 2.
 
-```json
-{
-  "mcpServers": {
-    "<name>": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "mcp-remote@latest",
-        "http[s]://<host[:port]>/mcp",
-        "--header",
-        "x-<prefix>-username:<your_username>",
-        "--header",
-        "x-<prefix>-password:<your_password>",
-        "--allow-http",
-        "--transport",
-        "http-only"
-      ]
-    }
-  }
-}
-```
-
-Important!: In `--header` values, there must be **no space** after the `:`.  
-`"x-<prefix>-username:<your_username>"` is correct.  
-`"x-<prefix>-username: <your_username>"` is incorrect.  
-Applies to both Claude Desktop Option 2 (HTTP via `mcp-remote`) and Qwen Code.
+Important: in `--header` values there must be **no space** after the `:`.
+`"Authorization:Bearer abc"` is correct, `"Authorization: Bearer abc"` is not. This applies to both
+Claude Desktop Option 2 and Qwen Code.
 
 ### Codex
 
@@ -276,229 +452,133 @@ Add to `~/.codex/config.toml`:
 ```toml
 [mcp_servers.<name>]
 url = "http[s]://<host[:port]>/mcp"
-http_headers = { "x-<prefix>-username" = "<your_username>", "x-<prefix>-password" = "<your_password>" }
+http_headers = { "Authorization" = "Bearer <jwt-token>" }
 ```
+````
 
-```
+## B3. Transports + Build & Run
 
----
-
-## 7. Key Features
-
-5–8 bullets. Include enabled SDK subsystems and project-specific capabilities. One line each.
-
-```markdown
-## Key Features
-
-- **Multi-auth**: Basic, PAT, OAuth 2.0 with automatic token refresh
-- **Per-request credentials**: override server config via `x-<prefix>-*` headers
-- **Batch operations** for high-throughput scenarios
-- **Fuzzy entity resolution** via external microservice
-- **Aggressive caching** with thundering-herd protection
-- **Webhook callbacks** for audit / chaining (`x-web-hook`)
-- **Agent Tester UI + Headless API** for end-to-end testing
-```
-
----
-
-## 8. Transports
-
-```markdown
+````markdown
 ## Transports
 
-- **HTTP** — web integrations. Endpoints:
-  - `/mcp` — MCP protocol (JSON-RPC 2.0)
-  - `/api/*` — REST API (if custom API is present)
+- **HTTP** — endpoints:
+  - `/mcp` — MCP protocol (JSON-RPC 2.0, Streamable HTTP)
+  - `/sse` — MCP over Server-Sent Events (legacy transport)
+  - `/api/*` — REST API (if present)
   - `/docs` — Swagger UI
   - `/health` — healthcheck
-  - `/admin` — token generator UI
-  - `/agent-tester` — Agent Tester web UI
-- **STDIO** — for Claude Desktop direct spawn (no network)
+  - `/agent-tester` — Agent Tester web UI and Headless API
+- **STDIO** — direct stdin/stdout, no network port; the mode Claude Desktop uses.
 
-Port is set in `config/default.yaml` → `webServer.port` (default <PORT>).
-```
+Port comes from `config/default.yaml` → `webServer.port` (default `<PORT>`).
 
-Keep endpoints that actually exist; drop the rest.
-
----
-
-## 9. Configuration Basics
-
-Compact table with 5–10 most important keys. Link to full reference when the list grows.
-
-```markdown
-## Configuration Basics
-
-Priority: env vars > `config/local.yaml` > `config/{NODE_ENV}.yaml` > `config/default.yaml`.
-
-| Key                              | Description                         | Default   |
-|----------------------------------|-------------------------------------|-----------|
-| `<upstream>.url`                 | <Upstream> base URL                 | —         |
-| `<upstream>.auth.pat`            | Personal Access Token               | —         |
-| `<upstream>.auth.basic.username` | Basic auth username                 | —         |
-| `<upstream>.auth.basic.password` | Basic auth password                 | —         |
-| `webServer.port`                 | HTTP server port                    | `<PORT>`  |
-| `webServer.auth.enabled`         | MCP server authorization on/off     | `false`   |
-| `mcp.tools.answerAs`             | Response format (`text` / `json`)   | `text`    |
-
-Full reference: [Configuration](./readme-docs/configuration.md).
-```
-
----
-
-## 10. Build & Run
-
-```markdown
 ## Build & Run
 
 ```bash
 npm run build        # tsc + copy static assets
-npm start            # HTTP server
-npm run dev          # tsc --watch
+npm run cb           # clean dist/ + build
+npm start            # HTTP server on webServer.port
+npm run typecheck    # tsc --noEmit
 ```
 
-Lint / typecheck / test:
+Tests:
 
 ```bash
-npm run lint:fix
-npm run typecheck
-npm test
+npm test               # jest unit tests
+npm run test:mcp       # MCP protocol tests over STDIO
+npm run test:mcp-http  # MCP protocol tests over HTTP (needs a running server)
+npm run test:mcp-sse   # MCP protocol tests over SSE (needs a running server)
 ```
 
 Environment variables:
 
-- `NODE_ENV` — picks `config/{NODE_ENV}.yaml` overlay
-- `DEBUG` — namespace-based logging (see [Debug Logging](./readme-docs/debugging.md))
-```
+- `NODE_ENV` — selects the `config/{NODE_ENV}.yaml` overlay.
+- `DEBUG` — namespace logging (`DEBUG=mcp:tool` prints every tool request and response).
+
+## Where to go next
+
+- Every setting the server reads: [Configuration](./configuration.md).
+- Locking the server down for a public address: [Authentication](./authentication.md).
+````
+
+Keep endpoints and commands that actually exist; drop the rest.
 
 ---
 
-## 11. Authentication (summary + link)
+# Part C — `readme-docs/tool-reference.md`
 
-Keep this short. Push tables and invariants into `readme-docs/authentication.md`.
+The *full* tool surface: grouped table, per-tool parameters, answer contents, MCP resources and
+prompts. The main README's **The tool, up close** section (A6a) is a condensed copy — keep them in
+sync. Opens with a lead naming the tool count and the main question(s) the tools answer.
 
-```markdown
-## Authentication
+````markdown
+# Tool Reference
 
-The server supports per-request credentials via `x-<prefix>-*` headers (Basic, PAT) and
-config-level defaults with OAuth 2.0 token refresh. When `x-on-behalf-of-user` is set, the request
-is routed through the impersonation proxy.
+<Project> exposes <N> tool(s): <one sentence per major group — what question it answers>. <One
+sentence on conventions: read-only or not, response format, language handling.> This page lists
+the parameters, what each answer contains, and the MCP resources and prompts published alongside.
 
-Priority rules, resolution order, and invariants: [Authentication](./readme-docs/authentication.md).
-```
+## Tools
 
----
+All tool names are prefixed with `<prefix>_`. <If applicable: "Tools can be selectively enabled
+via `<upstream>.usedInstruments` — see [Configuration](./configuration.md)."> 
 
-## 12. Dynamic feature sections
+### <Domain 1>
 
-One short subsection per enabled optional subsystem. 2–3 sentences each, with a link to the
-satellite file when details warrant one.
+| Tool          | Description                                 |
+|---------------|----------------------------------------------|
+| `<tool_name>` | <Short description, verb-first, ≤ 80 chars>  |
 
-```markdown
-### Consul service discovery
+### Input parameters — `<tool_name>`
 
-Server registers itself on startup and deregisters on SIGTERM; health check path is `/health`.
-Setup: [Consul](./readme-docs/consul.md).
+| Parameter | Required | Description                                        |
+|-----------|----------|-----------------------------------------------------|
+| `<param>` | yes/no   | <What it means, defaults, constraints, examples>    |
 
-### Active Directory
+### What a `<tool_name>` answer contains
 
-Tools can gate access by AD group membership. Configuration and per-domain setup:
-[Active Directory](./readme-docs/active-directory.md).
+- <the pieces of the response, one bullet each>
 
-### Webhooks
+## MCP Resources & Prompts
 
-After every tool invocation the server can POST the result to an external URL via the `x-web-hook`
-header or a per-tool `hook` return value. Body schema and priority:
-[Webhooks](./readme-docs/webhooks.md).
+| URI              | MIME            | Description  |
+|------------------|-----------------|---------------|
+| `<scheme>://<x>` | `text/markdown` | <One line>    |
 
-### Agent Tester
+| Prompt         | Description |
+|----------------|--------------|
+| `agent_brief`  | <One line>   |
+| `agent_prompt` | <One line>   |
+````
 
-Built-in web UI (`/agent-tester`) and Headless API (`/agent-tester/api/chat/test`) for end-to-end
-testing with a real LLM. Full guide: [Testing](./readme-docs/testing.md).
-```
-
----
-
-## 13. Skills
-
-```markdown
-## Claude Code Skills
-
-The project ships with custom skills in `.claude/skills/`:
-
-| Command             | Description                                         |
-|---------------------|-----------------------------------------------------|
-| `/gen-jwt`          | Generate JWT tokens for MCP server authentication   |
-| `/headless-test`    | Run headless tests for all MCP tools via curl API   |
-| `/upgrade-guide`    | Generate migration guide for fa-mcp-sdk upgrades    |
-
-Details, launch modes, and examples: [SKILLS](./readme-docs/SKILLS.md).
-```
+Formatting rules: tool names always inline-code; column widths consistent within the file; with a
+**single tool** skip the one-row tools table — name the tool in the lead and go straight to its
+parameters. A tool caveat (e.g. server vs. cloud behaviour) gets a footnote `*` explained below
+the table.
 
 ---
 
-## 14. Stack
+# Part D — Collapsible `<details>` blocks: where and how
 
-```markdown
-## Stack
+In the **main README** `<details>` appears in exactly two places — the end sections **The tool, up
+close** (A6a) and **Connect your client** (A6b). Nowhere else: not around Quick Start, not around
+feature bullets, not around screenshots.
 
-- **Framework**: [fa-mcp-sdk](https://github.com/Bazilio-san/fa-mcp-sdk)
-- **Transport**: MCP (STDIO, HTTP, SSE)
-- **Language**: TypeScript (ESM)
-- **HTTP client**: Axios
-- **Key libs**: <fill in the notable dependencies>
-```
-
----
-
-## 15. License
-
-```markdown
-## License
-
-<License name> © <Owner>. See [LICENSE](./LICENSE).
-```
-
----
-
-## 16. Collapsible `<details>` block (generic pattern)
-
-Use this pattern for any section where the content is important enough to stay inline (so the
-`doc://readme` RAG pipeline captures it) but bulky enough to drown neighbouring sections on a
-casual scroll. Canonical use: the Tools listing (see section 4). Other legitimate uses: long
-example request/response matrices, exhaustive troubleshooting tables, verbose per-endpoint
-catalogues.
-
-**Checklist before reaching for `<details>`:**
-
-1. The content must appear *in this section* (cannot be moved to a satellite file without
-   losing context).
-2. It spans enough lines that a reader scrolling past this section loses sight of the next
-   section on a standard screen.
-3. A casual first-time reader does not need every line immediately — the summary label alone
-   tells them what's hidden.
-
-If any of the three fails, either inline it normally or move it to `readme-docs/`.
+Inside **satellites**, use the pattern for genuinely bulky matrices (100+ line tool tables,
+exhaustive request/response examples, per-endpoint catalogues) so the file stays scannable:
 
 ```markdown
 ## <Section heading stays outside>
 
-<Optional 1–3 sentence intro stays outside too — gives readers enough to decide whether to expand.>
+<1–3 sentence intro stays outside too — gives readers enough to decide whether to expand.>
 
-<details><summary>Expand to view <what is inside>: <e.g. "detailed list of tools" /
-"full request/response schema" / "per-endpoint example matrix"></summary><br>
+<details><summary>Expand to view <what is inside></summary><br>
 
 
-<bulky content: tables, code blocks, nested subsections — anything markdown supports>
+<bulky content: tables, code blocks, nested subsections>
 
 </details>
 ```
 
-**Do NOT wrap in `<details>`:**
-
-- Quick Start commands
-- Key Features bullet list
-- Configuration Basics table (short by design)
-- MCP Client Integration JSON snippets
-- Transports listing
-- Anything under ~20 lines
+The `<br>` immediately after `</summary>` is **mandatory** — without it GitHub collapses the first
+child block against the summary line. Keep one blank line before `</details>`.

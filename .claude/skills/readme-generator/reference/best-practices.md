@@ -32,23 +32,29 @@
 2. Why should I use it?
 3. How do I get started?
 
-### Progressive disclosure
+### Showcase README, satellite depth
 
-A long README is fine — a *cluttered* one is not. Two devices shrink perceived volume without
-dropping information the RAG pipeline needs:
+The main README is a landing page, not a manual: a hook, screenshots, 5–8 feature bullets, a
+minimal quick start, a **Documentation table** linking every `readme-docs/*.md` satellite, and two
+collapsed reference sections at the end of the page — **The tool, up close** and **Connect your
+client**. The collapsed view stays around one–two screens. Deep reference material — full config
+tables, priority orders, scenario matrices — lives only in satellites. Nothing is lost for RAG:
+the `doc://readme` resource reassembles the README and every *linked* satellite into one document.
 
-- **Quick Links** right after the badges. List only the major `##` sections (8–14 entries),
-  never a full TOC. The reader who knows what they want jumps; the reader who is browsing
-  ignores the list and keeps scrolling.
-- **`<details>` collapsible blocks** for sections that *must* live inline but would otherwise
-  dominate the page — the canonical case is a grouped tool listing that runs 100+ lines. The
-  heading stays visible and anchor-linkable; the bulk is one click away.
+Rules that make the split work:
 
-Reach for `<details>` only when the content (a) belongs in this section, (b) is long enough to
-push the next section off-screen, and (c) is not needed at a glance. Do *not* hide Quick Start
-commands, Key Features bullets, a compact config table, or integration snippets.
+- **The lead rule.** Every satellite opens with 2–4 full sentences that deliver the essentials of
+  its topic — a reader who stops after the lead already knows the key facts (what it is, the
+  default state, the one order or number that matters). "In short: …" is a good pattern; a bare
+  one-liner is not enough.
+- **Link every satellite** from the main README's Documentation table. An unlinked file never
+  reaches the `doc://readme` resource.
+- **Condensed vs. full.** The two collapsed end sections of the main README are condensed copies
+  of `tool-reference.md` and `getting-started.md`. When one side changes, update the other.
 
-Required markup (GitHub Markdown):
+**`<details>` collapsible blocks**: in the main README they appear only in the two end sections
+named above; inside satellites use them for genuinely bulky matrices — 100+ line tool tables,
+exhaustive request/response examples. Required markup (GitHub Markdown):
 
 ```markdown
 <details><summary>Expand to view <what is inside></summary><br>

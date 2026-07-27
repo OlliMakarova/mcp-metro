@@ -1,54 +1,41 @@
 ---
 name: readme-generator
-description: Generates structured, user-friendly README.md for MCP servers built with fa-mcp-sdk. Detects which SDK subsystems are enabled (Consul, AD, DB, Admin Panel, Agent Tester, Webhooks, etc.) and which project-specific features exist, then decides which sections to inline vs. move to satellite readme-docs/*.md files. Use when creating or refreshing README for an fa-mcp-sdk-based MCP server project.
+description: Generates a showcase-style README.md plus readme-docs/*.md satellites for MCP servers built with fa-mcp-sdk. The main README is a short landing page — hook, screenshots, feature bullets, a minimal quick start, a documentation TOC, and two collapsed reference sections at the end (tool close-up, client configs); every deep technical detail lives in satellite files that each open with a substantive lead. Detects which SDK subsystems are enabled and emits satellites only for features that exist. Use when creating or refreshing README for an fa-mcp-sdk-based MCP server project.
 ---
 
 # MCP Server README Generator
 
-Generates a `README.md` tailored to MCP servers built on `fa-mcp-sdk`. The README answers three
-progressive questions — *what is this?*, *how do I use it?*, *how do I operate it?* — without
-drowning casual readers in operational detail.
+Generates a `README.md` and its `readme-docs/*.md` satellites for an MCP server built on `fa-mcp-sdk`.
+The main README is a **showcase page**: it hooks the reader with what the server can do and shows it
+working; deep technical detail is one click away — in a satellite file, or in one of the two
+collapsed reference sections at the end of the page.
 
-## Philosophy
+## Philosophy — showcase, not manual
 
-Three-level information hierarchy:
+Three reader roles, three destinations:
 
-**Level 1 — What & how to use it (first 30 seconds for the consumer)**
+| Reader                 | Question                          | Where it's answered                              |
+|------------------------|-----------------------------------|---------------------------------------------------|
+| Visitor (30 seconds)   | What is this? Does it look alive? | Hook paragraph, screenshots, feature bullets       |
+| Evaluator (5 minutes)  | Can I run it right now?           | "Try it in 60 seconds", "Connect your client"      |
+| Integrator / operator  | How exactly does X work?          | The Documentation table → `readme-docs/*.md`       |
 
-- What this MCP server is for
-- What tools it exposes
-- How to connect from Claude Code / Claude Desktop / Qwen Code (the simplest path)
+**Hard rule — no *open* reference material in the main README.** No open parameter tables, no open
+client-config JSON, no config-key tables, no endpoint lists, no auth priority orders, no Quick
+Links block. Exactly two reference sections are allowed, both **at the end of the page** (after the
+Documentation table) and both collapsed into `<details>` blocks:
 
-**Level 2 — Features & basics (interested reader)**
+- **The tool, up close** — parameters and answer contents, collapsed;
+- **Connect your client** — one collapsed config block per MCP client.
 
-- Enabled fa-mcp-sdk subsystems, project-specific capabilities, transports, essential config
+Everything else that wants a reference table or a second code fence belongs in a satellite. Target:
+the *collapsed* view of the README stays around one–two screens (~100 visible lines); the raw file
+is longer because of the collapsed content, and that is fine.
 
-**Level 3 — Operations (deployer / maintainer)**
-
-- Build & run, full configuration, deep technical topics
-
-Level 1 and 2 live in the main README. Level 3 content longer than ~15 lines moves to satellite
-Markdown files under `readme-docs/`. The main README stays scannable; deep detail is one click away.
-
-### Scannability devices: Quick Links + collapsible blocks
-
-Two devices keep the main README scannable even when it carries substantial inline content:
-
-- **Quick Links** — a short navigation block right after the badges, pointing to the *major* sections
-  a reader is likely to jump to. Include only headline topics (Tools, Quick Start, MCP Client
-  Integration, Key Features, Configuration, Build & Run, Authentication, and any enabled feature
-  sections that have their own heading — Impersonation, Admin Panel, Webhooks, Agent Tester, Skills,
-  etc.). Do **not** dump a full TOC: secondary headings such as Overview, Transports, Stack, License
-  stay out; minor sub-subsections stay out. Rule of thumb: 8–14 links, never more.
-- **Collapsible `<details>` blocks** — wrap content that *must* appear inline (so the `doc://readme`
-  RAG pipeline picks it up as part of the main document) but whose volume would drown neighbouring
-  sections on a casual scroll. The canonical case is the grouped Tools table (often 100+ rows across
-  a dozen sub-tables). Use `<details>` when all three hold: (1) content belongs in this section,
-  (2) it is long enough to push everything below off-screen, (3) a casual reader doesn't need every
-  row right away. Do **not** use `<details>` for content readers need at a glance (Quick Start
-  commands, Key Features bullets, the compact Configuration Basics table, Integration snippets).
-  See `reference/templates.md` for the required markup (the `<br>` after `</summary>` is mandatory —
-  GitHub won't render the first child block correctly without it).
+**Tone.** Punchy but factual. Lead every feature bullet with the benefit, use concrete numbers
+(languages, route variants, endpoints), and never invent superlatives — "blazingly fast" and friends
+are banned. "Answers within a second of starting, thanks to the disk cache" is the register to hit:
+a strong claim, backed by a mechanism.
 
 ## The `readme-docs/` folder is load-bearing
 
@@ -60,18 +47,19 @@ assembled document reads naturally.
 
 This means:
 
-- The entire documentation is delivered through `doc://readme` as one searchable markdown
-  document — essential for the MCP registry's RAG indexing.
-- Any satellite file *not* linked from `README.md` is **not** included in the resource. If you
-  add a new `readme-docs/*.md` file, link to it from the main README.
-- Do not rename the folder. Any other name (`docs/`, `doc/`, `readme-parts/` etc.) will be
-  ignored by the SDK and the satellite content will not reach RAG.
+- Moving content out of the main README loses **nothing** for RAG — the resource reassembles the
+  README and every linked satellite into one searchable document for the MCP registry's indexing.
+- Any satellite file *not* linked from `README.md` is **not** included in the resource. The
+  **Documentation table** in the main README links every satellite, which is exactly what makes the
+  showcase layout safe. If you add a new `readme-docs/*.md` file, add its row to that table.
+- Do not rename the folder. Any other name (`docs/`, `doc/`, `readme-parts/` etc.) will be ignored
+  by the SDK and the satellite content will not reach RAG.
 
 ## Dynamic detection is mandatory
 
 The set of satellite files is **not fixed**. The skill inventories the project, decides per feature
-whether it is enabled, and only then produces the matching README sections and `readme-docs/*.md` files.
-**Do not create a satellite file for a disabled feature.** Do not emit empty sections.
+whether it is enabled, and only then produces the matching feature bullets and `readme-docs/*.md`
+files. **Do not create a satellite file for a disabled feature.** Do not emit empty sections.
 
 ## Workflow
 
@@ -98,6 +86,13 @@ Collect, from the actual repository:
 - `src/prompts/` — existence + prompt list
 - `src/custom-resources.ts` — existence
 - `.claude/skills/*/SKILL.md` — catalog of in-project skills
+
+**Visuals**
+
+- Screenshots and demo images already in `readme-docs/` (`*.png`, `*.jpg`, `*.gif`, `*.webp`) — a
+  chat answer, a widget, an admin UI. If none exist, skip the screenshot block and tell the user
+  that one or two screenshots (a real chat answer plus the widget/UI, if the server has one) would
+  noticeably strengthen the page.
 
 **Optional fa-mcp-sdk subsystems — detect each**
 
@@ -128,145 +123,159 @@ Collect, from the actual repository:
 
 Record all findings in a working note — they drive the decisions in the next step.
 
-### Step 2 — Classify findings: drop / inline / satellite
+### Step 2 — Classify findings: drop / bullet / satellite
 
 For each finding, pick placement:
 
-- **Drop** — feature not used; no section, no satellite file.
-- **Inline** — description ≤ ~15 lines. Put a short subsection in the main README.
-- **Satellite** — description > ~15 lines, OR the topic contains reference tables, priority rules,
-  request/response schemas, long examples. Create `readme-docs/<kebab-name>.md` and link to it from the
-  main README with a 2–3 sentence summary.
+- **Drop** — feature not used; no bullet, no satellite file.
+- **Feature bullet** — every enabled subsystem or capability worth showing earns *at most one*
+  bullet in **What it does** (or one clause in **Under the hood**). A bullet states the benefit and
+  the mechanism in ≤ 2 lines; it never carries a table or a code fence.
+- **Satellite** — any explanation longer than a bullet. Create `readme-docs/<kebab-name>.md`, add
+  its row to the Documentation table.
 
-**Always satellite** (do not inline even if short):
+**Two satellites are mandatory for every project** — they hold the *full* version of what the main
+README's collapsed end sections show in condensed form:
+
+- `readme-docs/getting-started.md` — quick start with verification, MCP client integration
+  (Claude Code, Claude Desktop, Qwen Code, Codex), transports and endpoints, build & test
+  commands, environment variables.
+- `readme-docs/tool-reference.md` — the grouped tool table, per-tool input parameters, what each
+  answer contains, MCP resources and prompts.
+
+The two end sections of the main README (Step 3, items 8–9) carry a **condensed copy** of this
+content inside collapsed blocks. The duplication is intentional — the reader gets the essentials
+without leaving the page, RAG gets the full version through the satellites. Whenever one side
+changes, update the other.
+
+**Always satellite** (never a bullet alone, never in the main README):
 
 - Authentication resolution order / priority tables
 - Webhook body schema + per-tool hook priority rules
 - Headless Agent Tester full argument list and scenario matrix
-- Full configuration reference tables (> 15 parameters)
+- Full configuration reference tables
 - Consul / AD / Database detailed setup
 
-**Always inline in the main README** (never moved out):
+### Step 3 — Main README structure
 
-- Tool list (grouped table) — users need to see the API surface
-- Quick Start commands
-- **MCP Client Integration** JSON snippets (Claude Code / Desktop / Qwen Code) — adapted to this
-  server's actual custom header names
-- Key Features bullet list
+Canonical order. Omit only what the project genuinely lacks (e.g. no screenshots exist yet).
 
-### Step 3 — Build main README section list
-
-Canonical section order. Include only sections backed by actual findings; omit anything empty.
-
-1. **Title + one-line description** (from `package.json`)
-2. **Badges** — build, license, language, key stack badges via shields.io
-3. **Quick Links** — 8–14 anchor links to the major sections only (see *Scannability devices*
-   above for the inclusion rule and `reference/templates.md` for the canonical block)
-4. **Overview** — 2–4 sentences. Answers: what is this, for whom, core value
-5. **Tools** — grouped table, `## Tools (<count>)` with per-domain `###` subsections.
-   Wrap the whole tool-group listing in a `<details>` block (see the *collapsible blocks* rule
-   above). The `## Tools (<count>)` heading itself stays *outside* the block so it is visible on
-   scroll and anchor-linkable from Quick Links
-6. **Quick Start** — install, run, minimal verification (3 short steps)
-7. **MCP Client Integration** — Claude Code (HTTP), Claude Desktop (STDIO + `mcp-remote` /
-   direct STDIO), Qwen Code. Use the server's actual custom header names
-   (e.g. `x-jira-token`, `x-wiki-username`)
-8. **Key Features** — 5–8 bullets. Include enabled SDK subsystems and project-specific capabilities
-9. **Transports** — short bulleted list with endpoints (`/mcp`, `/api/*`, `/docs`, `/health`,
-   `/admin`, `/agent-tester`, STDIO for Claude Desktop)
-10. **Configuration Basics** — 5–10 most important keys in a compact table; link to
-    `readme-docs/configuration.md` when the full reference is long
-11. **Build & Run / Deployment** — minimal commands, environment variables
-12. **Authentication** — 2–4 sentences + link to `readme-docs/authentication.md` (satellite is mandatory
-    when non-trivial auth is present)
-13. **Feature sections (dynamic)** — one short subsection per enabled optional subsystem and per
-    notable project-specific capability. Each: 2–3 sentences + link to its `readme-docs/*.md` when a
-    satellite is warranted. Typical candidates:
-    - Consul service discovery → `readme-docs/consul.md`
-    - Active Directory integration → `readme-docs/active-directory.md`
-    - PostgreSQL / pgvector → `readme-docs/database.md`
-    - Custom REST API → link to Swagger UI (`/docs`) and/or `readme-docs/api.md`
-    - Admin panel → inline or `readme-docs/admin-panel.md`
-    - Agent Tester + Headless API → `readme-docs/testing.md`
-    - Webhook callback → `readme-docs/webhooks.md`
-    - Impersonation → `readme-docs/impersonation.md`
-    - Project-specific: fuzzy resolution, caching strategy, API version detection, batch limits,
-      content-format conversion, etc. → `readme-docs/<topic>.md` as appropriate
-
-   Anchor rule: any feature section that is referenced from **Quick Links** must live at `##` level
-   (not `###`), so the anchor resolves from the top of the document.
-14. **Skills** — short paragraph linking to `readme-docs/SKILLS.md` (kept under `readme-docs/`
-    so it is picked up as a satellite and assembled into the `doc://readme` resource)
-15. **Stack** — 4–7 bullets: framework (`fa-mcp-sdk`), transport, language, key libs
-16. **License**
+1. **Title + hook** — H1 is the project name only. Then a 2–4 line paragraph that opens with a
+   **bold claim** and is phrased around what the user can *ask or do* — never around the
+   implementation. Good: "Ask *'how do I get from A to B?'* in plain language — get real routes
+   with times, transfers and today's closures." Bad: "An MCP server exposing one tool via STDIO."
+2. **Badges** — license, Node, TypeScript, MCP, fa-mcp-sdk; only meaningful ones.
+3. **Screenshots** — a two-column HTML table with `<sub>` captions, immediately after the badges.
+   Only when images exist (see Step 1 → Visuals).
+4. **What it does** — 5–8 bullets, each ≤ 2 lines, emoji-led, benefit first, mechanism second.
+5. **Tool surface one-liner** — one paragraph: "One tool — `<name>` — answers …" or "N tools across
+   M domains — …", linking to [Tool Reference](./readme-docs/tool-reference.md).
+6. **Try it in 60 seconds** — install / build / start, one verification command, one closing line
+   naming what is *not* needed ("no database, no API keys"), and an anchor link to the
+   **Connect your client** section below. No open client JSON here.
+7. **Documentation** — a table with one row per satellite: link + one-line "what's inside".
+   This is the only navigation device; there is no Quick Links block.
+8. **The tool, up close** — 1–3 *open* sentences naming the tool(s), the actions and the response
+   format, then a `<details>` block with the parameters and what the answers contain.
+   **If the server has exactly one tool, do not build a tools table** — the open sentences name it
+   and the block holds its parameter table and answer contents. With several tools, the block
+   opens with the grouped tool table (domain `###` subsections). Close the section with a link to
+   [Tool Reference](./readme-docs/tool-reference.md).
+9. **Connect your client** — one `<details>` block per client: Claude Code, Claude Desktop
+   (STDIO + `mcp-remote`), Qwen Code, Codex. Summary lines name the client and its config file.
+   Close the section with a link to [Getting Started](./readme-docs/getting-started.md).
+10. **Under the hood** — 2–4 sentences: language, framework, the key algorithmic or data decisions.
+11. **License**
 
 ### Step 4 — Generate `README.md`
 
-Apply the canonical section order from Step 3. Respect these rules:
+Apply the structure from Step 3. Respect these rules:
 
 - H1 is the project name only — no duplicate title in the next line.
-- Tool table column widths consistent within the file. Tool names as inline code.
-- Every code fence has a language specifier (` ```bash `, ` ```json `, ` ```yaml `, ` ```typescript `).
+- Every code fence has a language specifier (` ```bash `, ` ```json `, ` ```yaml `).
 - `webServer.port` in commands matches the actual value from `config/default.yaml`.
-- Custom header names in Client Integration snippets match what the server actually reads.
-- Relative links for internal references: `[…](./readme-docs/authentication.md)`.
+- Screenshot `alt` texts describe what the image shows, not "screenshot 1".
+- `<details>` markup: `<br>` immediately after `</summary>` is **mandatory** (GitHub collapses the
+  first child block without it); one blank line before `</details>`.
+- Relative links for internal references: `[…](./readme-docs/getting-started.md)`.
 - Line length ≤ 120 chars where practical. Exceptions: URLs, code blocks, tables.
-- No marketing superlatives. Active voice. Short paragraphs (2–4 sentences).
+- No marketing superlatives; every strong claim names its mechanism. Active voice.
 
-See `reference/templates.md` for canonical blocks.
+See `reference/templates.md` for canonical blocks, including the screenshot table and the two
+collapsed end sections.
 
 ### Step 5 — Generate satellite `readme-docs/*.md` files
 
-For each finding classified as *satellite* in Step 2, create a Markdown file under `readme-docs/` (create
-the folder if missing). Use `reference/satellite-templates.md` as a starting point — skeletons are
-provided for common topics (authentication, testing, webhooks, consul, active-directory, database,
-configuration). **Adapt every skeleton to actual values from the project.**
+**The lead rule.** Every satellite opens with a lead of 2–4 full sentences that delivers the
+essentials of its topic — a reader who stops after the lead already knows the key facts: what this
+is, the default state, the one order or number that matters. "In short: …" after the first sentence
+is a good pattern. A bare one-liner such as "How X works." is **not** enough. Details follow below,
+under headings.
+
+Create the two mandatory satellites first — `getting-started.md` and `tool-reference.md` — from the
+blocks in `reference/templates.md`, filling in the project's actual port, header names and tool
+list. Then create one file per finding classified as *satellite* in Step 2, using
+`reference/satellite-templates.md` skeletons where one exists (authentication, testing, webhooks,
+consul, active-directory, database, configuration). **Adapt every skeleton to actual values from
+the project.**
 
 For project-specific capabilities (fuzzy resolution, custom endpoints, etc.) compose a new
-`readme-docs/<kebab-name>.md` with sections: *Overview*, *How it works*, *Configuration*, *Examples*.
+`readme-docs/<kebab-name>.md` with sections: *lead paragraph*, *How it works*, *Configuration*,
+*Examples*.
 
-Every satellite MD begins with a 1-sentence summary so it stands alone when opened directly.
+`<details>` collapsible blocks: in the main README they appear **only** in the two end sections
+(Step 3, items 8–9); inside satellites use them for genuinely bulky matrices (100+ lines).
+Required markup is in `reference/templates.md`.
 
 ### Step 6 — Update `readme-docs/SKILLS.md`
 
 If `.claude/skills/` is non-empty, regenerate `readme-docs/SKILLS.md`. Keep the existing format
-(per-skill sections with command, launch mode, arguments table, examples). The file lives under
-`readme-docs/` so it is included as a satellite in the `doc://readme` assembled document — link
-to it from the main README's **Skills** section.
+(per-skill sections with command, launch mode, arguments table, examples). Link it from the
+Documentation table so it is included in the `doc://readme` assembled document.
 
 ### Step 7 — Validate
 
 Run through this checklist before declaring done:
 
-- [ ] Canonical section order followed; no empty headings
-- [ ] **Quick Links** block is present, sits right after the badges, has 8–14 entries covering
-      only major sections, and every anchor resolves to an existing `##` heading in the file
-- [ ] **Tools** section is wrapped in `<details><summary>Expand to view ...</summary><br>` with
-      the heading `## Tools (<count>)` kept *outside* the block
-- [ ] No `<details>` used to hide content readers need at a glance (Quick Start commands,
-      Key Features, Configuration Basics table, Integration snippets)
-- [ ] Every section in the main README is ≤ ~40 lines (or wrapped in `<details>`, or split into
-      a satellite)
-- [ ] Tool count in the `## Tools (<count>)` heading matches the table
-- [ ] Every satellite link resolves to an existing file in `readme-docs/`
-- [ ] No satellite file for a disabled feature
-- [ ] `webServer.port` in all commands matches `config/default.yaml`
-- [ ] Custom header names in Client Integration match those the server parses
-- [ ] JSON snippets are valid JSON; YAML snippets are valid YAML
-- [ ] Every code fence has a language tag
-- [ ] Relative links use `./readme-docs/...` form
+- [ ] The collapsed view of the main README is ≈ one–two screens; **no open** parameter tables,
+      config tables, client JSON, endpoint lists; no Quick Links block
+- [ ] `<details>` blocks in the main README appear **only** in **The tool, up close** and
+      **Connect your client**, both placed after the Documentation table
+- [ ] Single tool → no tools table (open sentences + parameter table inside the block); several
+      tools → grouped table inside the block
+- [ ] Every `<details>` has `<br>` immediately after `</summary>` and a blank line before
+      `</details>`
+- [ ] The two end sections stay in sync with `tool-reference.md` and `getting-started.md`
+      (condensed vs. full versions of the same facts)
+- [ ] The first screen — title, hook, badges, screenshots — contains no commands and no config keys
+- [ ] Screenshot block present when images exist in `readme-docs/`; `alt` texts are descriptive
+- [ ] **What it does** has 5–8 bullets, each ≤ 2 lines, benefit first, no invented superlatives
+- [ ] **Try it in 60 seconds** runs top-to-bottom on a clean checkout; port matches
+      `config/default.yaml`
+- [ ] The Documentation table has one row per satellite file, and **every** file in `readme-docs/`
+      is linked from the main README (unlinked satellites never reach `doc://readme`)
+- [ ] `readme-docs/getting-started.md` and `readme-docs/tool-reference.md` exist and carry the
+      full client-integration snippets, transports, build commands and the full tool table
+- [ ] Every satellite opens with a 2–4 sentence substantive lead (the lead rule, Step 5)
+- [ ] Tool counts and feature claims match `src/tools/` and the config
+- [ ] Custom header names in the client configs match those the server actually parses
+- [ ] JSON snippets are valid JSON; YAML snippets are valid YAML; every code fence has a language tag
+- [ ] Relative links use `./readme-docs/...` form (from the README) / `./<file>.md` (between satellites)
 - [ ] Line length ≤ 120 chars outside URLs / code / tables
+- [ ] No satellite file for a disabled feature
 - [ ] Previous README backed up to `README.backup.md` when rewriting
 
 ## Output
 
-1. `README.md` — restructured per canonical order
-2. `readme-docs/<topic>.md` — one per satellite topic, only those the project needs
-3. `readme-docs/SKILLS.md` — regenerated if `.claude/skills/` is present
-4. `README.backup.md` — backup of previous README when rewriting
+1. `README.md` — the showcase page, restructured per Step 3
+2. `readme-docs/getting-started.md` and `readme-docs/tool-reference.md` — always
+3. `readme-docs/<topic>.md` — one per enabled feature that warrants a satellite
+4. `readme-docs/SKILLS.md` — regenerated if `.claude/skills/` is present
+5. `README.backup.md` — backup of previous README when rewriting
 
 ## References
 
-- `reference/templates.md` — canonical section blocks for the main README
-- `reference/satellite-templates.md` — skeletons for common `readme-docs/*.md` files
+- `reference/templates.md` — canonical blocks: main README (incl. the two collapsed end sections)
+  + the two mandatory satellites
+- `reference/satellite-templates.md` — skeletons for feature satellites
 - `reference/best-practices.md` — writing style and formatting guidelines

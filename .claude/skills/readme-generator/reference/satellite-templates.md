@@ -7,6 +7,14 @@ feature is enabled in the project; do not emit stubs for disabled subsystems.**
 All files live under `readme-docs/` in the project root. Naming: kebab-case by topic
 (`authentication.md`, `active-directory.md`, `admin-panel.md`, …).
 
+**The lead rule applies to every satellite.** The file must open with 2–4 full sentences that
+deliver the essentials of its topic — a reader who stops after the lead already knows the key
+facts: what this is, the default state, the one order or number that matters. "In short: …" after
+the first sentence is a good pattern. The skeletons below start with short intros — expand each
+into a proper lead using the project's actual values; a bare one-liner is not enough. The two
+mandatory satellites (`getting-started.md`, `tool-reference.md`) have their own blocks in
+`templates.md`, not here.
+
 The folder name `readme-docs/` is **not arbitrary** — the fa-mcp-sdk `doc://readme` MCP resource
 looks for exactly this folder and inlines every file linked from the main README. Any other name
 (`docs/`, `readme-parts/`, etc.) will be ignored by the SDK and the content will not reach the RAG
