@@ -9,6 +9,9 @@
 // cache HTML by URI indefinitely (the universal mem-bot host) re-read it only when the widget really
 // changes. The HTML is therefore read synchronously at module initialization — the URI must be ready
 // before the tool definition (which advertises it in `_meta.ui.resourceUri`) is formed.
+//
+// Every address an earlier build was published under keeps resolving as well — see
+// LEGACY_WIDGET_HASHES below for why that is not optional.
 
 import { createHash } from 'node:crypto';
 import fs from 'node:fs';
@@ -18,6 +21,7 @@ import { fileURLToPath } from 'node:url';
 import { IResourceData, MCP_APPS_RESOURCE_MIME_TYPE } from 'fa-mcp-sdk';
 
 import { getPublicBaseUrl } from './widget-data-link.js';
+import { LEGACY_WIDGET_HASHES, widgetUri } from './widget-uri-history.js';
 
 const THIS_DIR = path.dirname(fileURLToPath(import.meta.url));
 
@@ -45,7 +49,7 @@ const WIDGET_HTML = readWidgetHtmlSync();
 const WIDGET_HASH = createHash('sha256').update(WIDGET_HTML).digest('hex').slice(0, 8);
 
 /** Versioned ui:// URI the metro_info tool advertises in its `_meta.ui.resourceUri` */
-export const ROUTES_WIDGET_URI = `ui://mos-metro/routes.${WIDGET_HASH}.html`;
+export const ROUTES_WIDGET_URI = widgetUri(WIDGET_HASH);
 
 /**
  * `connect-src` source for the sandbox CSP: the widget's only network request is a fetch to the
@@ -53,6 +57,13 @@ export const ROUTES_WIDGET_URI = `ui://mos-metro/routes.${WIDGET_HASH}.html`;
  * single data fetch would be blocked.
  */
 const connectSrc = new URL(getPublicBaseUrl()).origin;
+
+const widgetMeta = {
+  ui: {
+    csp: { 'connect-src': [connectSrc] },
+    preferredFrameSize: ['100%', '520px'] as [string, string],
+  },
+};
 
 /** The ui:// resource entry for customResources[] */
 export const routesWidgetResource: IResourceData = {
@@ -62,10 +73,23 @@ export const routesWidgetResource: IResourceData = {
     'MCP Apps widget that renders Moscow or Saint Petersburg Metro route variants returned by the metro_info tool.',
   mimeType: MCP_APPS_RESOURCE_MIME_TYPE,
   content: () => WIDGET_HTML,
-  _meta: {
-    ui: {
-      csp: { 'connect-src': [connectSrc] },
-      preferredFrameSize: ['100%', '520px'],
-    },
-  },
+  _meta: widgetMeta,
 };
+
+/**
+ * The widget resource plus one entry per address of an earlier build, all serving the current html
+ * (see LEGACY_WIDGET_HASHES). Only the first entry is the address the tool advertises; the rest
+ * exist so route cards already sitting in chat histories keep opening.
+ */
+export const routesWidgetResources: IResourceData[] = [
+  routesWidgetResource,
+  ...LEGACY_WIDGET_HASHES.filter((hash) => hash !== WIDGET_HASH).map((hash) => ({
+    uri: widgetUri(hash),
+    name: `mos-metro-routes-widget-${hash}`,
+    description:
+      'Earlier address of the route widget, kept readable so route cards already in a chat history still open. Serves the current widget.',
+    mimeType: MCP_APPS_RESOURCE_MIME_TYPE,
+    content: () => WIDGET_HTML,
+    _meta: widgetMeta,
+  })),
+];

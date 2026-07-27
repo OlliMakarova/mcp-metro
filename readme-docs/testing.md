@@ -23,6 +23,7 @@ npx jest tests/lib/routing.test.ts        # one file
 | the backup-source test      | Parsing of the backup source's embedded graph and its enrichment            |
 | `widget-data.test.ts`       | Link signing and parsing, recompute tokens, payload assembly                |
 | `widget-stations.test.ts`   | The hub list behind the widget's selects: clustering, badges, sort order    |
+| `widget-uri-history.test.ts`| That no widget address ever published has been dropped (derived from git)   |
 | `model-summary.test.ts`     | The localized one-line summary in all four languages                        |
 | `telegram-notify.test.ts`   | Send success, failure isolation, the disabled state                         |
 
@@ -46,7 +47,9 @@ already-running server, STDIO spawns its own.
 `test:mcp-widget` walks the whole widget data path against a running server: the signed link and its "Refresh" variant,
 a tampered signature, the recompute token every response carries, the station list behind that token, a recompute for
 another pair of stations, the one-per-2-seconds limiter, and the rejections for a missing, forged or expired token. It
-pauses two seconds between successive recomputes on purpose, so the run takes about ten seconds. Two checks — the `404`
+also reads the current widget address and every address earlier builds were published under — dropping one of those
+breaks every route card already in a user's chat history (see [Route Widget](./route-widget.md)). It pauses two
+seconds between successive recomputes on purpose, so the run takes about ten seconds. Two checks — the `404`
 for non-existent ids and the expired-token `403` — need to forge a valid signature and are skipped unless
 `WIDGET_DATA_SIGN_SECRET` is set to the same secret the server runs with:
 

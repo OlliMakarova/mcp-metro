@@ -3,7 +3,7 @@ import { IResourceData } from 'fa-mcp-sdk';
 import { getMetroDatasetOrNull } from './lib/metro-data/cache.js';
 import { pickName } from './lib/metro-data/localized-name.js';
 import { IMetroDataset, TMetroCity } from './lib/metro-data/types.js';
-import { routesWidgetResource } from './tools/widget/widget-resource.js';
+import { routesWidgetResources } from './tools/widget/widget-resource.js';
 
 /**
  * Resources of the metro MCP server. Content is generated dynamically from the active datasets
@@ -87,5 +87,5 @@ export const customResources: IResourceData[] = [
     mimeType: 'text/markdown',
     content: () => renderStatus(),
   },
-  routesWidgetResource,
+  ...routesWidgetResources,
 ];

@@ -46,6 +46,18 @@ HTML is read synchronously at module load, because the URI must exist before the
 `_meta.ui.resourceUri` is built. The resource also declares `preferredFrameSize: ['100%', '520px']` and its own
 `connect-src` CSP entry.
 
+**Every earlier address stays readable.** A host does not embed the widget into the chat message — it stores the
+`ui://` address it saw at the time of the answer and re-reads that address every time the card is displayed, months
+later included. An address the server stops serving therefore does not merely go stale: it turns every route card
+already sitting in the user's history into "widget unavailable", and for a few minutes after a release it does the
+same to brand-new cards, while the host still answers from its cached tool list and hands out the previous address.
+So `src/tools/widget/widget-uri-history.ts` keeps the hash of every build ever published, and each of those addresses
+resolves — to the **current** HTML. That is the right content rather than a compromise: the widget is a renderer and
+the route data comes from the signed link stored in the message, so an old card rendered by today's widget shows the
+same route with today's fixes. **When the widget HTML changes, add the hash it had before the change to that list** —
+`tests/lib/widget-uri-history.test.ts` derives the full set from the file's git history and fails when an entry is
+missing, and `test:mcp-widget` reads every address against a running server.
+
 **Data** — the widget fetches its own route data from `dataUrl` (`GET /api/widget-data`). The link is
 **self-describing**: it carries the departure and arrival platform ids, the language and the moment `at`, plus a
 truncated HMAC-SHA256 signature over `from|to|lang`. The server rebuilds the route on every request, so:

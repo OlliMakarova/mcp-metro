@@ -26,6 +26,8 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 
 import { buildSignedUrl, signToken } from '../../dist/src/tools/widget/widget-data-sign.js';
+import { ROUTES_WIDGET_URI } from '../../dist/src/tools/widget/widget-resource.js';
+import { LEGACY_WIDGET_HASHES, widgetUri } from '../../dist/src/tools/widget/widget-uri-history.js';
 
 const baseURL = (process.env.TEST_MCP_SERVER_URL || `http://localhost:${appConfig.webServer.port}`).replace(/\/+$/, '');
 const MCP_URL = `${baseURL}/mcp`;
@@ -255,6 +257,23 @@ async function main() {
     // 15. Neither sig nor token → 400
     const r14 = await fetch(`${baseURL}/api/widget-data?from=1&to=2&lang=ru`);
     check('widget-data without sig and without token → 400', r14.status === 400, r14.status);
+
+    // ── Widget addresses: the current one AND every earlier one must stay readable ──
+    // A host stores the ui:// address in the chat message and re-reads it whenever the card is
+    // shown. An address that stops resolving kills every route card already in a user's history.
+    const widgetIsServed = async (uri) => {
+      try {
+        const read = await client.readResource({ uri });
+        const item = read?.contents?.[0];
+        return typeof item?.text === 'string' && item.text.length > 1000;
+      } catch {
+        return false;
+      }
+    };
+    check(`current widget address ${ROUTES_WIDGET_URI} is readable`, await widgetIsServed(ROUTES_WIDGET_URI));
+    for (const hash of LEGACY_WIDGET_HASHES) {
+      check(`earlier widget address routes.${hash}.html still readable`, await widgetIsServed(widgetUri(hash)));
+    }
   } finally {
     await client.close().catch(() => undefined);
   }
