@@ -38,6 +38,7 @@
     "yarn.lock",
     "package-lock.json",
     "**/*.min.js",
-    "**/*.d.ts"
+    "**/*.d.ts",
+    "tests/fixtures/**"
   ]
 }

@@ -21,6 +21,7 @@ export const STORAGE_FILES = {
   spbMetrobookGraph: 'spb-metrobook-graph.json',
   spbHhMetro: 'spb-hh-metro.json',
   spbOfficialHours: 'spb-official-hours.json',
+  spbRouteMap: 'spb-route-map.json',
   meta: 'meta.json',
 } as const;
 

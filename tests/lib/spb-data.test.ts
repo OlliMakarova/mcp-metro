@@ -8,11 +8,17 @@ import { describe, expect, test } from '@jest/globals';
 import { buildSignedUrl, parseSignedQuery, WidgetLinkError } from '../../src/tools/widget/widget-data-sign.js';
 import { findBestRoutes } from '../../src/lib/routing/find-routes.js';
 import { resolveStation } from '../../src/lib/station-search/resolve-station.js';
+import { validateMetrobookGraph } from '../../src/lib/metro-data/fetch-metrobook.js';
+import { routeMapToMetrobookGraph } from '../../src/lib/metro-data/fetch-spb-route-map.js';
+import { buildSpbDataset } from '../../src/lib/metro-data/normalize-spb.js';
+import { SPB_GRAPH_LIMITS } from '../../src/lib/metro-data/refresh-spb.js';
 import {
   getSpbDataset,
   getSpbDatasetBare,
   loadSpbGraphFile,
+  loadSpbHhFile,
   loadSpbOfficialFile,
+  loadSpbRouteMapFile,
   stationIdsByName,
 } from './helpers.js';
 
@@ -122,6 +128,83 @@ describe('Сборка датасета СПб', () => {
     expect(bare.notifications).toBeUndefined();
     // Фолбэк времени перегона линии 6 без официальных данных
     expect(bare.edges.find((e) => e.edgeId === 'spb6-ride-1')?.timeSec).toBe(210);
+  });
+});
+
+describe('Официальный калькулятор маршрутов (map1)', () => {
+  test('разбор: линии, станции с названиями, перегоны, пересадки, тайминги', () => {
+    const m = loadSpbRouteMapFile();
+    expect(m.lines.length).toBe(6);
+    const stations = m.lines.flatMap((l) => l.stations);
+    expect(stations.length).toBe(75);
+    expect(stations.every((s) => s.title)).toBe(true);
+    expect(m.edges.length).toBe(69);
+    expect(m.transfers.length).toBe(20);
+    expect(m.timing.transferSec).toBe(235);
+    expect(m.timing.entranceMinSec).toBe(170);
+    expect(m.timing.entranceMaxSec).toBe(230);
+    // Закрытые станции вычленяются из закомментированной разметки страницы
+    expect(m.closedStations.map((s) => s.title).sort()).toEqual(['Парк Победы', 'Фрунзенская']);
+    // Линия 6 присутствует в калькуляторе (в отличие от источника графа)
+    const kra = m.lines.find((l) => l.code === 'kra');
+    expect(kra?.lineId).toBe(6);
+    expect(kra?.stations.map((s) => s.title)).toEqual(['Юго-Западная', 'Путиловская']);
+  });
+
+  test('пересадки получают реалистичное время калькулятора вместо 60 с графа', () => {
+    const ds = getSpbDataset();
+    const transfers = ds.edges.filter((e) => e.kind === 'transfer');
+    expect(transfers.length).toBeGreaterThan(0);
+    expect(transfers.every((e) => e.timeSec === 235)).toBe(true);
+    // Без калькулятора остаются времена источника графа
+    const bare = getSpbDatasetBare();
+    const bareTransfers = bare.edges.filter((e) => e.kind === 'transfer' && e.edgeId !== 'spb6-transfer-1');
+    expect(bareTransfers.some((e) => e.timeSec < 235)).toBe(true);
+  });
+
+  test('время входа и выхода в город проставляется всем станциям', () => {
+    const ds = getSpbDataset();
+    // Среднее диапазона 170–230 с калькулятора
+    expect(ds.stations.every((s) => s.enterTimeSec === 200 && s.exitTimeSec === 200)).toBe(true);
+    expect(getSpbDatasetBare().stations.every((s) => s.enterTimeSec === undefined)).toBe(true);
+  });
+
+  test('закрытия из калькулятора не дублируют уведомления официальной страницы', () => {
+    const ds = getSpbDataset();
+    const closedIds = (ds.notifications ?? []).flatMap((n) =>
+      n.stations.filter((s) => s.status === 'CLOSED').map((s) => s.stationId),
+    );
+    // Оба источника знают об одних и тех же закрытиях — по одной записи на станцию
+    expect(closedIds.length).toBeGreaterThanOrEqual(2);
+    expect(new Set(closedIds).size).toBe(closedIds.length);
+  });
+
+  test('закрытия обнаруживаются и без официальной страницы (только калькулятор)', () => {
+    const ds = buildSpbDataset(loadSpbGraphFile(), null, null, loadSpbRouteMapFile());
+    const closed = (ds.notifications ?? []).filter((n) => n.stations.some((s) => s.status === 'CLOSED'));
+    const names = closed.flatMap((n) =>
+      n.stations.map((s) => ds.stations.find((st) => st.id === s.stationId)?.name.ru),
+    );
+    expect(names).toContain('Фрунзенская');
+    expect(names).toContain('Парк Победы');
+  });
+
+  test('резервный граф из калькулятора собирается в рабочий датасет с маршрутами', () => {
+    const graph = routeMapToMetrobookGraph(loadSpbRouteMapFile());
+    expect(() => validateMetrobookGraph(graph, SPB_GRAPH_LIMITS)).not.toThrow();
+    const ds = buildSpbDataset(graph, loadSpbHhFile(), loadSpbOfficialFile(), loadSpbRouteMapFile());
+    expect(ds.stations.length).toBe(75);
+    expect(ds.lines.length).toBe(6);
+    // Линия 6 приходит из самого калькулятора — дополнение не требуется
+    expect(ds.stations.find((s) => s.name.ru === 'Юго-Западная')?.lineId).toBe(6);
+    // Маршрут с пересадкой строится и даёт правдоподобное время
+    const result = findBestRoutes(ds, stationIdsByName(ds, 'Девяткино'), stationIdsByName(ds, 'Купчино'), {
+      k: 1,
+      at: AT_SPB,
+    });
+    expect(result.variants.length).toBeGreaterThanOrEqual(1);
+    expect(result.variants[0]!.totalTimeSec).toBeGreaterThan(35 * 60);
+    expect(result.variants[0]!.totalTimeSec).toBeLessThan(80 * 60);
   });
 });
 

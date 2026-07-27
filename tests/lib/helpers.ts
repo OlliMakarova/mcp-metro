@@ -13,6 +13,7 @@ import {
 import { normalizeMetrobook, parseMetrobookHtml } from '../../src/lib/metro-data/fetch-metrobook.js';
 import { ISpbHhMetroFile, validateSpbHhMetro } from '../../src/lib/metro-data/fetch-spb-hh.js';
 import { ISpbOfficialFile, parseSpbOfficialHtml } from '../../src/lib/metro-data/fetch-spb-official.js';
+import { ISpbRouteMapFile, parseSpbRouteMap } from '../../src/lib/metro-data/fetch-spb-route-map.js';
 import { buildSpbDataset } from '../../src/lib/metro-data/normalize-spb.js';
 import { SPB_GRAPH_LIMITS } from '../../src/lib/metro-data/refresh-spb.js';
 import { IMetroDataset, IMetrobookGraphFile } from '../../src/lib/metro-data/types.js';
@@ -81,6 +82,7 @@ const SPB_FETCHED_AT = '2026-07-26T00:00:00.000Z';
 let spbGraphCache: IMetrobookGraphFile | null = null;
 let spbHhCache: ISpbHhMetroFile | null = null;
 let spbOfficialCache: ISpbOfficialFile | null = null;
+let spbRouteMapCache: ISpbRouteMapFile | null = null;
 let spbDatasetCache: IMetroDataset | null = null;
 
 /** SPb graph parsed from the saved metrobook-mirror page */
@@ -110,9 +112,26 @@ export const loadSpbOfficialFile = (): ISpbOfficialFile => {
   return spbOfficialCache;
 };
 
-/** Full Saint Petersburg dataset: graph + hh enrichment + official hours */
+/** SPb official route calculator parsed from the saved page + data file */
+export const loadSpbRouteMapFile = (): ISpbRouteMapFile => {
+  spbRouteMapCache ??= parseSpbRouteMap(
+    readFileSync(path.join(FIXTURES_DIR, 'spb-map1-route.html'), 'utf8'),
+    readFileSync(path.join(FIXTURES_DIR, 'spb-map1-spb00000.js'), 'utf8'),
+    SPB_FETCHED_AT,
+    'https://metro.spb.ru/map1/route.html',
+    'https://metro.spb.ru/map1/files/spb00000.js',
+  );
+  return spbRouteMapCache;
+};
+
+/** Full Saint Petersburg dataset: graph + hh enrichment + official hours + route calculator */
 export const getSpbDataset = (): IMetroDataset => {
-  spbDatasetCache ??= buildSpbDataset(loadSpbGraphFile(), loadSpbHhFile(), loadSpbOfficialFile());
+  spbDatasetCache ??= buildSpbDataset(
+    loadSpbGraphFile(),
+    loadSpbHhFile(),
+    loadSpbOfficialFile(),
+    loadSpbRouteMapFile(),
+  );
   return spbDatasetCache;
 };
 

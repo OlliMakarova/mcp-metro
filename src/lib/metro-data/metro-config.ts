@@ -21,6 +21,8 @@ export const METRO_URLS = {
   spbMetrobook: 'https://spb.metrobook.ru/',
   spbHhMetro: 'https://api.hh.ru/metro/2',
   spbOfficialHours: 'https://metro.spb.ru/rejimrabotystancii.html',
+  spbRouteMapPage: 'https://metro.spb.ru/map1/route.html',
+  spbRouteMapData: 'https://metro.spb.ru/map1/files/spb00000.js',
 } as const;
 
 const DEFAULT_REFRESH_INTERVAL_HOURS = 24;
@@ -43,6 +45,8 @@ export interface IMetroConfigResolved {
     spbMetrobook: string;
     spbHhMetro: string;
     spbOfficialHours: string;
+    spbRouteMapPage: string;
+    spbRouteMapData: string;
   };
 }
 

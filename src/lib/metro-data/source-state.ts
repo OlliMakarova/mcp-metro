@@ -23,6 +23,7 @@ export const stateFromOrigin = (origin: TRefreshOrigin | TSpbRefreshOrigin): TMe
     case 'spb-fresh':
       return 'ok';
     case 'metrobook-fresh':
+    case 'spb-map-fresh':
       return 'backup';
     case 'mosmetro-disk':
     case 'metrobook-disk':
@@ -52,8 +53,10 @@ const MESSAGES: Record<TMetroCity, Record<Exclude<TMetroDataState, 'backup'>, st
   },
   spb: {
     ok: 'the spb.metrobook.ru graph source is available again — Saint Petersburg metro data is up to date.',
+    backup:
+      'the spb.metrobook.ru graph source is unavailable. The graph was rebuilt from the official metro.spb.ru route calculator: routes are built, ride times are approximate (derived from the map geometry).',
     disk: 'the spb.metrobook.ru graph source is unavailable. Using a disk copy of the Saint Petersburg graph.',
-    none: 'failed to obtain Saint Petersburg metro data — the graph source is unavailable and there is no disk copy. SPb route building will return an error until the source recovers.',
+    none: 'failed to obtain Saint Petersburg metro data — the graph sources are unavailable and there is no disk copy. SPb route building will return an error until a source recovers.',
   },
 };
 

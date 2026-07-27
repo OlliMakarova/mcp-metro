@@ -15,4 +15,4 @@
 `2026-07-26_21-43--prompt-spb.md`.
 
 Боевой код, собирающий эти же источники в единый датасет с достройкой линии 6, —
-`src/lib/metro-data/{fetch-spb-hh,fetch-spb-official,spb-official-tls,normalize-spb,refresh-spb}.ts`.
+`src/lib/metro-data/{fetch-spb-hh,fetch-spb-official,fetch-spb-route-map,spb-official-tls,normalize-spb,refresh-spb}.ts`.

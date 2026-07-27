@@ -19,6 +19,7 @@
 
 import { ISpbHhMetroFile } from './fetch-spb-hh.js';
 import { ISpbOfficialFile, ISpbVestibuleRow } from './fetch-spb-official.js';
+import { ISpbRouteMapFile } from './fetch-spb-route-map.js';
 import { normalizeMetrobook } from './fetch-metrobook.js';
 import {
   IMetroDataset,
@@ -301,17 +302,131 @@ const enrichFromOfficial = (dataset: IMetroDataset, official: ISpbOfficialFile):
   }
 };
 
+// ─── Official route calculator enrichment ────────────────────────────────────
+
+/**
+ * Layers the official route-calculator data (metro.spb.ru/map1) onto the dataset:
+ *  1) transfer times: the graph source's uniform 60 s is unrealistically low — replaced with
+ *     the calculator's walk-plus-train-wait estimate (235 s) on every transfer edge;
+ *  2) street entrance/exit times for door-to-door estimates: the calculator's entranceMin/Max
+ *     range collapsed to its mean, filled only where a station has no own value;
+ *  3) closed stations (commented out of the calculator's picker) → CLOSED notifications,
+ *     deduplicated against the ones synthesized from the official operating-hours page;
+ *  4) announced transfer closures (obstacles) → notifications with the transfer edges closed.
+ */
+const enrichFromRouteMap = (dataset: IMetroDataset, routeMap: ISpbRouteMapFile): void => {
+  const { timing } = routeMap;
+
+  for (const edge of dataset.edges) {
+    if (edge.kind === 'transfer' && !edge.isAlternative) {
+      edge.timeSec = timing.transferSec;
+    }
+  }
+
+  const entranceSec = Math.round((timing.entranceMinSec + timing.entranceMaxSec) / 2);
+  for (const station of dataset.stations) {
+    station.enterTimeSec ??= entranceSec;
+    station.exitTimeSec ??= entranceSec;
+  }
+
+  const start = new Date(routeMap.fetchedAt);
+  const end = new Date(start.getTime() + NOTIFICATION_VALIDITY_DAYS * 86_400_000);
+  const notifications: IMetroNotification[] = [];
+  const lineIdByCode = new Map(routeMap.lines.map((l) => [l.code, l.lineId]));
+  const alreadyClosed = new Set(
+    (dataset.notifications ?? []).flatMap((n) =>
+      n.stations.filter((s) => s.status === 'CLOSED').map((s) => s.stationId),
+    ),
+  );
+  for (const closed of routeMap.closedStations) {
+    if (!closed.title) {
+      continue;
+    }
+    const lineId = lineIdByCode.get(closed.code.slice(0, 3));
+    const station = dataset.stations.find(
+      (s) => norm(s.name.ru) === norm(closed.title!) && (lineId == null || s.lineId === lineId),
+    );
+    // The official operating-hours page already reported this closure — one notice is enough
+    if (!station || alreadyClosed.has(station.id)) {
+      continue;
+    }
+    const title = `Станция «${closed.title}» временно закрыта (по данным интерактивной схемы метрополитена)`;
+    notifications.push({
+      id: `spb-map-${station.id}`,
+      title,
+      startDate: start.toISOString(),
+      endDate: end.toISOString(),
+      stations: [{ stationId: station.id, status: 'CLOSED', title }],
+      // Trains pass through closed stations — no ride edges are removed
+      closedEdgeIds: [],
+      alternativeEdges: [],
+    });
+  }
+
+  // Announced transfer closures: «s1-code s2-code» → the transfer edges between the stations
+  const stationByCode = new Map<string, number>();
+  for (const line of routeMap.lines) {
+    for (const s of line.stations) {
+      if (!s.title || line.lineId === null) {
+        continue;
+      }
+      const match = dataset.stations.find((ds) => ds.lineId === line.lineId && norm(ds.name.ru) === norm(s.title!));
+      if (match) {
+        stationByCode.set(s.code, match.id);
+      }
+    }
+  }
+  for (const [pair, obstacle] of Object.entries(routeMap.obstacles)) {
+    const [c1, c2] = pair.split(' ');
+    const id1 = c1 ? stationByCode.get(c1) : undefined;
+    const id2 = c2 ? stationByCode.get(c2) : undefined;
+    if (id1 === undefined || id2 === undefined) {
+      continue;
+    }
+    const closedEdgeIds = dataset.edges
+      .filter(
+        (e) => e.kind === 'transfer' && ((e.fromId === id1 && e.toId === id2) || (e.fromId === id2 && e.toId === id1)),
+      )
+      .map((e) => e.edgeId);
+    if (!closedEdgeIds.length) {
+      continue;
+    }
+    const until = obstacle.until ? new Date(obstacle.until) : null;
+    const title = obstacle.reason ?? 'Переход временно закрыт (по данным интерактивной схемы метрополитена)';
+    notifications.push({
+      id: `spb-map-transfer-${id1}-${id2}`,
+      title,
+      startDate: start.toISOString(),
+      endDate: until && !Number.isNaN(until.getTime()) ? until.toISOString() : end.toISOString(),
+      stations: [
+        { stationId: id1, status: 'INFO', title },
+        { stationId: id2, status: 'INFO', title },
+      ],
+      closedEdgeIds,
+      alternativeEdges: [],
+    });
+  }
+
+  if (notifications.length) {
+    dataset.notifications = [...(dataset.notifications ?? []), ...notifications];
+    dataset.notificationsFetchedAt ??= routeMap.fetchedAt;
+  }
+};
+
 // ─── Assembly ────────────────────────────────────────────────────────────────
 
 /**
- * Builds the Saint Petersburg IMetroDataset: graph core from the metrobook mirror, optional
- * enrichment from hh.ru (coordinates, line names/colors) and the official operating-hours page
- * (workTime, first/last trains, exits, closure notifications), plus the line-6 supplement.
+ * Builds the Saint Petersburg IMetroDataset: graph core from the metrobook mirror (or from the
+ * official route calculator when the mirror is down), optional enrichment from hh.ru
+ * (coordinates, line names/colors), the official operating-hours page (workTime, first/last
+ * trains, exits, closure notifications) and the route calculator (transfer times, entrance/exit
+ * times, closure cross-check), plus the line-6 supplement.
  */
 export const buildSpbDataset = (
   graph: IMetrobookGraphFile,
   hh: ISpbHhMetroFile | null,
   official: ISpbOfficialFile | null,
+  routeMap: ISpbRouteMapFile | null = null,
 ): IMetroDataset => {
   const dataset = normalizeMetrobook(graph);
   dataset.city = 'spb';
@@ -326,6 +441,9 @@ export const buildSpbDataset = (
   }
   if (official) {
     enrichFromOfficial(dataset, official);
+  }
+  if (routeMap) {
+    enrichFromRouteMap(dataset, routeMap);
   }
   return dataset;
 };

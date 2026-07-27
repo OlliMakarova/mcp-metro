@@ -117,6 +117,7 @@
     "doc/**",
     "migrations/**",
     "**/*.d.ts",
-    "**/*.min.js"
+    "**/*.min.js",
+    "tests/fixtures/**"
   ]
 }
