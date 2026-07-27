@@ -60,20 +60,20 @@ Client configs are one click away: [Connect your client](#connect-your-client) b
 
 ## Documentation
 
-| Topic                                                          | What's inside                                                                  |
-|----------------------------------------------------------------|--------------------------------------------------------------------------------|
-| [Getting Started](./readme-docs/getting-started.md)            | Install, run, connect MCP clients, transports, build & test commands           |
-| [Tool Reference](./readme-docs/tool-reference.md)              | `metro_info` parameters and answers, MCP resources and prompts                 |
-| [Route Search](./readme-docs/route-search.md)                  | The graph, Yen's algorithm, the time model, closures, operating hours          |
-| [Station Resolution](./readme-docs/station-resolution.md)      | Fuzzy matching in four languages, interchange-hub clustering, clarifications   |
-| [Route Widget](./readme-docs/route-widget.md)                  | MCP Apps contract, signed data links, caching, reverse-proxy and CORS setup    |
-| [Data Sources](./readme-docs/data-sources.md)                  | Primary/backup cascade, disk cache, refresh schedule, Telegram alerts          |
-| [REST API](./readme-docs/rest-api.md)                          | Four read-only endpoints, rate limits, status codes, response shapes           |
-| [Configuration](./readme-docs/configuration.md)                | Every setting, resolution order, environment variables                         |
-| [Authentication](./readme-docs/authentication.md)              | JWT / Basic / permanent tokens, issuing tokens, what stays open                |
-| [Testing](./readme-docs/testing.md)                            | Unit tests, MCP protocol tests, Agent Tester and the Headless API              |
-| [Deployment](./readme-docs/deployment.md)                      | Docker + systemd, reverse proxy, the self-update loop                          |
-| [Skills](./readme-docs/SKILLS.md)                              | Claude Code skills shipped with the project                                    |
+| Topic                                                     | What's inside                                                                |
+|-----------------------------------------------------------|------------------------------------------------------------------------------|
+| [Getting Started](./readme-docs/getting-started.md)       | Install, run, connect MCP clients, transports, build & test commands         |
+| [Tool Reference](./readme-docs/tool-reference.md)         | `metro_info` parameters and answers, MCP resources and prompts               |
+| [Route Search](./readme-docs/route-search.md)             | The graph, Yen's algorithm, the time model, closures, operating hours        |
+| [Station Resolution](./readme-docs/station-resolution.md) | Fuzzy matching in four languages, interchange-hub clustering, clarifications |
+| [Route Widget](./readme-docs/route-widget.md)             | MCP Apps contract, signed data links, caching, reverse-proxy and CORS setup  |
+| [Data Sources](./readme-docs/data-sources.md)             | Primary/backup cascade, disk cache, refresh schedule, Telegram alerts        |
+| [REST API](./readme-docs/rest-api.md)                     | Four read-only endpoints, rate limits, status codes, response shapes         |
+| [Configuration](./readme-docs/configuration.md)           | Every setting, resolution order, environment variables                       |
+| [Authentication](./readme-docs/authentication.md)         | JWT / Basic / permanent tokens, issuing tokens, what stays open              |
+| [Testing](./readme-docs/testing.md)                       | Unit tests, MCP protocol tests, Agent Tester and the Headless API            |
+| [Deployment](./readme-docs/deployment.md)                 | Docker + systemd, reverse proxy, the self-update loop                        |
+| [Skills](./readme-docs/SKILLS.md)                         | Claude Code skills shipped with the project                                  |
 
 ## The tool, up close
 
@@ -83,7 +83,7 @@ localized to the user's language.
 
 <details><summary><b>Parameters and what the answers contain</b></summary><br>
 
-| Parameter              | Required   | Description                                                                                                                                              |
+| Parameter              | Required   | Description                                                                                                                                                |
 |------------------------|------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `first_metro_station`  | yes        | Departure station (for a route) or the station to describe. Any of the four languages, typos allowed — resolved by fuzzy search.                           |
 | `second_metro_station` | for routes | Arrival station. Required for `action=search_route`, unused for `get_station_info`.                                                                        |
@@ -193,6 +193,28 @@ correct, `"Authorization: Bearer abc"` is not.
 ```
 
 The same no-space-after-`:` rule applies to `--header` values.
+
+</details>
+
+<details><summary><b>OpenCode</b> — <code>opencode.json</code></summary><br>
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "mcp-metro": {
+      "type": "remote",
+      "url": "http://localhost:9049/mcp",
+      "enabled": true,
+      "headers": {
+        "Authorization": "Bearer <jwt-token>"
+      }
+    }
+  }
+}
+```
+
+Omit the `headers` block entirely while authentication is off (the default).
 
 </details>
 

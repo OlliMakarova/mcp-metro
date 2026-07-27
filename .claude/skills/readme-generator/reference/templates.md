@@ -290,6 +290,26 @@ Important: in `--header` values there must be **no space** after the `:`.
 
 </details>
 
+<details><summary><b>OpenCode</b> — <code>opencode.json</code></summary><br>
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "<name>": {
+      "type": "remote",
+      "url": "http[s]://<host[:port]>/mcp",
+      "enabled": true,
+      "headers": {
+        "Authorization": "Bearer <jwt-token>"
+      }
+    }
+  }
+}
+```
+
+</details>
+
 <details><summary><b>Codex</b> — <code>~/.codex/config.toml</code></summary><br>
 
 ```toml
@@ -345,7 +365,7 @@ condensed copy — keep them in sync. Opens with a lead (2–4 sentences, the le
 From `npm install` to a connected AI client in a few minutes. The server needs <what it does NOT
 need: "no database, no API keys and no credentials to start — authentication is off by default">.
 This page covers running the server, wiring it into MCP clients (Claude Code, Claude Desktop,
-Qwen Code, Codex), the available transports, and the build and test commands.
+Qwen Code, OpenCode, Codex), the available transports, and the build and test commands.
 
 ## Quick Start
 
@@ -444,6 +464,27 @@ Add to `~/.qwen/settings.json` — same `mcp-remote` block as Claude Desktop Opt
 Important: in `--header` values there must be **no space** after the `:`.
 `"Authorization:Bearer abc"` is correct, `"Authorization: Bearer abc"` is not. This applies to both
 Claude Desktop Option 2 and Qwen Code.
+
+### OpenCode
+
+Add to `opencode.json` in the project root (or the global OpenCode config); documentation:
+https://opencode.ai/docs/en/mcp-servers/
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "<name>": {
+      "type": "remote",
+      "url": "http[s]://<host[:port]>/mcp",
+      "enabled": true,
+      "headers": {
+        "Authorization": "Bearer <jwt-token>"
+      }
+    }
+  }
+}
+```
 
 ### Codex
 

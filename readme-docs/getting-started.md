@@ -2,8 +2,8 @@
 
 From `npm install` to a connected AI client in a few minutes. The server needs no database, no API keys and no
 credentials to start — authentication is off by default and the metro data sources require none. This page covers
-running the server, wiring it into MCP clients (Claude Code, Claude Desktop, Qwen Code, Codex), the available
-transports, and the build and test commands.
+running the server, wiring it into MCP clients (Claude Code, Claude Desktop, Qwen Code, OpenCode, Codex), the
+available transports, and the build and test commands.
 
 ## Quick Start
 
@@ -116,6 +116,29 @@ Add to `~/.qwen/settings.json`:
 
 Important: in `--header` values there must be **no space** after the `:`. `"Authorization:Bearer abc"` is correct,
 `"Authorization: Bearer abc"` is not. This applies to both Claude Desktop Option 2 and Qwen Code.
+
+### OpenCode
+
+Add to `opencode.json` in the project root (or the global OpenCode config); documentation:
+https://opencode.ai/docs/en/mcp-servers/
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "mcp-metro": {
+      "type": "remote",
+      "url": "http://localhost:9049/mcp",
+      "enabled": true,
+      "headers": {
+        "Authorization": "Bearer <jwt-token>"
+      }
+    }
+  }
+}
+```
+
+Omit the `headers` block entirely while authentication is off (the default).
 
 ### Codex
 
