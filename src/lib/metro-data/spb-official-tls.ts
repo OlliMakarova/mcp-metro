@@ -53,7 +53,9 @@ export const httpsGetTextPinnedRussianCa = (url: string, timeoutMs: number): Pro
     const req = https.get(
       url,
       {
-        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' },
+        // Accept is mandatory for /map1/* paths (the site's WAF answers 477 without it);
+        // sent unconditionally in case the filter expands to the rest of the site
+        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)', Accept: '*/*' },
         ca: RUSSIAN_TRUSTED_ROOT_CA_PEM,
         timeout: timeoutMs,
       },

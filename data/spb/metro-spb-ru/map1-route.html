@@ -1,0 +1,298 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" SYSTEM "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="ru">
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <head>
+	<meta name="robots" content="index,follow">
+	<link rel="shortcut icon" type="image/x-icon" href="files/favicon0.ico">
+	<link rel="stylesheet" type="text/css" href="files/common00.css">
+	<link rel="stylesheet" type="text/css" href="files/map00000.css">
+	<link rel="stylesheet" type="text/css" href="files/spb00000.css">
+	<script type="text/javascript" src="files/jquery00.js"></script>	
+	<script type="text/javascript" src="files/utility0.js"></script>
+	<script type="text/javascript" src="files/ui000000.js"></script>
+	<script type="text/javascript" src="files/stations.js"></script>
+</head>
+<body>
+<div id="page">
+	<div id="header0" style="position: relative; z-index: 999;">
+		<div id="header-canvas">
+			<div id="panel-canvas">
+<!-- panel canvas begin -->
+				<div id="panel">
+					<div id="panel-content">
+						<div id="entrance" title="Время поездки включает в себя вход в метро"><br></div>
+						<div class="stations-button" id="start">
+							<div class="bgr"><br></div>
+							<em class="empty"><br></em>
+							<dl>
+							  <dt>`Начальная станция…</dt><dd>Начальная станция…</dd></dl>
+						</div>
+						<div class="stations-button" id="finish">
+							<div class="bgr"><br></div>
+							<em class="empty"><br></em>
+							<dl><dt>Конечная станция…</dt><dd>Конечная станция…</dd></dl>
+						</div>
+						<div id="stations">
+							<div class="search">
+								<input type="text">
+								<div class="clear"><br>
+								</div>
+							</div>
+							<div class="list">
+								<div class="up"><br></div>
+								<div class="scroll">
+									<p class="empty">Таких станций нет</p>
+									<ul class="items">
+										<li>Автово</li>
+										<li>Адмиралтейская</li>
+										<li>Академическая</li>
+										<li>Балтийская</li>
+										<li>Беговая</li>
+										<li>Бухарестская</li>
+										<li>Василеостровская</li>
+										<li>Владимирская</li>
+										<li>Волковская</li>
+										<li>Выборгская</li>
+										<li>Горный институт</li>
+										<li>Горьковская</li>
+										<li>Гостиный двор</li>
+										<li>Гражданский проспект</li>
+										<li>Девяткино</li>
+										<li>Достоевская</li>
+										<li>Дунайская</li>
+										<li>Елизаровская</li>
+										<li>Звёздная</li>
+										<li>Звенигородская</li>
+										<li>Зенит</li>
+										<li>Кировский завод</li>
+										<li>Комендантский проспект</li>
+										<li>Крестовский остров</li>
+										<li>Купчино</li>
+										<li>Ладожская</li>
+										<li>Ленинский проспект</li>
+										<li>Лесная</li>
+										<li>Лиговский проспект</li>
+										<li>Ломоносовская</li>
+										<li>Маяковская</li>
+										<li>Международная</li>
+										<li>Московская</li>
+										<li>Московские ворота</li>
+										<li>Нарвская</li>
+										<li>Невский проспект</li>
+										<li>Новочеркасская</li>
+										<li>Обводный канал</li>
+										<li>Обухово</li>
+										<li>Озерки</li>
+										<!--<li>Парк Победы</li> -->
+										<li>Парнас</li>
+										<li>Петроградская</li>
+										<li>Пионерская</li>
+										<li>Площадь Ал. Невского 1</li>
+										<li>Площадь Ал. Невского 2</li>
+										<li>Площадь Восстания</li>
+										<li>Площадь Ленина</li>
+										<li>Площадь Мужества</li>
+										<li>Политехническая</li>
+										<li>Приморская</li>
+										<li>Пролетарская</li>
+										<li>Проспект Большевиков</li>
+										<li>Проспект Ветеранов</li>
+										<li>Проспект Просвещения</li>
+										<li>Проспект Славы</li>
+										<li>Путиловская</li>
+										<li>Пушкинская</li>
+										<li>Рыбацкое</li>
+										<li>Садовая</li>
+										<li>Сенная площадь</li>
+										<li>Спасская</li>
+										<li>Спортивная</li>
+										<li>Старая деревня</li>
+										<li>Технологический институт 1</li>
+										<li>Технологический институт 2</li>
+										<li>Удельная</li>
+										<li>Улица Дыбенко</li>
+										<!-- <li>Фрунзенская</li> -->
+										<li>Чёрная речка</li>
+										<li>Чернышевская</li>
+										<li>Чкаловская</li>
+										<li>Шушары</li>
+										<li>Электросила</li>
+										<li>Юго-Западная</li>
+									</ul>
+									<ul class="reset">
+										<li>Отменить выбор</li>
+									</ul>
+								</div>
+							</div>		
+						</div>
+<script type="text/javascript">
+stationsList.init(["kiv-avt","frp-adm","kiv-akd","kiv-bal","nev-beg","frp-buh","nev-vas","kiv-vld","frp-vlk","kiv-vyb","prb-gor","mop-gor","nev-gdv","kiv-grp","kiv-dev","prb-dst","frp-dun","nev-elz","mop-zvz","frp-zvn","nev-nvk","kiv-kiz","frp-kpr","frp-kos","mop-kup","prb-lad","kiv-lpr","kiv-les","prb-lpr","nev-lom","nev-mkv","frp-mez","mop-mos","mop-mov","kiv-nar","mop-npr","prb-nch","frp-obk","nev-obh","mop-ozr",/*"mop-pap",*/"mop-par","mop-pet","mop-pnr","nev-pan","prb-pan","kiv-plv","kiv-pll","kiv-plm","kiv-pol","nev-prm","nev-prl","prb-prb","kiv-prv","mop-prp","frp-prs","kra-put","kiv-psh","nev-ryb","frp-sad","mop-spl","prb-sps","frp-spr","frp-std","kiv-tin","mop-tin","mop-udl","prb-uld",/*"mop-frn",*/"mop-chr","kiv-chr","frp-chk","frp-shu","mop-els","kra-yuz"]);
+</script>
+
+						<div id="begin"><div title="Выбрать начальную станцию"><br></div></div>
+						<div id="middle"><div title="Выбрать конечную станцию"><br></div></div>
+						<div id="end"><div title="Выбрать конечную станцию"><br></div></div>
+						<div id="exit">
+							<div class="bound">
+								<div class="lever"><br></div>
+							</div>
+							<div class="platform" title="Показывать время поездки, не включая выход из метро"><br></div>
+							<div class="street" title="Показывать время поездки, включая выход из метро"><br></div>
+						</div>
+						<div id="duration"><div><br></div></div>
+						<div id="preferences">
+							<div title="Настроить расчёт маршрутов"><br></div>
+						</div>
+						<dl id="prefpane">
+							<dt>Настройка <span class="close"><br></span></dt>
+							<dd>
+							<div class="section">
+								<p class="checkbox"><input type="checkbox" id="fastroutes"><label for="fastroutes">Быстрые маршруты</label></p>
+								<p class="hint">Включите, чтобы получить маршруты с минимальным временем без учета количества пересадок.</p>
+							</div>
+							<div class="section">
+								<p id="default-start">Начальная станция по умолчанию не выбрана</p>
+								<p class="hint">Начальную станцию можно запомнить, чтобы не выбирать ее каждый раз при использовании карты.</p>		
+								<p class="save"><span class="action">Запомнить</span></p>
+								<p class="reset"><span class="action">Не запоминать</span></p>
+							</div>
+							<div class="section">
+								<p><span class="action" id="reset-dropdowns">Сбросить выбор станций</span></p>
+							</div>		
+							</dd>
+						</dl>
+					</div>
+				</div>
+<!-- panel canvas end -->
+			</div>
+		</div>
+	</div>
+	<div id="canvas">
+		<!-- <div style="position: relative; z-index: 900;"><img src="files/header.png" width="1000"/></div>   margin-top: 3px;   -->
+		<!-- canvas begin -->
+
+		<div id="map" style="position: relative; margin-top: -7px; margin-bottom: 10px; z-index: 90;"><!-- -50-->
+			<img src="files/map_site_2025_12_rus.png" width="1000" alt="Интерактивная карта метрополитена Санкт-Петербурга">
+		  <div id="route"><div class="marker" style="visibility: hidden;"><br></div></div>
+			<img id="overlay" src="files/overlay0.png" style="margin-left: -7px; margin-top: 2px;" width="1000" height="1161" usemap="#stations"></div>
+			<map name="stations">
+			  <area href="#kiv-prv" shape="rect" coords="102,921,178,947">
+			  <area href="#kiv-lpr" shape="rect" coords="98,875,178,902">
+			  <area href="#kiv-avt" shape="rect" coords="118,845,178,865">
+			  <area href="#kiv-kiz" shape="rect" coords="156,808,169,835">
+			  <area href="#kiv-kiz" shape="rect" coords="95,781,154,807">
+			  <area href="#kiv-nar" shape="rect" coords="167,764,220,800">
+			  <area href="#kiv-bal" shape="rect" coords="237,727,303,762">
+			  <area href="#kiv-tin" shape="rect" coords="414,675,429,705">
+			  <area href="#kiv-tin" shape="rect" coords="260,662,412,674">
+			  <area href="#kiv-psh" shape="rect" coords="491,611,560,624">
+			  <area href="#kiv-psh" shape="rect" coords="492,638,508,668">
+			  <area href="#kiv-vld" shape="rect" coords="522,539,603,551">
+			  <area href="#kiv-vld" shape="rect" coords="600,552,613,579">
+			  <area href="#kiv-plv" shape="rect" coords="628,472,735,483">
+			  <area href="#kiv-plv" shape="rect" coords="614,480,627,503">
+			  <area href="#kiv-chr" shape="rect" coords="604,427,707,447">
+			  <area href="#kiv-pll" shape="rect" coords="604,368,717,388">
+			  <area href="#kiv-vyb" shape="rect" coords="604,322,693,342">
+			  <area href="#kiv-les" shape="rect" coords="603,274,665,294">
+			  <area href="#kiv-plm" shape="rect" coords="603,191,731,211">
+			  <area href="#kiv-pol" shape="rect" coords="603,152,721,172">
+			  <area href="#kiv-akd" shape="rect" coords="603,115,711,135">
+			  <area href="#kiv-grp" shape="rect" coords="603,67,751,87">
+			  <area href="#kiv-dev" shape="rect" coords="604,18,685,38">
+			  <area href="#mop-par" shape="rect" coords="420,18,483,38">
+			  <area href="#mop-prp" shape="rect" coords="420,53,513,78">
+			  <area href="#mop-ozr" shape="rect" coords="420,97,480,117">
+			 <!-- <area href="#mop-udl" shape="rect" coords="420,142,495,162"> -->
+			  <area href="#mop-pnr" shape="rect" coords="420,183,507,203">
+			  <area href="#mop-chr" shape="rect" coords="420,225,514,245">
+			  <area href="#mop-pet" shape="rect" coords="420,326,524,346">
+			  <area href="#mop-gor" shape="rect" coords="420,395,512,415">
+			  <area href="#mop-npr" shape="rect" coords="445,460,497,484">
+			  <area href="#mop-npr" shape="rect" coords="416,478,429,506">
+			  <area href="#mop-spl" shape="rect" coords="332,579,421,591">
+			  <area href="#mop-spl" shape="rect" coords="419,567,433,578">
+			  <area href="#mop-tin" shape="rect" coords="260,675,412,689">
+			  <area href="#mop-tin" shape="rect" coords="430,675,445,705">
+			 <!-- <area href="#mop-frn" shape="rect" coords="346,745,440,765"> -->
+			  <area href="#mop-mov" shape="rect" coords="352,784,440,809">
+			  <area href="#mop-els" shape="rect" coords="346,824,440,844">
+			  <area href="#mop-pap" shape="rect" coords="375,868,440,893">
+			  <area href="#mop-mos" shape="rect" coords="352,911,440,931">
+			  <area href="#mop-zvz" shape="rect" coords="366,940,440,960">
+			  <area href="#mop-kup" shape="rect" coords="371,970,440,990">	  
+			  <area href="#nev-beg" shape="rect" coords="100,226,167,246">
+			  <area href="#nev-nvk" shape="rect" coords="100,297,155,317">
+			  <area href="#nev-prm" shape="rect" coords="100,402,190,422">
+			  <area href="#nev-vas" shape="rect" coords="195,481,305,514">
+			  <area href="#nev-gdv" shape="rect" coords="445,501,528,513">
+			  <area href="#nev-gdv" shape="rect" coords="430,478,444,506">
+			  <area href="#nev-mkv" shape="rect" coords="627,502,700,513">
+			  <area href="#nev-mkv" shape="rect" coords="599,480,613,503">	  
+			  <area href="#nev-pan" shape="rect" coords="785,526,960,538">
+			  <area href="#nev-pan" shape="rect" coords="754,549,769,580">
+			  <area href="#nev-elz" shape="rect" coords="760,832,857,852">
+			  <area href="#nev-lom" shape="rect" coords="760,888,867,908">
+			  <area href="#nev-prl" shape="rect" coords="760,943,857,963">
+			  <area href="#nev-obh" shape="rect" coords="760,999,828,1019">
+			  <area href="#nev-ryb" shape="rect" coords="760,1057,836,1077">
+			  <area href="#prb-gor" shape="rect" coords="182,520,285,553">
+			  <area href="#prb-sps" shape="rect" coords="457,570,509,582">
+			  <area href="#prb-sps" shape="rect" coords="437,556,448,575">	  
+			  <area href="#prb-dst" shape="rect" coords="627,540,695,552">
+			  <area href="#prb-dst" shape="rect" coords="614,552,628,579">	  
+			  <area href="#prb-lpr" shape="rect" coords="683,554,747,604">	  
+			  <area href="#prb-pan" shape="rect" coords="785,539,960,551">	  
+			  <area href="#prb-pan" shape="rect" coords="770,549,784,580">	  
+			  <area href="#prb-nch" shape="rect" coords="872,615,986,635">	  
+			  <area href="#prb-lad" shape="rect" coords="872,677,960,697">
+			  <area href="#prb-prb" shape="rect" coords="872,762,970,788">
+			  <area href="#prb-uld" shape="rect" coords="872,831,950,856">	  
+			  <area href="#frp-kpr" shape="rect" coords="230,123,337,149">
+			  <area href="#frp-std" shape="rect" coords="230,184,337,204">
+			  <area href="#frp-kos" shape="rect" coords="230,300,326,326">
+			  <area href="#frp-chk" shape="rect" coords="260,366,347,386">
+			  <area href="#frp-spr" shape="rect" coords="295,405,383,425">
+			  <area href="#frp-spr" shape="rect" coords="279,433,299,453">
+			  <area href="#frp-adm" shape="rect" coords="379,503,399,523">
+			  <area href="#frp-adm" shape="rect" coords="300,523,391,538">      
+			  <area href="#frp-sad" shape="rect" coords="445,539,496,551">
+			  <area href="#frp-sad" shape="rect" coords="419,552,433,564">
+			  <area href="#frp-zvn" shape="rect" coords="528,650,620,663">
+			  <area href="#frp-zvn" shape="rect" coords="509,638,524,668">	  
+			  <area href="#frp-obk" shape="rect" coords="557,711,672,730">
+			  <area href="#frp-vlk" shape="rect" coords="596,756,690,775">
+			  <area href="#frp-buh" shape="rect" coords="617,832,715,852">
+			  <area href="#frp-mez" shape="rect" coords="617,889,730,909">
+			  <area href="#frp-prs" shape="rect" coords="616,944,727,964">
+			  <area href="#frp-dun" shape="rect" coords="617,998,702,1018">
+			  <area href="#frp-shu" shape="rect" coords="617,1056,687,1076">
+			  <area href="#kra-yuz" shape="rect" coords="91,843,110,862">
+			  <area href="#kra-yuz" shape="rect" coords="33,828,110,843">
+			  <area href="#kra-put" shape="rect" coords="170,808,183,835">
+			  <area href="#kra-put" shape="rect" coords="81,809,153,821">
+			  
+			</map>
+			<!-- <img src="files/footer.png" width="1000" style="margin-top:20;"/> -->
+			<dl id="tooltip">
+				<dt><br></dt>
+				<dd><br></dd>
+			</dl>
+		</div>
+		<!-- canvas end -->		
+	</div>
+
+
+<script type="text/javascript" src="files/panel000.js"></script>
+<script type="text/javascript" src="files/route000.js"></script>
+<script type="text/javascript" src="files/spb00000.js"></script>
+<script type="text/javascript">
+$(document).ready(function () {
+	fixedHeader.init();
+	subway.init();
+	panel.init();
+});
+</script>
+</body>
+</html>
+

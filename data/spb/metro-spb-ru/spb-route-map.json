@@ -1,0 +1,1034 @@
+{
+  "source": "https://metro.spb.ru/map1/route.html",
+  "dataSource": "https://metro.spb.ru/map1/files/spb00000.js",
+  "fetchedAt": "2026-07-27T01:28:01.364Z",
+  "options": {
+    "entranceMin": 170,
+    "entranceMax": 230,
+    "transferMin": 150,
+    "transferMax": 240,
+    "trainLatency": 80,
+    "trainSpeed": [
+      0.15,
+      0.3,
+      0.35,
+      0.4,
+      0.45,
+      0.47,
+      0.48,
+      0.49,
+      0.5
+    ],
+    "stageFault": 2,
+    "stopTime": 20
+  },
+  "timing": {
+    "rideStopSec": 20,
+    "rideFaultSec": 2,
+    "transferSec": 235,
+    "transferFaultSec": 85,
+    "sameLineReverseSec": 60,
+    "sameLineReverseFaultSec": 40,
+    "entranceMinSec": 170,
+    "entranceMaxSec": 230
+  },
+  "lines": [
+    {
+      "code": "kiv",
+      "number": 1,
+      "name": "Кировско-Выборгская",
+      "stations": [
+        {
+          "id": "kiv-prv",
+          "title": "Проспект Ветеранов",
+          "x": 168,
+          "y": 932
+        },
+        {
+          "id": "kiv-lpr",
+          "title": "Ленинский проспект",
+          "x": 168,
+          "y": 888
+        },
+        {
+          "id": "kiv-avt",
+          "title": "Автово",
+          "x": 169,
+          "y": 854
+        },
+        {
+          "id": "kiv-kiz",
+          "title": "Кировский завод",
+          "x": 170,
+          "y": 820
+        },
+        {
+          "id": "kiv-nar",
+          "title": "Нарвская",
+          "x": 209,
+          "y": 788
+        },
+        {
+          "id": "kiv-bal",
+          "title": "Балтийская",
+          "x": 293,
+          "y": 750
+        },
+        {
+          "id": "kiv-tin",
+          "title": "Технологический институт 1",
+          "x": 429,
+          "y": 688
+        },
+        {
+          "id": "kiv-psh",
+          "title": "Пушкинская",
+          "x": 508,
+          "y": 652
+        },
+        {
+          "id": "kiv-vld",
+          "title": "Владимирская",
+          "x": 614,
+          "y": 563
+        },
+        {
+          "id": "kiv-plv",
+          "title": "Площадь Восстания",
+          "x": 614,
+          "y": 490
+        },
+        {
+          "id": "kiv-chr",
+          "title": "Чернышевская",
+          "x": 614,
+          "y": 436
+        },
+        {
+          "id": "kiv-pll",
+          "title": "Площадь Ленина",
+          "x": 614,
+          "y": 377
+        },
+        {
+          "id": "kiv-vyb",
+          "title": "Выборгская",
+          "x": 614,
+          "y": 331
+        },
+        {
+          "id": "kiv-les",
+          "title": "Лесная",
+          "x": 614,
+          "y": 283
+        },
+        {
+          "id": "kiv-plm",
+          "title": "Площадь Мужества",
+          "x": 614,
+          "y": 199
+        },
+        {
+          "id": "kiv-pol",
+          "title": "Политехническая",
+          "x": 614,
+          "y": 160
+        },
+        {
+          "id": "kiv-akd",
+          "title": "Академическая",
+          "x": 614,
+          "y": 123
+        },
+        {
+          "id": "kiv-grp",
+          "title": "Гражданский проспект",
+          "x": 614,
+          "y": 76
+        },
+        {
+          "id": "kiv-dev",
+          "title": "Девяткино",
+          "x": 614,
+          "y": 27
+        }
+      ]
+    },
+    {
+      "code": "mop",
+      "number": 2,
+      "name": "Московско-Петроградская",
+      "stations": [
+        {
+          "id": "mop-par",
+          "title": "Парнас",
+          "x": 430,
+          "y": 26
+        },
+        {
+          "id": "mop-prp",
+          "title": "Проспект Просвещения",
+          "x": 430,
+          "y": 65
+        },
+        {
+          "id": "mop-ozr",
+          "title": "Озерки",
+          "x": 430,
+          "y": 106
+        },
+        {
+          "id": "mop-udl",
+          "title": "Удельная",
+          "x": 430,
+          "y": 151
+        },
+        {
+          "id": "mop-pnr",
+          "title": "Пионерская",
+          "x": 430,
+          "y": 192
+        },
+        {
+          "id": "mop-chr",
+          "title": "Чёрная речка",
+          "x": 430,
+          "y": 234
+        },
+        {
+          "id": "mop-pet",
+          "title": "Петроградская",
+          "x": 430,
+          "y": 335
+        },
+        {
+          "id": "mop-gor",
+          "title": "Горьковская",
+          "x": 430,
+          "y": 404
+        },
+        {
+          "id": "mop-npr",
+          "title": "Невский проспект",
+          "x": 430,
+          "y": 490
+        },
+        {
+          "id": "mop-spl",
+          "title": "Сенная площадь",
+          "x": 432,
+          "y": 564
+        },
+        {
+          "id": "mop-tin",
+          "title": "Технологический институт 2",
+          "x": 430,
+          "y": 688
+        },
+        {
+          "id": "mop-frn",
+          "title": "Фрунзенская",
+          "x": 430,
+          "y": 754
+        },
+        {
+          "id": "mop-mov",
+          "title": "Московские ворота",
+          "x": 430,
+          "y": 795
+        },
+        {
+          "id": "mop-els",
+          "title": "Электросила",
+          "x": 430,
+          "y": 833
+        },
+        {
+          "id": "mop-pap",
+          "title": "Парк Победы",
+          "x": 430,
+          "y": 878
+        },
+        {
+          "id": "mop-mos",
+          "title": "Московская",
+          "x": 430,
+          "y": 920
+        },
+        {
+          "id": "mop-zvz",
+          "title": "Звёздная",
+          "x": 430,
+          "y": 949
+        },
+        {
+          "id": "mop-kup",
+          "title": "Купчино",
+          "x": 430,
+          "y": 979
+        }
+      ]
+    },
+    {
+      "code": "nev",
+      "number": 3,
+      "name": "Невско-Василеостровская",
+      "stations": [
+        {
+          "id": "nev-beg",
+          "title": "Беговая",
+          "x": 110,
+          "y": 234
+        },
+        {
+          "id": "nev-nvk",
+          "title": "Зенит",
+          "x": 110,
+          "y": 306
+        },
+        {
+          "id": "nev-prm",
+          "title": "Приморская",
+          "x": 110,
+          "y": 410
+        },
+        {
+          "id": "nev-vas",
+          "title": "Василеостровская",
+          "x": 295,
+          "y": 490
+        },
+        {
+          "id": "nev-gdv",
+          "title": "Гостиный двор",
+          "x": 430,
+          "y": 490
+        },
+        {
+          "id": "nev-mkv",
+          "title": "Маяковская",
+          "x": 614,
+          "y": 490
+        },
+        {
+          "id": "nev-pan",
+          "title": "Площадь Ал. Невского 1",
+          "x": 770,
+          "y": 563
+        },
+        {
+          "id": "nev-elz",
+          "title": "Елизаровская",
+          "x": 770,
+          "y": 840
+        },
+        {
+          "id": "nev-lom",
+          "title": "Ломоносовская",
+          "x": 770,
+          "y": 897
+        },
+        {
+          "id": "nev-prl",
+          "title": "Пролетарская",
+          "x": 770,
+          "y": 952
+        },
+        {
+          "id": "nev-obh",
+          "title": "Обухово",
+          "x": 770,
+          "y": 1007
+        },
+        {
+          "id": "nev-ryb",
+          "title": "Рыбацкое",
+          "x": 770,
+          "y": 1065
+        }
+      ]
+    },
+    {
+      "code": "prb",
+      "number": 4,
+      "name": "Лахтинско-Правобережная",
+      "stations": [
+        {
+          "id": "prb-gor",
+          "title": "Горный институт",
+          "x": 275,
+          "y": 527
+        },
+        {
+          "id": "prb-sps",
+          "title": "Спасская",
+          "x": 432,
+          "y": 564
+        },
+        {
+          "id": "prb-dst",
+          "title": "Достоевская",
+          "x": 614,
+          "y": 563
+        },
+        {
+          "id": "prb-lpr",
+          "title": "Лиговский проспект",
+          "x": 693,
+          "y": 563
+        },
+        {
+          "id": "prb-pan",
+          "title": "Площадь Ал. Невского 2",
+          "x": 770,
+          "y": 563
+        },
+        {
+          "id": "prb-nch",
+          "title": "Новочеркасская",
+          "x": 882,
+          "y": 624
+        },
+        {
+          "id": "prb-lad",
+          "title": "Ладожская",
+          "x": 882,
+          "y": 686
+        },
+        {
+          "id": "prb-prb",
+          "title": "Проспект Большевиков",
+          "x": 882,
+          "y": 774
+        },
+        {
+          "id": "prb-uld",
+          "title": "Улица Дыбенко",
+          "x": 882,
+          "y": 842
+        }
+      ]
+    },
+    {
+      "code": "frp",
+      "number": 5,
+      "name": "Фрунзенско-Приморская",
+      "stations": [
+        {
+          "id": "frp-kpr",
+          "title": "Комендантский проспект",
+          "x": 240,
+          "y": 132
+        },
+        {
+          "id": "frp-std",
+          "title": "Старая деревня",
+          "x": 240,
+          "y": 195
+        },
+        {
+          "id": "frp-kos",
+          "title": "Крестовский остров",
+          "x": 240,
+          "y": 313
+        },
+        {
+          "id": "frp-chk",
+          "title": "Чкаловская",
+          "x": 270,
+          "y": 374
+        },
+        {
+          "id": "frp-spr",
+          "title": "Спортивная",
+          "x": 305,
+          "y": 414
+        },
+        {
+          "id": "frp-adm",
+          "title": "Адмиралтейская",
+          "x": 389,
+          "y": 512
+        },
+        {
+          "id": "frp-sad",
+          "title": "Садовая",
+          "x": 432,
+          "y": 564
+        },
+        {
+          "id": "frp-zvn",
+          "title": "Звенигородская",
+          "x": 508,
+          "y": 652
+        },
+        {
+          "id": "frp-obk",
+          "title": "Обводный канал",
+          "x": 568,
+          "y": 720
+        },
+        {
+          "id": "frp-vlk",
+          "title": "Волковская",
+          "x": 606,
+          "y": 765
+        },
+        {
+          "id": "frp-buh",
+          "title": "Бухарестская",
+          "x": 628,
+          "y": 841
+        },
+        {
+          "id": "frp-mez",
+          "title": "Международная",
+          "x": 628,
+          "y": 897
+        },
+        {
+          "id": "frp-prs",
+          "title": "Проспект Славы",
+          "x": 628,
+          "y": 952
+        },
+        {
+          "id": "frp-dun",
+          "title": "Дунайская",
+          "x": 628,
+          "y": 1007
+        },
+        {
+          "id": "frp-shu",
+          "title": "Шушары",
+          "x": 628,
+          "y": 1065
+        }
+      ]
+    },
+    {
+      "code": "kra",
+      "number": 6,
+      "name": "Красносельско-Калининская",
+      "stations": [
+        {
+          "id": "kra-yuz",
+          "title": "Юго-Западная",
+          "x": 100,
+          "y": 851
+        },
+        {
+          "id": "kra-put",
+          "title": "Путиловская",
+          "x": 170,
+          "y": 820
+        }
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "from": "kiv-prv",
+      "to": "kiv-lpr",
+      "distancePx": 44,
+      "rideSec": 118
+    },
+    {
+      "from": "kiv-lpr",
+      "to": "kiv-avt",
+      "distancePx": 34.01,
+      "rideSec": 105
+    },
+    {
+      "from": "kiv-avt",
+      "to": "kiv-kiz",
+      "distancePx": 34.01,
+      "rideSec": 105
+    },
+    {
+      "from": "kiv-kiz",
+      "to": "kiv-nar",
+      "distancePx": 50.45,
+      "rideSec": 127
+    },
+    {
+      "from": "kiv-nar",
+      "to": "kiv-bal",
+      "distancePx": 92.2,
+      "rideSec": 204
+    },
+    {
+      "from": "kiv-bal",
+      "to": "kiv-tin",
+      "distancePx": 149.47,
+      "rideSec": 319
+    },
+    {
+      "from": "kiv-tin",
+      "to": "kiv-psh",
+      "distancePx": 86.82,
+      "rideSec": 194
+    },
+    {
+      "from": "kiv-psh",
+      "to": "kiv-vld",
+      "distancePx": 138.41,
+      "rideSec": 297
+    },
+    {
+      "from": "kiv-vld",
+      "to": "kiv-plv",
+      "distancePx": 73,
+      "rideSec": 169
+    },
+    {
+      "from": "kiv-plv",
+      "to": "kiv-chr",
+      "distancePx": 54,
+      "rideSec": 135
+    },
+    {
+      "from": "kiv-chr",
+      "to": "kiv-pll",
+      "distancePx": 59,
+      "rideSec": 143
+    },
+    {
+      "from": "kiv-pll",
+      "to": "kiv-vyb",
+      "distancePx": 46,
+      "rideSec": 118
+    },
+    {
+      "from": "kiv-vyb",
+      "to": "kiv-les",
+      "distancePx": 48,
+      "rideSec": 122
+    },
+    {
+      "from": "kiv-les",
+      "to": "kiv-plm",
+      "distancePx": 84,
+      "rideSec": 188
+    },
+    {
+      "from": "kiv-plm",
+      "to": "kiv-pol",
+      "distancePx": 39,
+      "rideSec": 107
+    },
+    {
+      "from": "kiv-pol",
+      "to": "kiv-akd",
+      "distancePx": 37,
+      "rideSec": 102
+    },
+    {
+      "from": "kiv-akd",
+      "to": "kiv-grp",
+      "distancePx": 47,
+      "rideSec": 120
+    },
+    {
+      "from": "kiv-grp",
+      "to": "kiv-dev",
+      "distancePx": 49,
+      "rideSec": 124
+    },
+    {
+      "from": "mop-par",
+      "to": "mop-prp",
+      "distancePx": 39,
+      "rideSec": 107
+    },
+    {
+      "from": "mop-prp",
+      "to": "mop-ozr",
+      "distancePx": 41,
+      "rideSec": 111
+    },
+    {
+      "from": "mop-ozr",
+      "to": "mop-udl",
+      "distancePx": 45,
+      "rideSec": 116
+    },
+    {
+      "from": "mop-udl",
+      "to": "mop-pnr",
+      "distancePx": 41,
+      "rideSec": 111
+    },
+    {
+      "from": "mop-pnr",
+      "to": "mop-chr",
+      "distancePx": 42,
+      "rideSec": 113
+    },
+    {
+      "from": "mop-chr",
+      "to": "mop-pet",
+      "distancePx": 101,
+      "rideSec": 222
+    },
+    {
+      "from": "mop-pet",
+      "to": "mop-gor",
+      "distancePx": 69,
+      "rideSec": 161
+    },
+    {
+      "from": "mop-gor",
+      "to": "mop-npr",
+      "distancePx": 86,
+      "rideSec": 192
+    },
+    {
+      "from": "mop-npr",
+      "to": "mop-spl",
+      "distancePx": 74.03,
+      "rideSec": 171
+    },
+    {
+      "from": "mop-spl",
+      "to": "mop-tin",
+      "distancePx": 124.02,
+      "rideSec": 268
+    },
+    {
+      "from": "mop-tin",
+      "to": "mop-frn",
+      "distancePx": 66,
+      "rideSec": 155
+    },
+    {
+      "from": "mop-frn",
+      "to": "mop-mov",
+      "distancePx": 41,
+      "rideSec": 111
+    },
+    {
+      "from": "mop-mov",
+      "to": "mop-els",
+      "distancePx": 38,
+      "rideSec": 104
+    },
+    {
+      "from": "mop-els",
+      "to": "mop-pap",
+      "distancePx": 45,
+      "rideSec": 116
+    },
+    {
+      "from": "mop-pap",
+      "to": "mop-mos",
+      "distancePx": 42,
+      "rideSec": 113
+    },
+    {
+      "from": "mop-mos",
+      "to": "mop-zvz",
+      "distancePx": 29,
+      "rideSec": 93
+    },
+    {
+      "from": "mop-zvz",
+      "to": "mop-kup",
+      "distancePx": 30,
+      "rideSec": 95
+    },
+    {
+      "from": "nev-beg",
+      "to": "nev-nvk",
+      "distancePx": 72,
+      "rideSec": 167
+    },
+    {
+      "from": "nev-nvk",
+      "to": "nev-prm",
+      "distancePx": 104,
+      "rideSec": 228
+    },
+    {
+      "from": "nev-prm",
+      "to": "nev-vas",
+      "distancePx": 201.56,
+      "rideSec": 423
+    },
+    {
+      "from": "nev-vas",
+      "to": "nev-gdv",
+      "distancePx": 135,
+      "rideSec": 290
+    },
+    {
+      "from": "nev-gdv",
+      "to": "nev-mkv",
+      "distancePx": 184,
+      "rideSec": 388
+    },
+    {
+      "from": "nev-mkv",
+      "to": "nev-pan",
+      "distancePx": 172.24,
+      "rideSec": 364
+    },
+    {
+      "from": "nev-pan",
+      "to": "nev-elz",
+      "distancePx": 277,
+      "rideSec": 574
+    },
+    {
+      "from": "nev-elz",
+      "to": "nev-lom",
+      "distancePx": 57,
+      "rideSec": 139
+    },
+    {
+      "from": "nev-lom",
+      "to": "nev-prl",
+      "distancePx": 55,
+      "rideSec": 135
+    },
+    {
+      "from": "nev-prl",
+      "to": "nev-obh",
+      "distancePx": 55,
+      "rideSec": 135
+    },
+    {
+      "from": "nev-obh",
+      "to": "nev-ryb",
+      "distancePx": 58,
+      "rideSec": 141
+    },
+    {
+      "from": "prb-gor",
+      "to": "prb-sps",
+      "distancePx": 161.3,
+      "rideSec": 343
+    },
+    {
+      "from": "prb-sps",
+      "to": "prb-dst",
+      "distancePx": 182,
+      "rideSec": 384
+    },
+    {
+      "from": "prb-dst",
+      "to": "prb-lpr",
+      "distancePx": 79,
+      "rideSec": 178
+    },
+    {
+      "from": "prb-lpr",
+      "to": "prb-pan",
+      "distancePx": 77,
+      "rideSec": 174
+    },
+    {
+      "from": "prb-pan",
+      "to": "prb-nch",
+      "distancePx": 127.53,
+      "rideSec": 275
+    },
+    {
+      "from": "prb-nch",
+      "to": "prb-lad",
+      "distancePx": 62,
+      "rideSec": 149
+    },
+    {
+      "from": "prb-lad",
+      "to": "prb-prb",
+      "distancePx": 88,
+      "rideSec": 196
+    },
+    {
+      "from": "prb-prb",
+      "to": "prb-uld",
+      "distancePx": 68,
+      "rideSec": 159
+    },
+    {
+      "from": "frp-kpr",
+      "to": "frp-std",
+      "distancePx": 63,
+      "rideSec": 151
+    },
+    {
+      "from": "frp-std",
+      "to": "frp-kos",
+      "distancePx": 118,
+      "rideSec": 256
+    },
+    {
+      "from": "frp-kos",
+      "to": "frp-chk",
+      "distancePx": 67.98,
+      "rideSec": 159
+    },
+    {
+      "from": "frp-chk",
+      "to": "frp-spr",
+      "distancePx": 53.15,
+      "rideSec": 133
+    },
+    {
+      "from": "frp-spr",
+      "to": "frp-adm",
+      "distancePx": 129.07,
+      "rideSec": 278
+    },
+    {
+      "from": "frp-adm",
+      "to": "frp-sad",
+      "distancePx": 67.48,
+      "rideSec": 158
+    },
+    {
+      "from": "frp-sad",
+      "to": "frp-zvn",
+      "distancePx": 116.28,
+      "rideSec": 253
+    },
+    {
+      "from": "frp-zvn",
+      "to": "frp-obk",
+      "distancePx": 90.69,
+      "rideSec": 201
+    },
+    {
+      "from": "frp-obk",
+      "to": "frp-vlk",
+      "distancePx": 58.9,
+      "rideSec": 143
+    },
+    {
+      "from": "frp-vlk",
+      "to": "frp-buh",
+      "distancePx": 79.12,
+      "rideSec": 178
+    },
+    {
+      "from": "frp-buh",
+      "to": "frp-mez",
+      "distancePx": 56,
+      "rideSec": 137
+    },
+    {
+      "from": "frp-mez",
+      "to": "frp-prs",
+      "distancePx": 55,
+      "rideSec": 135
+    },
+    {
+      "from": "frp-prs",
+      "to": "frp-dun",
+      "distancePx": 55,
+      "rideSec": 135
+    },
+    {
+      "from": "frp-dun",
+      "to": "frp-shu",
+      "distancePx": 58,
+      "rideSec": 141
+    },
+    {
+      "from": "kra-yuz",
+      "to": "kra-put",
+      "distancePx": 76.56,
+      "rideSec": 173
+    }
+  ],
+  "transfers": [
+    {
+      "s1": "kiv-kiz",
+      "s2": "kra-put"
+    },
+    {
+      "s1": "kiv-tin",
+      "s2": "mop-tin"
+    },
+    {
+      "s1": "kiv-psh",
+      "s2": "frp-zvn"
+    },
+    {
+      "s1": "kiv-vld",
+      "s2": "prb-dst"
+    },
+    {
+      "s1": "kiv-plv",
+      "s2": "nev-mkv"
+    },
+    {
+      "s1": "mop-npr",
+      "s2": "nev-gdv"
+    },
+    {
+      "s1": "mop-spl",
+      "s2": "prb-sps"
+    },
+    {
+      "s1": "mop-spl",
+      "s2": "frp-sad"
+    },
+    {
+      "s1": "mop-tin",
+      "s2": "kiv-tin"
+    },
+    {
+      "s1": "nev-gdv",
+      "s2": "mop-npr"
+    },
+    {
+      "s1": "nev-mkv",
+      "s2": "kiv-plv"
+    },
+    {
+      "s1": "nev-pan",
+      "s2": "prb-pan"
+    },
+    {
+      "s1": "prb-sps",
+      "s2": "mop-spl"
+    },
+    {
+      "s1": "prb-sps",
+      "s2": "frp-sad"
+    },
+    {
+      "s1": "prb-dst",
+      "s2": "kiv-vld"
+    },
+    {
+      "s1": "prb-pan",
+      "s2": "nev-pan"
+    },
+    {
+      "s1": "frp-sad",
+      "s2": "mop-spl"
+    },
+    {
+      "s1": "frp-sad",
+      "s2": "prb-sps"
+    },
+    {
+      "s1": "frp-zvn",
+      "s2": "kiv-psh"
+    },
+    {
+      "s1": "kra-put",
+      "s2": "kiv-kiz"
+    }
+  ],
+  "close": [],
+  "open": [],
+  "obstacles": {},
+  "excludedFromPicker": [
+    "mop-pap",
+    "mop-frn"
+  ]
+}

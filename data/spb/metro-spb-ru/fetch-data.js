@@ -30,7 +30,8 @@ const ca = await readFile(join(OUT_DIR, 'russian-trusted-root-ca.pem'), 'utf8');
 const html = await new Promise((resolve, reject) => {
   const req = https.get(
     URL,
-    { headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' }, ca, timeout: 45_000 },
+    // Accept обязателен для путей /map1/*; добавлен и здесь на случай расширения фильтра на весь сайт
+    { headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)', Accept: '*/*' }, ca, timeout: 45_000 },
     (res) => {
       if (res.statusCode !== 200) {
         res.resume();
