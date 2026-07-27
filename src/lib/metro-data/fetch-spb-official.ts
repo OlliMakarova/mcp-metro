@@ -62,7 +62,7 @@ const stripTags = (s: string): string =>
     .replace(/\s+/g, ' ')
     .trim();
 
-const TIME_RE = /^\d{1,2}:\d{2}$/;
+const TIME_ANY_RE = /\d{1,2}:\d{2}/;
 
 /** Station name from a vestibule title: «Вестибюль 2 станции X (выход …)» → «X»; plain names pass through */
 const stationFromTitle = (title: string): string => {
@@ -111,24 +111,31 @@ export const parseSpbOfficialHtml = (html: string, fetchedAt: string, sourceUrl:
       continue;
     }
     const rest = cells.slice(2);
+    // First time of a cell. Some cells carry several times with qualifiers: «5:34 нечет /
+    // 5:36 чет» (different opening on odd/even dates) or «6:30 c 01.08.2026 5:26» (a change
+    // scheduled from a date) — the first time is the one in effect now.
+    const cellTime = (s: string | undefined): string | null => s?.match(TIME_ANY_RE)?.[0] ?? null;
     // A closed station: the row carries a note instead of times
-    if (!TIME_RE.test(rest[0] ?? '')) {
+    if (!cellTime(rest[0])) {
       rows.push({ line, title, station, note: rest.filter(Boolean).join('; ') });
       continue;
     }
     const row: ISpbVestibuleRow = { line, title, station };
-    if (rest[0] !== undefined && TIME_RE.test(rest[0])) {
-      row.open = rest[0];
+    const open = cellTime(rest[0]);
+    const closeEntry = cellTime(rest[1]);
+    const closeExit = cellTime(rest[2]);
+    if (open) {
+      row.open = open;
     }
-    if (rest[1] !== undefined && TIME_RE.test(rest[1])) {
-      row.closeEntry = rest[1];
+    if (closeEntry) {
+      row.closeEntry = closeEntry;
     }
-    if (rest[2] !== undefined && TIME_RE.test(rest[2])) {
-      row.closeExit = rest[2];
+    if (closeExit) {
+      row.closeExit = closeExit;
     }
     // Full rows additionally carry 4 first-train times and 2 last-train times
-    const times = rest.slice(3);
-    if (directions && times.length >= 6 && times.slice(0, 6).every((t) => TIME_RE.test(t ?? ''))) {
+    const times = rest.slice(3).map(cellTime);
+    if (directions && times.length >= 6 && times.slice(0, 6).every(Boolean)) {
       row.first = [
         { direction: directions[0], odd: times[0]!, even: times[1]! },
         { direction: directions[1], odd: times[2]!, even: times[3]! },

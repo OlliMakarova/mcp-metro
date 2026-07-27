@@ -1,0 +1,474 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html lang='ru'>
+<head>
+	<title>Карта метро Санкт-Петербурга - интерактивная схема метрополитена с расчетом времени</title>
+
+	<meta HTTP-EQUIV="Pragma" CONTENT="no-cache">
+	<meta http-equiv="Content-Language" content="ru">
+	<meta name='robots' content='INDEX, FOLLOW'/>
+	<meta name="viewport" content="width=device-width">
+	<meta name='description' content="Интерактивная карта Петербургского метрополитена - привычный дизайн, простота и вся необходимая функциональность"/>
+	<meta name='keywords' content="карта метро Санкт-Петербурга, схема метро Санкт-Петербурга, карта метрополитена Санкт-Петербурга, схема метрополитена Санкт-Петербурга, расчет времени, интерактивная карта метро">
+	<link rel="icon" href="/favicon.ico" type="image/x-icon" />
+	<link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+	<link rel="apple-touch-icon" href="/images/appletouch_60.jpg">
+	<link rel="apple-touch-icon" sizes="76x76" href="/images/appletouch_76.jpg">
+	<link rel="apple-touch-icon" sizes="120x120" href="/images/appletouch_120.jpg">
+	<link rel="apple-touch-icon" sizes="152x152" href="/images/appletouch_152.jpg">
+	<meta property="og:image" content="/images/appletouch_152.jpg" />
+	<link rel="image_src" href="/images/appletouch_152.jpg" />
+	<meta property="og:title" content="Карта метро Санкт-Петербурга - интерактивная схема метрополитена с расчетом времени" />
+	<meta property="og:url" content="https://spb.metrobook.ru/" />
+
+
+	<link rel="canonical" href="https://spb.metrobook.ru/">
+
+	<meta name='wmail-verification' content='1336c828bd3f2182' />
+	<meta name="msvalidate.01" content="7140F79C74F70BE16DD049EFD35C2F53" />
+
+	<script src="/min/?g=js&cache=6" type="text/javascript"></script>
+	<link rel = "STYLESHEET" type = "text/css" href = "/min/?g=css&cache=7">
+
+<meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>
+
+<script>
+if(typeof(kcms)=='undefined') kcms={};
+kcms.host='spb.metrobook.ru';
+kcms.basekcmsdir='/';
+</script>
+<style>span.stName {font-size: 10px;
+				line-height: 14px;
+		}
+#bgimg {
+	background-image: url(/images/spb.jpg);
+	width: 880px;
+	height: 947px;
+}
+
+#bgimg_d {
+	background-image: url(/images/spb_d.jpg);
+	width: 880px;
+	height: 947px;
+}
+
+svg .mbR_1 { stroke: #cc3333;}
+.mbT_1 { color: #cc3333; cursor: pointer; }
+svg .mbSt_1 { fill: #cc3333; cursor: pointer;}
+svg .mbR_2 { stroke: #3399cc;}
+.mbT_2 { color: #3399cc; cursor: pointer; }
+svg .mbSt_2 { fill: #3399cc; cursor: pointer;}
+svg .mbR_3 { stroke: #009966;}
+.mbT_3 { color: #009966; cursor: pointer; }
+svg .mbSt_3 { fill: #009966; cursor: pointer;}
+svg .mbR_4 { stroke: #cc6633;}
+.mbT_4 { color: #cc6633; cursor: pointer; }
+svg .mbSt_4 { fill: #cc6633; cursor: pointer;}
+svg .mbR_5 { stroke: #663366;}
+.mbT_5 { color: #663366; cursor: pointer; }
+svg .mbSt_5 { fill: #663366; cursor: pointer;}
+svg .mbR_base.mbR_d { stroke: #c9c9c9; }
+.mbT_d { color: #c9c9c9 !important; cursor: pointer; }
+svg .mbSt_d { fill: #c9c9c9; cursor: pointer; }
+svg .mbStBg{ stroke: black; }
+svg .mbStBg_d { stroke: #c9c9c9; }
+</style><script>var mb = new Object; mb.arrS={}; mb.arrSD={}; mb.arrR={}; mb.arrTT=[]; mb.arrDL=[]; mb.mid=1; mb.stationType=0; mb.stationRadius=13; mb.stationBorderWidth=1; mb.stationBorderColor='#fff';mb.arrL=[];mb.arrL[1]={type: 0};mb.arrL[2]={type: 0};mb.arrL[3]={type: 0};mb.arrL[4]={type: 0};mb.arrL[5]={type: 0};mb.arrSD[1]={sid: 1, lid: 5, sN: 1};mb.arrS[1]={sdids: [1]};mb.arrSD[2]={sid: 2, lid: 5, sN: 1};mb.arrS[2]={sdids: [2]};mb.arrSD[3]={sid: 3, lid: 5, sN: 1};mb.arrS[3]={sdids: [3]};mb.arrSD[4]={sid: 4, lid: 5, sN: 1};mb.arrS[4]={sdids: [4]};mb.arrSD[5]={sid: 5, lid: 5, sN: 1};mb.arrS[5]={sdids: [5]};mb.arrSD[6]={sid: 6, lid: 5, sN: 1};mb.arrTT[6]=[];mb.arrTT[6][7]=60;mb.arrTT[6][8]=60;mb.arrSD[7]={sid: 6, lid: 2, sN: 1};mb.arrTT[7]=[];mb.arrTT[7][6]=60;mb.arrTT[7][8]=60;mb.arrSD[8]={sid: 6, lid: 4, sN: 1};mb.arrTT[8]=[];mb.arrTT[8][6]=60;mb.arrTT[8][7]=60;mb.arrS[6]={sdids: [6,7,8]};mb.arrSD[9]={sid: 7, lid: 1, sN: 1};mb.arrTT[9]=[];mb.arrTT[9][10]=60;mb.arrSD[10]={sid: 7, lid: 5, sN: 1};mb.arrTT[10]=[];mb.arrTT[10][9]=60;mb.arrS[7]={sdids: [9,10]};mb.arrSD[11]={sid: 8, lid: 5, sN: 1};mb.arrS[8]={sdids: [11]};mb.arrSD[12]={sid: 9, lid: 1, sN: 1};mb.arrS[9]={sdids: [12]};mb.arrSD[13]={sid: 10, lid: 1, sN: 1};mb.arrS[10]={sdids: [13]};mb.arrSD[14]={sid: 11, lid: 1, sN: 1};mb.arrS[11]={sdids: [14]};mb.arrSD[15]={sid: 12, lid: 1, sN: 1};mb.arrS[12]={sdids: [15]};mb.arrSD[16]={sid: 13, lid: 1, sN: 1};mb.arrS[13]={sdids: [16]};mb.arrSD[17]={sid: 14, lid: 1, sN: 1};mb.arrS[14]={sdids: [17]};mb.arrSD[18]={sid: 15, lid: 1, sN: 1};mb.arrS[15]={sdids: [18]};mb.arrSD[19]={sid: 16, lid: 1, sN: 1};mb.arrS[16]={sdids: [19]};mb.arrSD[20]={sid: 17, lid: 1, sN: 1};mb.arrS[17]={sdids: [20]};mb.arrSD[21]={sid: 18, lid: 1, sN: 1};mb.arrTT[21]=[];mb.arrTT[21][22]=60;mb.arrSD[22]={sid: 18, lid: 3, sN: 1};mb.arrTT[22]=[];mb.arrTT[22][21]=60;mb.arrS[18]={sdids: [21,22]};mb.arrSD[23]={sid: 19, lid: 1, sN: 1};mb.arrTT[23]=[];mb.arrTT[23][24]=60;mb.arrSD[24]={sid: 19, lid: 4, sN: 1};mb.arrTT[24]=[];mb.arrTT[24][23]=60;mb.arrS[19]={sdids: [23,24]};mb.arrSD[25]={sid: 20, lid: 1, sN: 1};mb.arrTT[25]=[];mb.arrTT[25][26]=60;mb.arrSD[26]={sid: 20, lid: 2, sN: 1};mb.arrTT[26]=[];mb.arrTT[26][25]=60;mb.arrS[20]={sdids: [25,26]};mb.arrSD[27]={sid: 21, lid: 1, sN: 1};mb.arrS[21]={sdids: [27]};mb.arrSD[28]={sid: 22, lid: 1, sN: 1};mb.arrS[22]={sdids: [28]};mb.arrSD[29]={sid: 23, lid: 1, sN: 1};mb.arrS[23]={sdids: [29]};mb.arrSD[30]={sid: 24, lid: 1, sN: 1};mb.arrS[24]={sdids: [30]};mb.arrSD[31]={sid: 25, lid: 1, sN: 1};mb.arrS[25]={sdids: [31]};mb.arrSD[32]={sid: 26, lid: 1, sN: 1};mb.arrS[26]={sdids: [32]};mb.arrSD[33]={sid: 27, lid: 2, sN: 1};mb.arrS[27]={sdids: [33]};mb.arrSD[34]={sid: 28, lid: 2, sN: 1};mb.arrS[28]={sdids: [34]};mb.arrSD[35]={sid: 29, lid: 2, sN: 1};mb.arrS[29]={sdids: [35]};mb.arrSD[36]={sid: 30, lid: 2, sN: 1};mb.arrS[30]={sdids: [36]};mb.arrSD[37]={sid: 31, lid: 2, sN: 1};mb.arrS[31]={sdids: [37]};mb.arrSD[38]={sid: 32, lid: 2, sN: 1};mb.arrS[32]={sdids: [38]};mb.arrSD[39]={sid: 33, lid: 2, sN: 1};mb.arrS[33]={sdids: [39]};mb.arrSD[40]={sid: 34, lid: 2, sN: 1};mb.arrS[34]={sdids: [40]};mb.arrSD[41]={sid: 35, lid: 2, sN: 1};mb.arrTT[41]=[];mb.arrTT[41][42]=60;mb.arrSD[42]={sid: 35, lid: 3, sN: 1};mb.arrTT[42]=[];mb.arrTT[42][41]=60;mb.arrS[35]={sdids: [41,42]};mb.arrSD[43]={sid: 36, lid: 2, sN: 1};mb.arrS[36]={sdids: [43]};mb.arrSD[44]={sid: 37, lid: 2, sN: 1};mb.arrS[37]={sdids: [44]};mb.arrSD[45]={sid: 38, lid: 2, sN: 1};mb.arrS[38]={sdids: [45]};mb.arrSD[46]={sid: 39, lid: 2, sN: 1};mb.arrS[39]={sdids: [46]};mb.arrSD[47]={sid: 40, lid: 2, sN: 1};mb.arrS[40]={sdids: [47]};mb.arrSD[48]={sid: 41, lid: 2, sN: 1};mb.arrS[41]={sdids: [48]};mb.arrSD[49]={sid: 42, lid: 2, sN: 1};mb.arrS[42]={sdids: [49]};mb.arrSD[50]={sid: 43, lid: 3, sN: 1};mb.arrS[43]={sdids: [50]};mb.arrSD[51]={sid: 44, lid: 3, sN: 1};mb.arrS[44]={sdids: [51]};mb.arrSD[52]={sid: 45, lid: 3, sN: 1};mb.arrTT[52]=[];mb.arrTT[52][53]=60;mb.arrSD[53]={sid: 45, lid: 4, sN: 1};mb.arrTT[53]=[];mb.arrTT[53][52]=60;mb.arrS[45]={sdids: [52,53]};mb.arrSD[54]={sid: 46, lid: 3, sN: 1};mb.arrS[46]={sdids: [54]};mb.arrSD[55]={sid: 47, lid: 3, sN: 1};mb.arrS[47]={sdids: [55]};mb.arrSD[56]={sid: 48, lid: 3, sN: 1};mb.arrS[48]={sdids: [56]};mb.arrSD[57]={sid: 49, lid: 3, sN: 1};mb.arrS[49]={sdids: [57]};mb.arrSD[58]={sid: 50, lid: 3, sN: 1};mb.arrS[50]={sdids: [58]};mb.arrSD[59]={sid: 51, lid: 4, sN: 1};mb.arrS[51]={sdids: [59]};mb.arrSD[60]={sid: 52, lid: 4, sN: 1};mb.arrS[52]={sdids: [60]};mb.arrSD[61]={sid: 53, lid: 4, sN: 1};mb.arrS[53]={sdids: [61]};mb.arrSD[62]={sid: 54, lid: 4, sN: 1};mb.arrS[54]={sdids: [62]};mb.arrSD[63]={sid: 55, lid: 4, sN: 1};mb.arrS[55]={sdids: [63]};mb.arrSD[64]={sid: 56, lid: 5, sN: 1};mb.arrS[56]={sdids: [64]};mb.arrSD[65]={sid: 57, lid: 5, sN: 1};mb.arrS[57]={sdids: [65]};mb.arrSD[251]={sid: 207, lid: 5, sN: 1};mb.arrS[207]={sdids: [251]};mb.arrSD[252]={sid: 208, lid: 5, sN: 1};mb.arrS[208]={sdids: [252]};mb.arrSD[446]={sid: 374, lid: 3, sN: 1};mb.arrS[374]={sdids: [446]};mb.arrSD[447]={sid: 375, lid: 3, sN: 1};mb.arrS[375]={sdids: [447]};mb.arrSD[474]={sid: 390, lid: 5, sN: 1};mb.arrS[390]={sdids: [474]};mb.arrSD[475]={sid: 391, lid: 5, sN: 1};mb.arrS[391]={sdids: [475]};mb.arrSD[476]={sid: 392, lid: 5, sN: 1};mb.arrS[392]={sdids: [476]};mb.arrSD[567]={sid: 454, lid: 4, sN: 1};mb.arrS[454]={sdids: [567]};mb.arrR[1]={ttime: 180, sdid1: 1, sdid2: 2, lid: 5};mb.arrR[2]={ttime: 180, sdid1: 2, sdid2: 3, lid: 5};mb.arrR[3]={ttime: 240, sdid1: 3, sdid2: 4, lid: 5};mb.arrR[4]={ttime: 120, sdid1: 4, sdid2: 5, lid: 5};mb.arrR[59]={ttime: 180, sdid1: 5, sdid2: 65, lid: 5};mb.arrR[60]={ttime: 180, sdid1: 6, sdid2: 65, lid: 5};mb.arrR[39]={ttime: 180, sdid1: 7, sdid2: 26, lid: 2};mb.arrR[50]={ttime: 180, sdid1: 8, sdid2: 24, lid: 4};mb.arrR[984]={ttime: 360, sdid1: 8, sdid2: 567, lid: 4};mb.arrR[16]={ttime: 120, sdid1: 9, sdid2: 23, lid: 1};mb.arrR[5]={ttime: 240, sdid1: 10, sdid2: 6, lid: 5};mb.arrR[57]={ttime: 180, sdid1: 10, sdid2: 64, lid: 5};mb.arrR[235]={ttime: 180, sdid1: 11, sdid2: 251, lid: 5};mb.arrR[6]={ttime: 180, sdid1: 12, sdid2: 13, lid: 1};mb.arrR[7]={ttime: 360, sdid1: 13, sdid2: 14, lid: 1};mb.arrR[8]={ttime: 120, sdid1: 14, sdid2: 15, lid: 1};mb.arrR[9]={ttime: 180, sdid1: 15, sdid2: 16, lid: 1};mb.arrR[10]={ttime: 180, sdid1: 16, sdid2: 17, lid: 1};mb.arrR[11]={ttime: 180, sdid1: 17, sdid2: 18, lid: 1};mb.arrR[12]={ttime: 120, sdid1: 18, sdid2: 19, lid: 1};mb.arrR[13]={ttime: 180, sdid1: 19, sdid2: 20, lid: 1};mb.arrR[14]={ttime: 120, sdid1: 20, sdid2: 21, lid: 1};mb.arrR[15]={ttime: 120, sdid1: 21, sdid2: 23, lid: 1};mb.arrR[43]={ttime: 180, sdid1: 22, sdid2: 42, lid: 3};mb.arrR[44]={ttime: 180, sdid1: 22, sdid2: 52, lid: 3};mb.arrR[51]={ttime: 180, sdid1: 24, sdid2: 59, lid: 4};mb.arrR[17]={ttime: 120, sdid1: 25, sdid2: 9, lid: 1};mb.arrR[40]={ttime: 120, sdid1: 26, sdid2: 43, lid: 2};mb.arrR[18]={ttime: 120, sdid1: 27, sdid2: 25, lid: 1};mb.arrR[19]={ttime: 180, sdid1: 28, sdid2: 27, lid: 1};mb.arrR[20]={ttime: 240, sdid1: 29, sdid2: 28, lid: 1};mb.arrR[21]={ttime: 120, sdid1: 30, sdid2: 29, lid: 1};mb.arrR[22]={ttime: 180, sdid1: 30, sdid2: 31, lid: 1};mb.arrR[23]={ttime: 120, sdid1: 32, sdid2: 31, lid: 1};mb.arrR[24]={ttime: 180, sdid1: 33, sdid2: 34, lid: 2};mb.arrR[25]={ttime: 120, sdid1: 34, sdid2: 35, lid: 2};mb.arrR[26]={ttime: 180, sdid1: 35, sdid2: 36, lid: 2};mb.arrR[27]={ttime: 180, sdid1: 36, sdid2: 37, lid: 2};mb.arrR[28]={ttime: 180, sdid1: 37, sdid2: 38, lid: 2};mb.arrR[29]={ttime: 240, sdid1: 38, sdid2: 39, lid: 2};mb.arrR[30]={ttime: 120, sdid1: 39, sdid2: 40, lid: 2};mb.arrR[31]={ttime: 240, sdid1: 40, sdid2: 41, lid: 2};mb.arrR[38]={ttime: 120, sdid1: 41, sdid2: 7, lid: 2};mb.arrR[42]={ttime: 240, sdid1: 42, sdid2: 51, lid: 3};mb.arrR[32]={ttime: 120, sdid1: 43, sdid2: 44, lid: 2};mb.arrR[33]={ttime: 120, sdid1: 44, sdid2: 45, lid: 2};mb.arrR[34]={ttime: 120, sdid1: 45, sdid2: 46, lid: 2};mb.arrR[35]={ttime: 180, sdid1: 46, sdid2: 47, lid: 2};mb.arrR[36]={ttime: 240, sdid1: 47, sdid2: 48, lid: 2};mb.arrR[37]={ttime: 180, sdid1: 48, sdid2: 49, lid: 2};mb.arrR[41]={ttime: 240, sdid1: 50, sdid2: 51, lid: 3};mb.arrR[605]={ttime: 240, sdid1: 50, sdid2: 446, lid: 3};mb.arrR[45]={ttime: 300, sdid1: 52, sdid2: 54, lid: 3};mb.arrR[53]={ttime: 180, sdid1: 53, sdid2: 60, lid: 4};mb.arrR[46]={ttime: 180, sdid1: 54, sdid2: 55, lid: 3};mb.arrR[47]={ttime: 180, sdid1: 55, sdid2: 56, lid: 3};mb.arrR[48]={ttime: 180, sdid1: 56, sdid2: 57, lid: 3};mb.arrR[49]={ttime: 240, sdid1: 57, sdid2: 58, lid: 3};mb.arrR[52]={ttime: 120, sdid1: 59, sdid2: 53, lid: 4};mb.arrR[54]={ttime: 180, sdid1: 61, sdid2: 60, lid: 4};mb.arrR[55]={ttime: 180, sdid1: 62, sdid2: 61, lid: 4};mb.arrR[56]={ttime: 120, sdid1: 62, sdid2: 63, lid: 4};mb.arrR[58]={ttime: 180, sdid1: 64, sdid2: 11, lid: 5};mb.arrR[236]={ttime: 180, sdid1: 252, sdid2: 251, lid: 5};mb.arrR[647]={ttime: 120, sdid1: 252, sdid2: 474, lid: 5};mb.arrR[607]={ttime: 240, sdid1: 447, sdid2: 446, lid: 3};mb.arrR[648]={ttime: 180, sdid1: 475, sdid2: 474, lid: 5};mb.arrR[649]={ttime: 240, sdid1: 476, sdid2: 475, lid: 5};mb.arrO=[];</script>
+
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-48731726-1', 'metrobook.ru');
+  ga('send', 'pageview');
+
+</script>
+
+
+
+<!-- Yandex.RTB -->
+<script>window.yaContextCb=window.yaContextCb||[]</script>
+<script src="https://yandex.ru/ads/system/context.js" async></script>
+</head>
+
+
+<body>
+
+
+
+<!-- Yandex.Metrika counter --><script type="text/javascript">(function (d, w, c) { (w[c] = w[c] || []).push(function() { try { w.yaCounter23817676 = new Ya.Metrika({id:23817676, webvisor:true, clickmap:true, trackLinks:true, accurateTrackBounce:true, trackHash:true}); } catch(e) { } }); var n = d.getElementsByTagName("script")[0], s = d.createElement("script"), f = function () { n.parentNode.insertBefore(s, n); }; s.type = "text/javascript"; s.async = true; s.src = (d.location.protocol == "https:" ? "https:" : "http:") + "//mc.yandex.ru/metrika/watch.js"; if (w.opera == "[object Opera]") { d.addEventListener("DOMContentLoaded", f, false); } else { f(); } })(document, window, "yandex_metrika_callbacks");</script><noscript><div><img src="//mc.yandex.ru/watch/23817676" style="position:absolute; left:-9999px;" alt="" /></div></noscript><!-- /Yandex.Metrika counter -->
+
+
+<div id="fb-root"></div>
+
+<div id='wrapper'>
+
+	
+		<div class='advertTop'>
+<!-- Yandex.RTB R-A-1990270-1 -->
+<div id="yandex_rtb_R-A-1990270-1"></div>
+<script>window.yaContextCb.push(()=>{
+  Ya.Context.AdvManager.render({
+    renderTo: 'yandex_rtb_R-A-1990270-1',
+    blockId: 'R-A-1990270-1'
+  })
+})</script></div>
+	
+
+	<h1>Карта метро Санкт-Петербурга - интерактивная схема с расчетом времени</h1>
+
+
+	
+<div id='metromap' style='width: 100%; height: 947px; margin: 0 auto; overflow:hidden;'>
+	<div id='draggable' style='width:880px; height:947px;'>
+	<div id='bgimg'></div>
+	<div id='bgimg_d' class='hidden'></div>
+	<div id='canvas' style='position:relative; border: 0;'>
+
+	<svg xmlns='http://www.w3.org/2000/svg' version='1.1' width='880px' height='947px'><desc></desc><defs/>
+	
+	<path fill='none' stroke='#000000' d='M192,146C192,155.25,192,173.75,192,183' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_5' mb_r_id='1'/>
+<path fill='none' stroke='#000000' d='M192,183C191.75,195.5,191.25,220.5,191,233' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_5' mb_r_id='2'/>
+<path fill='none' stroke='#000000' d='M191,233C191.75,243.75,193.25,265.25,194,276' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_5' mb_r_id='3'/>
+<path fill='none' stroke='#000000' d='M194,276C195.75,285.75,199.25,305.25,201,315' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_5' mb_r_id='4'/>
+<path fill='none' stroke='#000000' d='M201,315C206.75,351.75,239.25,404.25,260,426' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_5' mb_r_id='59'/>
+<path fill='none' stroke='#000000' d='M324,484C297,462.5,272,444.5,260,426' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_5' mb_r_id='60'/>
+<path fill='none' stroke='#000000' d='M324,484C323.75,517.75,323.25,585.25,323,619' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_2' mb_r_id='39'/>
+<path fill='none' stroke='#000000' d='M324,484C352,484,408,484,436,484' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_4' mb_r_id='50'/>
+<path fill='none' stroke='#000000' d='M324,484C114.25,484,51.75,489,53,420' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_4' mb_r_id='984'/>
+<path fill='none' stroke='#000000' d='M396,551C414,525.25,429,505.75,436,484' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_1' mb_r_id='16'/>
+<path fill='none' stroke='#000000' d='M396,551C383,527.25,343,498.75,324,484' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_5' mb_r_id='5'/>
+<path fill='none' stroke='#000000' d='M396,551C413.5,566.75,443.5,607.25,454,634' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_5' mb_r_id='57'/>
+<path fill='none' stroke='#000000' d='M477,698C478.25,708.25,477.75,729.75,478,739' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_5' mb_r_id='235'/>
+<path fill='none' stroke='#000000' d='M458,49C458,57.75,458,75.25,458,84' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_1' mb_r_id='6'/>
+<path fill='none' stroke='#000000' d='M458,84C458,93.25,458,111.75,458,121' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_1' mb_r_id='7'/>
+<path fill='none' stroke='#000000' d='M458,121C458,130,458,148,458,157' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_1' mb_r_id='8'/>
+<path fill='none' stroke='#000000' d='M458,157C457.75,166,457.25,184,457,193' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_1' mb_r_id='9'/>
+<path fill='none' stroke='#000000' d='M457,193C457.25,202.75,457.75,222.25,458,232' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_1' mb_r_id='10'/>
+<path fill='none' stroke='#000000' d='M458,232C458,241,458,259,458,268' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_1' mb_r_id='11'/>
+<path fill='none' stroke='#000000' d='M458,268C458,277,458,295,458,304' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_1' mb_r_id='12'/>
+<path fill='none' stroke='#000000' d='M458,304C458,314.75,458,336.25,458,347' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_1' mb_r_id='13'/>
+<path fill='none' stroke='#000000' d='M458,347C457.75,360.5,457.25,387.5,457,401' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_1' mb_r_id='14'/>
+<path fill='none' stroke='#000000' d='M457,401C456.75,429.75,448.25,459.25,436,484' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_1' mb_r_id='15'/>
+<path fill='none' stroke='#000000' d='M457,401C423.75,401,357.25,401,324,401' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_3' mb_r_id='43'/>
+<path fill='none' stroke='#000000' d='M457,401C548.5,399,606.5,395,607,485' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_3' mb_r_id='44'/>
+<path fill='none' stroke='#000000' d='M436,484C461.75,484,513.25,484,539,484' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_4' mb_r_id='51'/>
+<path fill='none' stroke='#000000' d='M323,619C344.25,602,376.75,577,396,551' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_1' mb_r_id='17'/>
+<path fill='none' stroke='#000000' d='M323,619C323.25,631.25,323.75,655.75,324,668' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_2' mb_r_id='40'/>
+<path fill='none' stroke='#000000' d='M239,688C260,667.75,281,648.25,323,619' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_1' mb_r_id='18'/>
+<path fill='none' stroke='#000000' d='M208,724C212.75,715,231.25,696,239,688' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_1' mb_r_id='19'/>
+<path fill='none' stroke='#000000' d='M184,759C193,743.25,202,732.75,208,724' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_1' mb_r_id='20'/>
+<path fill='none' stroke='#000000' d='M170,793C173.5,784.5,180.5,767.5,184,759' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_1' mb_r_id='21'/>
+<path fill='none' stroke='#000000' d='M170,793C168,801.75,164,819.25,162,828' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_1' mb_r_id='22'/>
+<path fill='none' stroke='#000000' d='M159,866C159.75,856.5,161.25,837.5,162,828' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_1' mb_r_id='23'/>
+<path fill='none' stroke='#000000' d='M324,27C324,37,324,57,324,67' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_2' mb_r_id='24'/>
+<path fill='none' stroke='#000000' d='M324,67C324,75.75,324,93.25,324,102' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_2' mb_r_id='25'/>
+<path fill='none' stroke='#000000' d='M324,102C324,110.5,324,127.5,324,136' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_2' mb_r_id='26'/>
+<path fill='none' stroke='#000000' d='M324,136C324,144,324,160,324,168' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_2' mb_r_id='27'/>
+<path fill='none' stroke='#000000' d='M324,168C324,175.75,324,191.25,324,199' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_2' mb_r_id='28'/>
+<path fill='none' stroke='#000000' d='M324,199C324,212.5,324,239.5,324,253' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_2' mb_r_id='29'/>
+<path fill='none' stroke='#000000' d='M324,253C324,265,324,289,324,301' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_2' mb_r_id='30'/>
+<path fill='none' stroke='#000000' d='M324,301C324,326,324,376,324,401' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_2' mb_r_id='31'/>
+<path fill='none' stroke='#000000' d='M324,401C324,421.75,324,463.25,324,484' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_2' mb_r_id='38'/>
+<path fill='none' stroke='#000000' d='M324,401C215.25,395,144.75,413,97,381' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_3' mb_r_id='42'/>
+<path fill='none' stroke='#000000' d='M324,668C324,678.75,324,700.25,324,711' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_2' mb_r_id='32'/>
+<path fill='none' stroke='#000000' d='M324,711C324,719.75,324,737.25,324,746' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_2' mb_r_id='33'/>
+<path fill='none' stroke='#000000' d='M324,746C324,754.5,324,771.5,324,780' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_2' mb_r_id='34'/>
+<path fill='none' stroke='#000000' d='M324,780C324,789.25,324,807.75,324,817' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_2' mb_r_id='35'/>
+<path fill='none' stroke='#000000' d='M324,817C324,826,324,844,324,853' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_2' mb_r_id='36'/>
+<path fill='none' stroke='#000000' d='M324,853C324,861.5,324,878.5,324,887' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_2' mb_r_id='37'/>
+<path fill='none' stroke='#000000' d='M67,333C70.5,359,81.5,369,97,381' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_3' mb_r_id='41'/>
+<path fill='none' stroke='#000000' d='M67,333C66.5,306.5,65.5,253.5,65,227' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_3' mb_r_id='605'/>
+<path fill='none' stroke='#000000' d='M607,485C607,548.5,607,675.5,607,739' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_3' mb_r_id='45'/>
+<path fill='none' stroke='#000000' d='M607,485C665,480.25,678,501.75,691,518' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_4' mb_r_id='53'/>
+<path fill='none' stroke='#000000' d='M607,739C607,748.25,607,766.75,607,776' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_3' mb_r_id='46'/>
+<path fill='none' stroke='#000000' d='M607,776C607,785,607,803,607,812' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_3' mb_r_id='47'/>
+<path fill='none' stroke='#000000' d='M607,812C607,821.5,607,840.5,607,850' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_3' mb_r_id='48'/>
+<path fill='none' stroke='#000000' d='M607,850C607,859.5,607,878.5,607,888' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_3' mb_r_id='49'/>
+<path fill='none' stroke='#000000' d='M539,484C556,484.25,590,484.75,607,485' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_4' mb_r_id='52'/>
+<path fill='none' stroke='#000000' d='M700,563C702.75,551.75,699.25,532.25,691,518' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_4' mb_r_id='54'/>
+<path fill='none' stroke='#000000' d='M700,637C700,618.5,700,581.5,700,563' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_4' mb_r_id='55'/>
+<path fill='none' stroke='#000000' d='M700,637C700.25,650,700.75,676,701,689' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_4' mb_r_id='56'/>
+<path fill='none' stroke='#000000' d='M454,634C460.75,649,474.25,675,477,698' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_5' mb_r_id='58'/>
+<path fill='none' stroke='#000000' d='M478,779C478,769,478,749,478,739' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_5' mb_r_id='236'/>
+<path fill='none' stroke='#000000' d='M478,779C478,788.5,478,807.5,478,817' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_5' mb_r_id='647'/>
+<path fill='none' stroke='#000000' d='M65,182C65,193.25,65,215.75,65,227' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_3' mb_r_id='607'/>
+<path fill='none' stroke='#000000' d='M478,852C478,843.25,478,825.75,478,817' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_5' mb_r_id='648'/>
+<path fill='none' stroke='#000000' d='M478,887C478,878.25,478,860.75,478,852' style='stroke-width: 13;' stroke-width='13' class='mbR_base mbR_5' mb_r_id='649'/>
+
+	
+	<image x='409' y='38' width='32' height='23' preserveAspectRatio='none' xlink:href='/images/spb_l1.png' mb_o_id='1'/>
+<image x='409' y='38' width='32' height='23' preserveAspectRatio='none' xlink:href='/images/spb_l1_d.png' mb_o_id='1' mb_o_d='1' style='display: none;'/>
+<image x='109' y='855' width='32' height='23' preserveAspectRatio='none' xlink:href='/images/spb_l1.png' mb_o_id='2'/>
+<image x='109' y='855' width='32' height='23' preserveAspectRatio='none' xlink:href='/images/spb_l1_d.png' mb_o_id='2' mb_o_d='1' style='display: none;'/>
+<image x='276' y='17' width='32' height='23' preserveAspectRatio='none' xlink:href='/images/spb_l2.png' mb_o_id='3'/>
+<image x='276' y='17' width='32' height='23' preserveAspectRatio='none' xlink:href='/images/spb_l2_d.png' mb_o_id='3' mb_o_d='1' style='display: none;'/>
+<image x='275' y='877' width='32' height='23' preserveAspectRatio='none' xlink:href='/images/spb_l2.png' mb_o_id='4'/>
+<image x='275' y='877' width='32' height='23' preserveAspectRatio='none' xlink:href='/images/spb_l2_d.png' mb_o_id='4' mb_o_d='1' style='display: none;'/>
+<image x='18' y='322' width='32' height='23' preserveAspectRatio='none' xlink:href='/images/spb_l3.png' mb_o_id='5'/>
+<image x='18' y='322' width='32' height='23' preserveAspectRatio='none' xlink:href='/images/spb_l3_d.png' mb_o_id='5' mb_o_d='1' style='display: none;'/>
+<image x='558' y='876' width='32' height='23' preserveAspectRatio='none' xlink:href='/images/spb_l3.png' mb_o_id='6'/>
+<image x='558' y='876' width='32' height='23' preserveAspectRatio='none' xlink:href='/images/spb_l3_d.png' mb_o_id='6' mb_o_d='1' style='display: none;'/>
+<image x='653' y='678' width='32' height='23' preserveAspectRatio='none' xlink:href='/images/spb_l4.png' mb_o_id='7'/>
+<image x='653' y='678' width='32' height='23' preserveAspectRatio='none' xlink:href='/images/spb_l4_d.png' mb_o_id='7' mb_o_d='1' style='display: none;'/>
+<image x='143' y='135' width='32' height='23' preserveAspectRatio='none' xlink:href='/images/spb_l5.png' mb_o_id='8'/>
+<image x='143' y='135' width='32' height='23' preserveAspectRatio='none' xlink:href='/images/spb_l5_d.png' mb_o_id='8' mb_o_d='1' style='display: none;'/>
+<image x='429' y='876' width='32' height='23' preserveAspectRatio='none' xlink:href='/images/spb_l5.png' mb_o_id='9'/>
+<image x='429' y='876' width='32' height='23' preserveAspectRatio='none' xlink:href='/images/spb_l5_d.png' mb_o_id='9' mb_o_d='1' style='display: none;'/>
+
+	<circle cx='192' cy='146' r='14' fill='none' stroke='#ffffff' stroke-width='1' class='mbSt_5' mb_sd_id='1'/>
+<circle cx='192' cy='183' r='14' fill='none' stroke='#ffffff' stroke-width='1' class='mbSt_5' mb_sd_id='2'/>
+<circle cx='191' cy='233' r='14' fill='none' stroke='#ffffff' stroke-width='1' class='mbSt_5' mb_sd_id='3'/>
+<circle cx='194' cy='276' r='14' fill='none' stroke='#ffffff' stroke-width='1' class='mbSt_5' mb_sd_id='4'/>
+<circle cx='201' cy='315' r='14' fill='none' stroke='#ffffff' stroke-width='1' class='mbSt_5' mb_sd_id='5'/>
+<circle cx='324' cy='484' r='19' fill='#fff' stroke='#ffffff' stroke-width='1'  mb_sd_id='6'/>
+<path fill='none' stroke='#fff' d='M324,484L324,466A18,18,0,0,1,339.58845726812,493' style='stroke-width: 0;' stroke-width='0' class='mbSt_5' mb_sd_id='6'/><path fill='none' stroke='#fff' d='M324,484L339.58845726812,493A18,18,0,0,1,308.41154273188,493' style='stroke-width: 0;' stroke-width='0' class='mbSt_2' mb_sd_id='7'/><path fill='none' stroke='#fff' d='M324,484L308.41154273188,493A18,18,0,0,1,324,466' style='stroke-width: 0;' stroke-width='0' class='mbSt_4' mb_sd_id='8'/><path fill='none' stroke='#fff' d='M324,484L324,466' style='stroke-width: 1;' stroke-width='1' class='mbSt_5' mb_sd_id='6'/><path fill='none' stroke='#fff' d='M324,484L339.58845726812,493' style='stroke-width: 1;' stroke-width='1' class='mbSt_2' mb_sd_id='7'/><path fill='none' stroke='#fff' d='M324,484L308.41154273188,493' style='stroke-width: 1;' stroke-width='1' class='mbSt_4' mb_sd_id='8'/><circle cx='396' cy='551' r='19' fill='#fff' stroke='#ffffff' stroke-width='1'  mb_sd_id='9'/>
+<path fill='none' stroke='#fff' d='M396,551L396,533A18,18,0,0,1,396,569' style='stroke-width: 0;' stroke-width='0' class='mbSt_1' mb_sd_id='9'/><path fill='none' stroke='#fff' d='M396,551L396,569A18,18,0,0,1,396,533' style='stroke-width: 0;' stroke-width='0' class='mbSt_5' mb_sd_id='10'/><path fill='none' stroke='#fff' d='M396,551L396,533' style='stroke-width: 1;' stroke-width='1' class='mbSt_1' mb_sd_id='9'/><path fill='none' stroke='#fff' d='M396,551L396,569' style='stroke-width: 1;' stroke-width='1' class='mbSt_5' mb_sd_id='10'/><circle cx='477' cy='698' r='14' fill='none' stroke='#ffffff' stroke-width='1' class='mbSt_5' mb_sd_id='11'/>
+<circle cx='458' cy='49' r='14' fill='none' stroke='#ffffff' stroke-width='1' class='mbSt_1' mb_sd_id='12'/>
+<circle cx='458' cy='84' r='14' fill='none' stroke='#ffffff' stroke-width='1' class='mbSt_1' mb_sd_id='13'/>
+<circle cx='458' cy='121' r='14' fill='none' stroke='#ffffff' stroke-width='1' class='mbSt_1' mb_sd_id='14'/>
+<circle cx='458' cy='157' r='14' fill='none' stroke='#ffffff' stroke-width='1' class='mbSt_1' mb_sd_id='15'/>
+<circle cx='457' cy='193' r='14' fill='none' stroke='#ffffff' stroke-width='1' class='mbSt_1' mb_sd_id='16'/>
+<circle cx='458' cy='232' r='14' fill='none' stroke='#ffffff' stroke-width='1' class='mbSt_1' mb_sd_id='17'/>
+<circle cx='458' cy='268' r='14' fill='none' stroke='#ffffff' stroke-width='1' class='mbSt_1' mb_sd_id='18'/>
+<circle cx='458' cy='304' r='14' fill='none' stroke='#ffffff' stroke-width='1' class='mbSt_1' mb_sd_id='19'/>
+<circle cx='458' cy='347' r='14' fill='none' stroke='#ffffff' stroke-width='1' class='mbSt_1' mb_sd_id='20'/>
+<circle cx='457' cy='401' r='19' fill='#fff' stroke='#ffffff' stroke-width='1'  mb_sd_id='21'/>
+<path fill='none' stroke='#fff' d='M457,401L457,383A18,18,0,0,1,457,419' style='stroke-width: 0;' stroke-width='0' class='mbSt_1' mb_sd_id='21'/><path fill='none' stroke='#fff' d='M457,401L457,419A18,18,0,0,1,457,383' style='stroke-width: 0;' stroke-width='0' class='mbSt_3' mb_sd_id='22'/><path fill='none' stroke='#fff' d='M457,401L457,383' style='stroke-width: 1;' stroke-width='1' class='mbSt_1' mb_sd_id='21'/><path fill='none' stroke='#fff' d='M457,401L457,419' style='stroke-width: 1;' stroke-width='1' class='mbSt_3' mb_sd_id='22'/><circle cx='436' cy='484' r='19' fill='#fff' stroke='#ffffff' stroke-width='1'  mb_sd_id='23'/>
+<path fill='none' stroke='#fff' d='M436,484L436,466A18,18,0,0,1,436,502' style='stroke-width: 0;' stroke-width='0' class='mbSt_1' mb_sd_id='23'/><path fill='none' stroke='#fff' d='M436,484L436,502A18,18,0,0,1,436,466' style='stroke-width: 0;' stroke-width='0' class='mbSt_4' mb_sd_id='24'/><path fill='none' stroke='#fff' d='M436,484L436,466' style='stroke-width: 1;' stroke-width='1' class='mbSt_1' mb_sd_id='23'/><path fill='none' stroke='#fff' d='M436,484L436,502' style='stroke-width: 1;' stroke-width='1' class='mbSt_4' mb_sd_id='24'/><circle cx='323' cy='619' r='19' fill='#fff' stroke='#ffffff' stroke-width='1'  mb_sd_id='25'/>
+<path fill='none' stroke='#fff' d='M323,619L323,601A18,18,0,0,1,323,637' style='stroke-width: 0;' stroke-width='0' class='mbSt_1' mb_sd_id='25'/><path fill='none' stroke='#fff' d='M323,619L323,637A18,18,0,0,1,323,601' style='stroke-width: 0;' stroke-width='0' class='mbSt_2' mb_sd_id='26'/><path fill='none' stroke='#fff' d='M323,619L323,601' style='stroke-width: 1;' stroke-width='1' class='mbSt_1' mb_sd_id='25'/><path fill='none' stroke='#fff' d='M323,619L323,637' style='stroke-width: 1;' stroke-width='1' class='mbSt_2' mb_sd_id='26'/><circle cx='239' cy='688' r='14' fill='none' stroke='#ffffff' stroke-width='1' class='mbSt_1' mb_sd_id='27'/>
+<circle cx='208' cy='724' r='14' fill='none' stroke='#ffffff' stroke-width='1' class='mbSt_1' mb_sd_id='28'/>
+<circle cx='184' cy='759' r='14' fill='none' stroke='#ffffff' stroke-width='1' class='mbSt_1' mb_sd_id='29'/>
+<circle cx='170' cy='793' r='14' fill='none' stroke='#ffffff' stroke-width='1' class='mbSt_1' mb_sd_id='30'/>
+<circle cx='162' cy='828' r='14' fill='none' stroke='#ffffff' stroke-width='1' class='mbSt_1' mb_sd_id='31'/>
+<circle cx='159' cy='866' r='14' fill='none' stroke='#ffffff' stroke-width='1' class='mbSt_1' mb_sd_id='32'/>
+<circle cx='324' cy='27' r='14' fill='none' stroke='#ffffff' stroke-width='1' class='mbSt_2' mb_sd_id='33'/>
+<circle cx='324' cy='67' r='14' fill='none' stroke='#ffffff' stroke-width='1' class='mbSt_2' mb_sd_id='34'/>
+<circle cx='324' cy='102' r='14' fill='none' stroke='#ffffff' stroke-width='1' class='mbSt_2' mb_sd_id='35'/>
+<circle cx='324' cy='136' r='14' fill='none' stroke='#ffffff' stroke-width='1' class='mbSt_2' mb_sd_id='36'/>
+<circle cx='324' cy='168' r='14' fill='none' stroke='#ffffff' stroke-width='1' class='mbSt_2' mb_sd_id='37'/>
+<circle cx='324' cy='199' r='14' fill='none' stroke='#ffffff' stroke-width='1' class='mbSt_2' mb_sd_id='38'/>
+<circle cx='324' cy='253' r='14' fill='none' stroke='#ffffff' stroke-width='1' class='mbSt_2' mb_sd_id='39'/>
+<circle cx='324' cy='301' r='14' fill='none' stroke='#ffffff' stroke-width='1' class='mbSt_2' mb_sd_id='40'/>
+<circle cx='324' cy='401' r='19' fill='#fff' stroke='#ffffff' stroke-width='1'  mb_sd_id='41'/>
+<path fill='none' stroke='#fff' d='M324,401L324,383A18,18,0,0,1,324,419' style='stroke-width: 0;' stroke-width='0' class='mbSt_2' mb_sd_id='41'/><path fill='none' stroke='#fff' d='M324,401L324,419A18,18,0,0,1,324,383' style='stroke-width: 0;' stroke-width='0' class='mbSt_3' mb_sd_id='42'/><path fill='none' stroke='#fff' d='M324,401L324,383' style='stroke-width: 1;' stroke-width='1' class='mbSt_2' mb_sd_id='41'/><path fill='none' stroke='#fff' d='M324,401L324,419' style='stroke-width: 1;' stroke-width='1' class='mbSt_3' mb_sd_id='42'/><circle cx='324' cy='668' r='14' fill='none' stroke='#ffffff' stroke-width='1' class='mbSt_2' mb_sd_id='43'/>
+<circle cx='324' cy='711' r='14' fill='none' stroke='#ffffff' stroke-width='1' class='mbSt_2' mb_sd_id='44'/>
+<circle cx='324' cy='746' r='14' fill='none' stroke='#ffffff' stroke-width='1' class='mbSt_2' mb_sd_id='45'/>
+<circle cx='324' cy='780' r='14' fill='none' stroke='#ffffff' stroke-width='1' class='mbSt_2' mb_sd_id='46'/>
+<circle cx='324' cy='817' r='14' fill='none' stroke='#ffffff' stroke-width='1' class='mbSt_2' mb_sd_id='47'/>
+<circle cx='324' cy='853' r='14' fill='none' stroke='#ffffff' stroke-width='1' class='mbSt_2' mb_sd_id='48'/>
+<circle cx='324' cy='887' r='14' fill='none' stroke='#ffffff' stroke-width='1' class='mbSt_2' mb_sd_id='49'/>
+<circle cx='67' cy='333' r='14' fill='none' stroke='#ffffff' stroke-width='1' class='mbSt_3' mb_sd_id='50'/>
+<circle cx='97' cy='381' r='14' fill='none' stroke='#ffffff' stroke-width='1' class='mbSt_3' mb_sd_id='51'/>
+<circle cx='607' cy='485' r='19' fill='#fff' stroke='#ffffff' stroke-width='1'  mb_sd_id='52'/>
+<path fill='none' stroke='#fff' d='M607,485L607,467A18,18,0,0,1,607,503' style='stroke-width: 0;' stroke-width='0' class='mbSt_3' mb_sd_id='52'/><path fill='none' stroke='#fff' d='M607,485L607,503A18,18,0,0,1,607,467' style='stroke-width: 0;' stroke-width='0' class='mbSt_4' mb_sd_id='53'/><path fill='none' stroke='#fff' d='M607,485L607,467' style='stroke-width: 1;' stroke-width='1' class='mbSt_3' mb_sd_id='52'/><path fill='none' stroke='#fff' d='M607,485L607,503' style='stroke-width: 1;' stroke-width='1' class='mbSt_4' mb_sd_id='53'/><circle cx='607' cy='739' r='14' fill='none' stroke='#ffffff' stroke-width='1' class='mbSt_3' mb_sd_id='54'/>
+<circle cx='607' cy='776' r='14' fill='none' stroke='#ffffff' stroke-width='1' class='mbSt_3' mb_sd_id='55'/>
+<circle cx='607' cy='812' r='14' fill='none' stroke='#ffffff' stroke-width='1' class='mbSt_3' mb_sd_id='56'/>
+<circle cx='607' cy='850' r='14' fill='none' stroke='#ffffff' stroke-width='1' class='mbSt_3' mb_sd_id='57'/>
+<circle cx='607' cy='888' r='14' fill='none' stroke='#ffffff' stroke-width='1' class='mbSt_3' mb_sd_id='58'/>
+<circle cx='539' cy='484' r='14' fill='none' stroke='#ffffff' stroke-width='1' class='mbSt_4' mb_sd_id='59'/>
+<circle cx='691' cy='518' r='14' fill='none' stroke='#ffffff' stroke-width='1' class='mbSt_4' mb_sd_id='60'/>
+<circle cx='700' cy='563' r='14' fill='none' stroke='#ffffff' stroke-width='1' class='mbSt_4' mb_sd_id='61'/>
+<circle cx='700' cy='637' r='14' fill='none' stroke='#ffffff' stroke-width='1' class='mbSt_4' mb_sd_id='62'/>
+<circle cx='701' cy='689' r='14' fill='none' stroke='#ffffff' stroke-width='1' class='mbSt_4' mb_sd_id='63'/>
+<circle cx='454' cy='634' r='14' fill='none' stroke='#ffffff' stroke-width='1' class='mbSt_5' mb_sd_id='64'/>
+<circle cx='260' cy='426' r='14' fill='none' stroke='#ffffff' stroke-width='1' class='mbSt_5' mb_sd_id='65'/>
+<circle cx='478' cy='739' r='14' fill='none' stroke='#ffffff' stroke-width='1' class='mbSt_5' mb_sd_id='251'/>
+<circle cx='478' cy='779' r='14' fill='none' stroke='#ffffff' stroke-width='1' class='mbSt_5' mb_sd_id='252'/>
+<circle cx='65' cy='227' r='14' fill='none' stroke='#ffffff' stroke-width='1' class='mbSt_3' mb_sd_id='446'/>
+<circle cx='65' cy='182' r='14' fill='none' stroke='#ffffff' stroke-width='1' class='mbSt_3' mb_sd_id='447'/>
+<circle cx='478' cy='817' r='14' fill='none' stroke='#ffffff' stroke-width='1' class='mbSt_5' mb_sd_id='474'/>
+<circle cx='478' cy='852' r='14' fill='none' stroke='#ffffff' stroke-width='1' class='mbSt_5' mb_sd_id='475'/>
+<circle cx='478' cy='887' r='14' fill='none' stroke='#ffffff' stroke-width='1' class='mbSt_5' mb_sd_id='476'/>
+<circle cx='53' cy='420' r='14' fill='none' stroke='#ffffff' stroke-width='1' class='mbSt_4' mb_sd_id='567'/>
+
+	</svg>
+	<div style='left: 207px; top: 133px; ' class='stName' mb_sd_id='1'> <span mb_sd_id='1' class='stName mbT_5'>Комендантский
+проспект</span>
+ </div><div style='left: 206px; top: 177px; ' class='stName' mb_sd_id='2'> <span mb_sd_id='2' class='stName mbT_5'>Старая деревня</span>
+ </div><div style='left: 206px; top: 222px; ' class='stName' mb_sd_id='3'> <span mb_sd_id='3' class='stName mbT_5'>Крестовский
+остров</span>
+ </div><div style='left: 210px; top: 271px; ' class='stName' mb_sd_id='4'> <span mb_sd_id='4' class='stName mbT_5'>Чкаловская</span>
+ </div><div style='left: 216px; top: 307px; ' class='stName' mb_sd_id='5'> <span mb_sd_id='5' class='stName mbT_5'>Спортивная</span>
+ </div><div style='left: 339px; top: 459px; ' class='stName' mb_sd_id='6'> <span mb_sd_id='6' class='stName mbT_5'>Садовая</span>
+ </div><div style='left: 211px; top: 496px; ' class='stName' mb_sd_id='7'> <span mb_sd_id='7' class='stName mbT_2'>Сенная площадь</span>
+ </div><div style='left: 232px; top: 461px; ' class='stName' mb_sd_id='8'> <span mb_sd_id='8' class='stName mbT_4'>Спасская</span>
+ </div><div style='left: 418px; top: 534px; ' class='stName' mb_sd_id='9'> <span mb_sd_id='9' class='stName mbT_1'>Пушкинская</span>
+ </div><div style='left: 418px; top: 551px; ' class='stName' mb_sd_id='10'> <span mb_sd_id='10' class='stName mbT_5'>Звенигородская</span>
+ </div><div style='left: 492px; top: 691px; ' class='stName' mb_sd_id='11'> <span mb_sd_id='11' class='stName mbT_5'>Волковская</span>
+ </div><div style='left: 474px; top: 40px; ' class='stName' mb_sd_id='12'> <span mb_sd_id='12' class='stName mbT_1'>Девяткино</span>
+ </div><div style='left: 474px; top: 76px; ' class='stName' mb_sd_id='13'> <span mb_sd_id='13' class='stName mbT_1'>Гражданский проспект</span>
+ </div><div style='left: 473px; top: 113px; ' class='stName' mb_sd_id='14'> <span mb_sd_id='14' class='stName mbT_1'>Академическая</span>
+ </div><div style='left: 473px; top: 150px; ' class='stName' mb_sd_id='15'> <span mb_sd_id='15' class='stName mbT_1'>Политехническая</span>
+ </div><div style='left: 473px; top: 186px; ' class='stName' mb_sd_id='16'> <span mb_sd_id='16' class='stName mbT_1'>Площадь мужества</span>
+ </div><div style='left: 474px; top: 225px; ' class='stName' mb_sd_id='17'> <span mb_sd_id='17' class='stName mbT_1'>Лесная</span>
+ </div><div style='left: 474px; top: 261px; ' class='stName' mb_sd_id='18'> <span mb_sd_id='18' class='stName mbT_1'>Выборгская</span>
+ </div><div style='left: 473px; top: 303px; ' class='stName' mb_sd_id='19'> <span mb_sd_id='19' class='stName mbT_1'>Площадь Ленина</span>
+ </div><div style='left: 474px; top: 341px; ' class='stName' mb_sd_id='20'> <span mb_sd_id='20' class='stName mbT_1'>Чернышевская</span>
+ </div><div style='left: 473px; top: 362px; ' class='stName' mb_sd_id='21'> <span mb_sd_id='21' class='stName mbT_1'>Площадь
+Восстания</span>
+ </div><div style='left: 471px; top: 415px; ' class='stName' mb_sd_id='22'> <span mb_sd_id='22' class='stName mbT_3'>Маяковская</span>
+ </div><div style='left: 447px; top: 500px; ' class='stName' mb_sd_id='23'> <span mb_sd_id='23' class='stName mbT_1'>Владимирская</span>
+ </div><div style='left: 453px; top: 462px; ' class='stName' mb_sd_id='24'> <span mb_sd_id='24' class='stName mbT_4'>Достоевская</span>
+ </div><div style='left: 136px; top: 588px; ' class='stName' mb_sd_id='25'> <span mb_sd_id='25' class='stName mbT_1'>Технологический Институт 1</span>
+ </div><div style='left: 136px; top: 602px; ' class='stName' mb_sd_id='26'> <span mb_sd_id='26' class='stName mbT_2'>Технологический институт 2</span>
+ </div><div style='left: 239px; top: 700px; ' class='stName' mb_sd_id='27'> <span mb_sd_id='27' class='stName mbT_1'>Балтийская</span>
+ </div><div style='left: 224px; top: 724px; ' class='stName' mb_sd_id='28'> <span mb_sd_id='28' class='stName mbT_1'>Нарвская</span>
+ </div><div style='left: 200px; top: 759px; ' class='stName' mb_sd_id='29'> <span mb_sd_id='29' class='stName mbT_1'>Кировский завод</span>
+ </div><div style='left: 185px; top: 790px; ' class='stName' mb_sd_id='30'> <span mb_sd_id='30' class='stName mbT_1'>Автово</span>
+ </div><div style='left: 177px; top: 823px; ' class='stName' mb_sd_id='31'> <span mb_sd_id='31' class='stName mbT_1'>Ленинский проспект</span>
+ </div><div style='left: 174px; top: 861px; ' class='stName' mb_sd_id='32'> <span mb_sd_id='32' class='stName mbT_1'>Проспект Ветеранов</span>
+ </div><div style='left: 339px; top: 21px; ' class='stName' mb_sd_id='33'> <span mb_sd_id='33' class='stName mbT_2'>Парнас</span>
+ </div><div style='left: 339px; top: 55px; ' class='stName' mb_sd_id='34'> <span mb_sd_id='34' class='stName mbT_2'>Проспект
+Просвещения</span>
+ </div><div style='left: 339px; top: 96px; ' class='stName' mb_sd_id='35'> <span mb_sd_id='35' class='stName mbT_2'>Озерки</span>
+ </div><div style='left: 339px; top: 129px; ' class='stName' mb_sd_id='36'> <span mb_sd_id='36' class='stName mbT_2'>Удельная</span>
+ </div><div style='left: 339px; top: 162px; ' class='stName' mb_sd_id='37'> <span mb_sd_id='37' class='stName mbT_2'>Пионерская</span>
+ </div><div style='left: 339px; top: 193px; ' class='stName' mb_sd_id='38'> <span mb_sd_id='38' class='stName mbT_2'>Черная Речка</span>
+ </div><div style='left: 339px; top: 247px; ' class='stName' mb_sd_id='39'> <span mb_sd_id='39' class='stName mbT_2'>Петроградская</span>
+ </div><div style='left: 339px; top: 295px; ' class='stName' mb_sd_id='40'> <span mb_sd_id='40' class='stName mbT_2'>Горьковская</span>
+ </div><div style='left: 338px; top: 362px; ' class='stName' mb_sd_id='41'> <span mb_sd_id='41' class='stName mbT_2'>Невский
+Проспект</span>
+ </div><div style='left: 337px; top: 415px; ' class='stName' mb_sd_id='42'> <span mb_sd_id='42' class='stName mbT_3'>Гостиный Двор</span>
+ </div><div style='left: 339px; top: 661px; ' class='stName' mb_sd_id='43'> <span mb_sd_id='43' class='stName mbT_2'>Фрунзенская</span>
+ </div><div style='left: 340px; top: 704px; ' class='stName' mb_sd_id='44'> <span mb_sd_id='44' class='stName mbT_2'>Московские Ворота</span>
+ </div><div style='left: 340px; top: 740px; ' class='stName' mb_sd_id='45'> <span mb_sd_id='45' class='stName mbT_2'>Электросила</span>
+ </div><div style='left: 341px; top: 774px; ' class='stName' mb_sd_id='46'> <span mb_sd_id='46' class='stName mbT_2'>Парк Победы</span>
+ </div><div style='left: 341px; top: 812px; ' class='stName' mb_sd_id='47'> <span mb_sd_id='47' class='stName mbT_2'>Московская</span>
+ </div><div style='left: 341px; top: 846px; ' class='stName' mb_sd_id='48'> <span mb_sd_id='48' class='stName mbT_2'>Звездная</span>
+ </div><div style='left: 342px; top: 880px; ' class='stName' mb_sd_id='49'> <span mb_sd_id='49' class='stName mbT_2'>Купчино</span>
+ </div><div style='left: 82px; top: 326px; ' class='stName' mb_sd_id='50'> <span mb_sd_id='50' class='stName mbT_3'>Приморская</span>
+ </div><div style='left: 97px; top: 356px; ' class='stName' mb_sd_id='51'> <span mb_sd_id='51' class='stName mbT_3'>Василеостровская</span>
+ </div><div style='left: 619px; top: 443px; ' class='stName' mb_sd_id='52'> <span mb_sd_id='52' class='stName mbT_3'>Площадь Александра Невского 1</span>
+ </div><div style='left: 619px; top: 456px; ' class='stName' mb_sd_id='53'> <span mb_sd_id='53' class='stName mbT_4'>Площадь Александра Невского 2</span>
+ </div><div style='left: 623px; top: 732px; ' class='stName' mb_sd_id='54'> <span mb_sd_id='54' class='stName mbT_3'>Елизаровская</span>
+ </div><div style='left: 623px; top: 771px; ' class='stName' mb_sd_id='55'> <span mb_sd_id='55' class='stName mbT_3'>Ломоносовская</span>
+ </div><div style='left: 622px; top: 805px; ' class='stName' mb_sd_id='56'> <span mb_sd_id='56' class='stName mbT_3'>Пролетарская</span>
+ </div><div style='left: 622px; top: 844px; ' class='stName' mb_sd_id='57'> <span mb_sd_id='57' class='stName mbT_3'>Обухово</span>
+ </div><div style='left: 622px; top: 882px; ' class='stName' mb_sd_id='58'> <span mb_sd_id='58' class='stName mbT_3'>Рыбацкое</span>
+ </div><div style='left: 531px; top: 441px; ' class='stName' mb_sd_id='59'> <span mb_sd_id='59' class='stName mbT_4'>Лиговский
+проспект</span>
+ </div><div style='left: 705px; top: 509px; ' class='stName' mb_sd_id='60'> <span mb_sd_id='60' class='stName mbT_4'>Новочеркасская</span>
+ </div><div style='left: 715px; top: 556px; ' class='stName' mb_sd_id='61'> <span mb_sd_id='61' class='stName mbT_4'>Ладожская</span>
+ </div><div style='left: 715px; top: 630px; ' class='stName' mb_sd_id='62'> <span mb_sd_id='62' class='stName mbT_4'>Проспект Большевиков</span>
+ </div><div style='left: 716px; top: 682px; ' class='stName' mb_sd_id='63'> <span mb_sd_id='63' class='stName mbT_4'>Улица Дыбенко</span>
+ </div><div style='left: 469px; top: 625px; ' class='stName' mb_sd_id='64'> <span mb_sd_id='64' class='stName mbT_5'>Обводный канал</span>
+ </div><div style='left: 143px; top: 430px; ' class='stName' mb_sd_id='65'> <span mb_sd_id='65' class='stName mbT_5'>Адмиралтейская</span>
+ </div><div style='left: 492px; top: 731px; ' class='stName' mb_sd_id='251'> <span mb_sd_id='251' class='stName mbT_5'>Бухарестская</span>
+ </div><div style='left: 492px; top: 771px; ' class='stName' mb_sd_id='252'> <span mb_sd_id='252' class='stName mbT_5'>Международная</span>
+ </div><div style='left: 81px; top: 220px; ' class='stName' mb_sd_id='446'> <span mb_sd_id='446' class='stName mbT_3'>Зенит</span>
+ </div><div style='left: 79px; top: 175px; ' class='stName' mb_sd_id='447'> <span mb_sd_id='447' class='stName mbT_3'>Беговая</span>
+ </div><div style='left: 493px; top: 809px; ' class='stName' mb_sd_id='474'> <span mb_sd_id='474' class='stName mbT_5'>Проспект Славы</span>
+ </div><div style='left: 493px; top: 843px; ' class='stName' mb_sd_id='475'> <span mb_sd_id='475' class='stName mbT_5'>Дунайская</span>
+ </div><div style='left: 493px; top: 879px; ' class='stName' mb_sd_id='476'> <span mb_sd_id='476' class='stName mbT_5'>Шушары</span>
+ </div><div style='left: 69px; top: 413px; ' class='stName' mb_sd_id='567'> <span mb_sd_id='567' class='stName mbT_4'>Горный институт</span>
+ </div>
+	</div>
+	</div>
+</div>
+ 
+
+	
+		<div class='advertBottom'>
+<!-- Yandex.RTB R-A-1990270-2 -->
+<div id="yandex_rtb_R-A-1990270-2"></div>
+<script>window.yaContextCb.push(()=>{
+  Ya.Context.AdvManager.render({
+    renderTo: 'yandex_rtb_R-A-1990270-2',
+    blockId: 'R-A-1990270-2'
+  })
+})</script></div>
+	
+
+	<div id='article'>
+		<h2>Как пользоваться интерактивной схемой метро СПб?</h2>
+<a href="/images/spb_map_20180823.jpg" target="_blank"><img src="/images/spb_map_20180823_small.jpg" style="float: right; padding-left: 10px;" alt='Официальная карта метро СПб 2018 года'></a>
+<p>Для того, <strong>чтобы вам легче было сориентироваться и рассчитать время в пути, создана наша интерактивная карта/схема метро Санкт-Петербурга.</strong> Она расположена в верхней части экрана. А справа от этого текста - обычная, статическая карта в виде картинки (на случай, если кому-то так удобнее). Нажмите на нее, и она откроется на весь экран.</p>
+<p>В интернете представлено около десяти разных карт Петербургского метро. Мы проанализировали их все и поняли, что можем сделать удобнее и информативнее. Самое удивительное для нас - <strong>ни на одной из карт, кроме нашей, не использован существующий привычный дизайн схемы метро Питера</strong>. Тем более что дизайн более чем симпатичный.</p>
+<p>Вы можете проложить маршрут, воспользовавшись панелью вверху экрана. Начните вводить название станции в поля «откуда» и «куда», выберите из появившегося списка нужные станции. На карте будет отмечен маршрут и примерное время в пути.</p>
+<p>Также вы можете проложить маршрут, последовательно нажав на карте на двух станциях. Вы увидите маршрут и примерный расчет времени в пути. </p>
+<p>Желаем вам удачной поездки!</p>
+
+
+<h2>История петербургского метрополитена</h2>
+<p>Петербургский метрополитен – второй в России по протяженности после московского. </p>
+<p>Он открылся в 1955 году. Сегодня функционирует 5 линий метро, общая протяженность которых – 113.6 километров. Схема метро Санкт-Петербурга (СПб) достаточно простая и разобраться в ней может практически каждый.</p>
+<p>Петербургское метро считается самым глубоким в мире. Многие из станций имеют оригинальное архитектурно-художественное оформление.</p>
+<p>Например, стены станции Кировский завод украшены мрамором и барельефами. Само наземное здание имеет широкую лестницу, массивные колонны и напоминает дворец или храм. А на Пушкинской станции находится памятник А.С. Пушкину. Этот памятник положил начало традиции устанавливать памятники великим людям в метро. Необычная и интересная станция Автово – её колонны украшены декоративным стеклом, его специальная огранка создает эффект свечения колонн изнутри.</p>
+
+<h2>План развития метро в Петербурге</h2>
+<a href="/images/spb_map_plan_2016.jpg" target="_blank"><img src="/images/spb_map_plan_2016_small.jpg" style="float: left; padding-right: 10px;" alt='Долгосрочный план развития метро СПб. НИПИИ "Ленметрогипротранс", 2016.'></a>
+<p>На данный момент сеть метрополитена Питера не достаточно развита. Но раз в несколько лет открываются новые станции. А в долгосрочных планах - увеличить их количество почти в два раза!</p>
+<p>Одной из существенных транспортных проблем горожан является изоляция отдаленных от центра районов и пригородов. Наземный транспорт циркулирует, но с учетом пробок попасть с окраин в центр и обратно весьма затруднительно.</p>
+<p><strong>Ориентируясь на план развития метро 2016 года, разработанный НИПИИ "Ленметрогипротранс" (на картинке слева), можно понять, как будут решены конкретные проблемы отдельных районов города</strong>. Так, например, с востока от центра, в Красногвардейском районе, жители которого в настоящий момент пользуются станцией метро Ладожской, до которой часто долго добираться, получат целую отдельную ветку с четырьмя станциями - Большеохтинской, пр. Энергетиков, Индустриальным и ул. Коммуны. Безусловно, привлекательность района существенно возрастет!</p>
+<p>С юга появится, во-первых, сообщение с поселком Шушары, который уже, фактически, является частью города (ст. м. Южная). А, во-вторых, появится подземное сообщение с аэропортом Пулково, что станет существенным выигрышем не только для жителей всего города, но и для его гостей.</p>
+<p>Северо-запад также будет интегрирован в транспортную сеть. Доехать на метро можно будет до самой Стрельны! Не говоря уже о таких популярных среди горожан местах, как радиорынок "Юнона" на Маршалла Казакова (ст. м. Казаковская), куда сейчас приходится добираться на наземном транспорте от ст. Автово.</p>
+<p>Перемещение по центральной части города будет существенно ускорено за счет появления кольцевой линии, которая свяжет все ветки и позволит не проезжать через центр, когда это не нужно.</p>
+<p>Нетрудно увидеть, что жителям северных районов также предложат множество новых станций. </p>
+<p>Остается только запастись терпением и ждать, пока все это будет реализовано. Ну а пока, пользоваться теми станциями, что уже открыты, рассчитывая маршруты через нашу схему метро СПб!</p>
+
+
+	</div>
+
+	<div id='footer' style='position: relative;'>
+		Интерактивные карты метро: <a href='//kiev.metrobook.ru'>Киев</a> <a href='//minsk.metrobook.ru'>Минск</a> <a href='//metrobook.ru'>Москва</a> <a href='//nino.metrobook.ru'>Нижний Новгород</a> <a href='//nsk.metrobook.ru'>Новосибирск</a> <a href='//spb.metrobook.ru'>Санкт-Петербург</a> <a href='//kharkov.metrobook.ru'>Харьков</a> <br>
+		График <a href="https://mostobook.ru">развода мостов в СПб</a><br>
+		<a href="mailto:nickkourpan@gmail.com" class='dark'>MetroBook team</a> © 2014-2026
+
+			<div id='liruCnt'>
+				<!--LiveInternet counter--><script type="text/javascript">document.write("<a href='https://www.liveinternet.ru/click' target=_blank><img src='//counter.yadro.ru/hit?t44.5;r" + escape(document.referrer) + ((typeof(screen)=="undefined")?"":";s"+screen.width+"*"+screen.height+"*"+(screen.colorDepth?screen.colorDepth:screen.pixelDepth)) + ";u" + escape(document.URL) +";h"+escape(document.title.substring(0,80)) +  ";" + Math.random() + "' border=0 width=31 height=31 alt='' title='LiveInternet'><\/a>")</script><!--/LiveInternet-->
+			</div>
+
+	</div>
+
+	<div id="stat">
+		<div id='statCity'>
+			<label for="mbCitySelect">Город:</label>
+			<select id='mbCitySelect' onchange='OnMBCityChange();'>				
+			<option  value='//kiev.metrobook.ru'>Киев</option><option  value='//minsk.metrobook.ru'>Минск</option><option  value='//metrobook.ru'>Москва</option><option  value='//nino.metrobook.ru'>Нижний Новгород</option><option  value='//nsk.metrobook.ru'>Новосибирск</option><option selected value='//spb.metrobook.ru'>Санкт-Петербург</option><option  value='//kharkov.metrobook.ru'>Харьков</option>
+			</select>
+		</div>
+
+		<div id='statRoute'>
+			<div><label for="fromStation">Откуда: </label><input id="fromStation" placeholder="Откуда" /></div>
+			<div><label for="toStation">Куда: </label><input id="toStation" placeholder="Куда" /></div>
+		</div>
+
+		<div id='statResult'>
+			<div>Время: <span id="totalTime"></span></div>
+			<div id='statChangesTime'>Из него в пересадках: <span id="changesTime"></span></div>
+			<div>Пересадок: <span id="totalChanges"></span></div>
+			<div id='statResultFree'></div>
+		</div>
+
+		<div id='statConfig'>
+			<div>
+				<label for="minimizeTo">Минимальное </label>
+				<select id="minimizeTo">
+					<option value='0'>время</option>
+					<option value='1'>кол-во пересадок</option>
+				</select>
+			</div>
+			<div>
+				<input type="button" value="Новый маршрут" onclick="onNewWay();"/>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div style="position: absolute; width: 100vw; height: 100vh; z-index: 55555; left: 0px; top: 0px; display: none; overflow: hidden;" id="viewport"></div>
+
+<script type="text/javascript">
+
+$(document).ready(function() {
+	mbUIInit();
+});
+
+</script>
+
+
+
+</body>
+</html>

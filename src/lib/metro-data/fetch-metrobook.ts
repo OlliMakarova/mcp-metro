@@ -8,7 +8,7 @@
 //   mb.arrL[lid]   = {type}              — line: 0 metro, 1 MCC, 2 MCD
 // Station names live in the markup: <span mb_sd_id='NN' class='stName ...'>Name</span>.
 //
-// Source limitations (see data/metrobook-ru/README.md): Russian-only names, a transfer hub
+// Source limitations (see data/mos/metrobook-ru/README.md): Russian-only names, a transfer hub
 // has a single label, no closures/wagons/coordinates/enter-exit times, one-minute time
 // precision. Some of these gaps are covered by enrichMetrobookFromMosmetroSchema().
 
@@ -74,7 +74,7 @@ export const parseMetrobookHtml = (
   }
 
   // Run the inline script in an isolated context: it only populates the mb object.
-  // This is the same technique as in the verified research script (data/metrobook-ru/fetch-data.js).
+  // This is the same technique as in the verified research script (data/mos/metrobook-ru/fetch-data.js).
   const mb: IMbRuntime = { arrS: {}, arrSD: {}, arrR: {}, arrTT: [], arrDL: [], arrL: {} };
   // eslint-disable-next-line no-new-func
   new Function('mb', dataScript.replace(/var mb = new Object;[^;]*;/, '')).call(null, mb);

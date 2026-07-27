@@ -7,7 +7,7 @@
 //
 // Important: the pathLength field of ride segments and transitions is TIME IN SECONDS,
 // not distance (verified by cross-checking calculations against the site, see
-// data/mosmetro-ru/README.md).
+// data/mos/mosmetro-ru/README.md).
 // Since the API is undocumented, every response is checked for structural plausibility —
 // an invalid response is treated the same as source unavailability.
 
