@@ -316,11 +316,14 @@ restApi:
 #> signed link the tool issues (GET /api/widget-data?from=...&to=...&lang=...&at=...&sig=...).
 #> The HMAC signature keeps that endpoint serving only links the tool itself produced,
 #> so it does not turn into a public route-search API.
+#> The same secret mints the short-lived recompute tokens the widget uses when the user picks
+#> other stations in its two selects (GET /api/widget-data?...&token=... and
+#> GET /api/widget-stations?...&token=...). A token is bound to the client IP and lives 30 minutes.
 #> ========================================================================
 widgetData:
-  #> HMAC-SHA256 secret for signing widget-data links. Empty → a random secret is generated
-  #> once at startup (links stop verifying after a restart — fine for local development). In
-  #> production set an explicit secret so issued links stay valid indefinitely.
+  #> HMAC-SHA256 secret for signing widget-data links and recompute tokens. Empty → a random
+  #> secret is generated once at startup (links stop verifying after a restart — fine for local
+  #> development). In production set an explicit secret so issued links stay valid indefinitely.
   signSecret: ''
 
 #> MCP (Model Context Protocol) server settings

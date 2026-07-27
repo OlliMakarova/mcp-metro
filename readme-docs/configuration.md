@@ -51,13 +51,14 @@ The disk-cache folder (`data-cache/`) and the source URLs are deliberately **not
 | `maxRequests` | Requests allowed per window, counted per client IP  | `60`    |
 | `windowSec`   | Window length in seconds                            | `60`    |
 
-Applies to all four `/api/*` routes. See [REST API](./rest-api.md).
+Applies to all five `/api/*` routes. A token-authorized route recompute passes a second, stricter limiter on top —
+one request per 2 seconds per IP, not configurable. See [REST API](./rest-api.md).
 
 ### `widgetData` — signed widget links
 
 | Key          | Description                                                                                         | Default |
 |--------------|-----------------------------------------------------------------------------------------------------|---------|
-| `signSecret` | HMAC-SHA256 secret signing widget-data links. Empty means a fresh random secret on every start, so links issued before a restart stop verifying. Set it explicitly in production. | —       |
+| `signSecret` | HMAC-SHA256 secret signing widget-data links and the widget's recompute tokens. Empty means a fresh random secret on every start, so links issued before a restart stop verifying. Set it explicitly in production. | —       |
 
 ## SDK sections in use
 

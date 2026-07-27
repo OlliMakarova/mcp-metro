@@ -1,6 +1,6 @@
 # REST API
 
-Four read-only `GET` endpoints over the same data layer the MCP tool uses, for callers that want the data without the
+Five read-only `GET` endpoints over the same data layer the MCP tool uses, for callers that want the data without the
 MCP protocol.
 
 Interactive documentation is served at `/docs` (Swagger UI); the raw OpenAPI specification is at `/api/openapi.json`.
@@ -11,9 +11,9 @@ Interactive documentation is served at `/docs` (Swagger UI); the raw OpenAPI spe
 - **Encoding** — Cyrillic query values must be URL-encoded (`%D0%9A%D0%B8%D0%B5%D0%B2%D1%81%D0%BA%D0%B0%D1%8F` for
   `Киевская`).
 - **Authentication** — the first three routes go through the SDK auth middleware, so they require an `Authorization`
-  header exactly when `webServer.auth.enabled` is `true`. `/api/widget-data` is intentionally exempt; see
-  [Route Widget](./route-widget.md).
-- **Rate limiting** — every route, including `/api/widget-data`, consumes one point per request from a per-client-IP
+  header exactly when `webServer.auth.enabled` is `true`. The two widget routes are intentionally exempt and gated by a
+  link signature or a recompute token instead; see [Route Widget](./route-widget.md).
+- **Rate limiting** — every route, the widget ones included, consumes one point per request from a per-client-IP
   bucket. Defaults are 60 requests per 60 seconds (`restApi.rateLimit`), backed by `RateLimiterMemory` from
   `rate-limiter-flexible` — the same limiter the SDK uses for `/mcp`. Exceeding it yields:
 
@@ -22,6 +22,8 @@ Interactive documentation is served at `/docs` (Swagger UI); the raw OpenAPI spe
   ```
 
   with HTTP `429` and a `Retry-After` header. The bucket is in-process, so each server instance counts separately.
+  A token-authorized recompute on `/api/widget-data` passes a second, much stricter limiter on top of that one — at most
+  one request per 2 seconds per IP.
 - **Data availability** — when no dataset is loaded at all, every route answers `503` with
   `{ "success": false, "error": "Metro data is temporarily unavailable." }`.
 - **Errors** — unexpected failures return `500` with a message that has been scrubbed of data-source names (see
@@ -110,23 +112,72 @@ closure data was applied.
 The data endpoint for the MCP Apps route widget. It is not meant to be called by hand — the tool issues the complete
 signed link — but the contract is documented for debugging.
 
-| Parameter | Required | Description                                                     |
-|-----------|----------|-----------------------------------------------------------------|
-| `from`    | yes      | Departure platform ids                                          |
-| `to`      | yes      | Arrival platform ids                                            |
-| `lang`    | yes      | Response language: `en`, `ru`, `ar`, `cn`                       |
-| `at`      | no       | ISO moment to build the route for; absent means "now"            |
-| `sig`     | yes      | Truncated HMAC-SHA256 over `from` + `to` + `lang`                |
+There are two ways in, and they differ only in what authorizes the request.
+
+**Signed-link mode** — the first load of a card. The route identity is baked into the signature, so the parameters
+cannot be altered.
+
+| Parameter  | Required | Description                                                        |
+|------------|----------|--------------------------------------------------------------------|
+| `from`     | yes      | Departure platform ids                                             |
+| `to`       | yes      | Arrival platform ids                                               |
+| `lang`     | yes      | Response language: `en`, `ru`, `ar`, `cn`                          |
+| `city`     | no       | `spb` for Saint Petersburg; absent or anything else means Moscow    |
+| `at`       | no       | ISO moment to build the route for; absent means "now"               |
+| `walk`     | no       | Walk minutes to the departure station (1–600), outside the signature |
+| `walkFrom` | no       | Walk minutes from the arrival station (1–600), outside the signature |
+| `sig`      | yes      | Truncated HMAC-SHA256 over `from` + `to` + `lang` (+ `city`)        |
+
+**Token mode** — a recompute after the user picked other stations in the card. `from` and `to` are free-form, `at` is
+not accepted (the route is always built for "now"), and the same parameters otherwise apply.
+
+| Parameter | Required | Description                                                                     |
+|-----------|----------|---------------------------------------------------------------------------------|
+| `token`   | yes      | Recompute token `"<exp>.<hmac>"`, bound to the client IP, 30-minute lifetime      |
+
+Every successful response of **both** modes carries a top-level `token` field with a freshly minted token for the
+requesting IP, next to the usual route payload.
 
 | Status | Meaning                                                                        |
 |--------|--------------------------------------------------------------------------------|
-| `200`  | Route payload, including the `modelSummary` the widget pushes to the model context |
-| `400`  | Malformed parameters or a signature mismatch (checked before touching the data)   |
+| `200`  | Route payload, including the `modelSummary` the widget pushes to the model context, plus a fresh `token` |
+| `400`  | Malformed parameters, a signature mismatch, neither `sig` nor `token` present, or both ends resolving to one hub |
+| `403`  | Token mode: the token is forged, expired, or was issued for another IP           |
 | `404`  | The requested platform ids are absent from the current dataset, or no route can be produced at that moment |
+| `429`  | Token mode: more than one recompute per 2 seconds from this IP (`Retry-After` set) |
 | `503`  | No dataset loaded                                                              |
 
-This route skips authentication and is CORS-open by design. See [Route Widget](./route-widget.md) for the reasoning and
-the security implications.
+## `GET /api/widget-stations`
+
+The station list behind the widget's «from» / «to» dropdowns: one entry per interchange hub.
+
+| Parameter | Required | Description                                                     |
+|-----------|----------|-----------------------------------------------------------------|
+| `token`   | yes      | The same recompute token as above                                |
+| `lang`    | no       | Response language: `en`, `ru`, `ar`, `cn` (default `en`)         |
+| `city`    | no       | `spb` for Saint Petersburg; absent or anything else means Moscow  |
+
+```json
+{
+  "success": true,
+  "stations": [
+    { "name": "Авиамоторная", "ids": [8, 271, 402], "lines": [{ "badge": "8", "color": "#FFD702" }] }
+  ]
+}
+```
+
+`ids` are all platforms of the hub — exactly what goes back as `from` or `to`. `lines` carries the badge of every line
+serving the hub, which is what tells same-named stations without a transfer apart. Entries are sorted by name with the
+collation of the requested language.
+
+| Status | Meaning                                        |
+|--------|------------------------------------------------|
+| `200`  | The station list                               |
+| `403`  | Token missing, forged, expired or from another IP |
+| `503`  | No dataset loaded                              |
+
+Both widget routes skip authentication and are CORS-open by design. See [Route Widget](./route-widget.md) for the
+reasoning and the security implications.
 
 ## Related
 

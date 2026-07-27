@@ -52,17 +52,52 @@
     }
     .hidden { display: none !important; }
 
-    /* ── Header: from → to chips ─────────────────────────────────────────── */
+    /* ── Header: «from» / «to» station selects ───────────────────────────── */
     .od { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
-    .od-chip {
+    .od-sel { position: relative; }
+    .od-field {
       display: flex; align-items: center; gap: 8px;
       background: var(--w-accent);
       color: #3d4657;
+      border: 1px solid transparent;
       border-radius: var(--w-radius-sm);
-      padding: 9px 12px;
+      padding: 8px 12px;
       font-weight: 600;
+      cursor: text;
     }
-    html[data-theme="dark"] .od-chip { background: #3a4152; color: #dfe4ee; }
+    .od-field:focus-within { border-color: #6d7fa8; }
+    .od-field input {
+      flex: 1 1 auto; min-width: 0;
+      margin: 0; padding: 0;
+      border: 0; background: transparent;
+      font: inherit; color: inherit;
+      outline: none;
+      text-overflow: ellipsis;
+    }
+    .od-field input::placeholder { color: currentColor; opacity: .55; font-weight: 500; }
+    .od-badges { display: flex; align-items: center; gap: 4px; flex: none; }
+    .od-caret { flex: none; opacity: .55; font-size: 12px; line-height: 1; }
+    .od-list {
+      position: absolute; z-index: 5;
+      inset-inline-start: 0; inset-inline-end: 0; top: calc(100% + 4px);
+      max-height: 240px; overflow-y: auto;
+      padding: 4px;
+      background: var(--w-card);
+      border: 1px solid var(--w-border);
+      border-radius: var(--w-radius-sm);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, .16);
+    }
+    .od-opt {
+      display: flex; align-items: center; gap: 6px;
+      padding: 6px 8px;
+      border-radius: 8px;
+      cursor: pointer;
+      color: var(--w-text);
+    }
+    .od-opt.active { background: var(--w-card2); }
+    .od-opt .od-nm { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .od-note { padding: 8px; color: var(--w-text2); font-size: 13px; }
+    html[data-theme="dark"] .od-field { background: #3a4152; color: #dfe4ee; }
 
     /* ── Line badge ──────────────────────────────────────────────────────── */
     .badge {
@@ -80,6 +115,7 @@
     .banner { border-radius: var(--w-radius-sm); padding: 10px 12px; margin-bottom: 12px; font-size: 13px; }
     .banner.danger { background: var(--w-danger-bg); color: var(--w-danger-tx); }
     .banner.warn { background: var(--w-warn-bg); color: var(--w-warn-tx); }
+    .banner.info { background: var(--w-card); color: var(--w-text2); }
 
     /* ── Section titles ──────────────────────────────────────────────────── */
     .sect { font-size: 17px; font-weight: 700; margin: 14px 2px 8px; }
@@ -280,6 +316,13 @@
         loadingRoutes: 'Загружаем маршруты…', refresh: 'Обновить маршрут',
         loadError: 'Не удалось загрузить данные маршрута — задайте вопрос заново.',
         netError: 'Не удалось получить данные маршрута: сервер данных недоступен.',
+        fromLabel: 'Откуда', toLabel: 'Куда', stationPlaceholder: 'Станция…',
+        stationsLoading: 'Загружаем список станций…',
+        stationsLoadError: 'Не удалось загрузить список станций.',
+        noMatches: 'Ничего не найдено',
+        sameStations: 'Станции отправления и прибытия совпадают.',
+        recalculating: 'Пересчитываем маршрут…',
+        recalcError: 'Не удалось пересчитать маршрут.',
       },
       en: {
         routes: 'Routes', details: 'Route details',
@@ -301,6 +344,13 @@
         loadingRoutes: 'Loading routes…', refresh: 'Refresh route',
         loadError: 'Could not load the route data — please ask again.',
         netError: 'Could not fetch the route data: the data server is unreachable.',
+        fromLabel: 'From', toLabel: 'To', stationPlaceholder: 'Station…',
+        stationsLoading: 'Loading the station list…',
+        stationsLoadError: 'Could not load the station list.',
+        noMatches: 'Nothing found',
+        sameStations: 'The departure and arrival stations are the same.',
+        recalculating: 'Recalculating the route…',
+        recalcError: 'Could not recalculate the route.',
       },
       ar: {
         routes: 'المسارات', details: 'تفاصيل المسار',
@@ -322,6 +372,13 @@
         loadingRoutes: 'جارٍ تحميل المسارات…', refresh: 'تحديث المسار',
         loadError: 'تعذّر تحميل بيانات المسار — يرجى طرح السؤال من جديد.',
         netError: 'تعذّر جلب بيانات المسار: خادم البيانات غير متاح.',
+        fromLabel: 'من', toLabel: 'إلى', stationPlaceholder: 'محطة…',
+        stationsLoading: 'جارٍ تحميل قائمة المحطات…',
+        stationsLoadError: 'تعذّر تحميل قائمة المحطات.',
+        noMatches: 'لا توجد نتائج',
+        sameStations: 'محطتا الانطلاق والوصول متطابقتان.',
+        recalculating: 'جارٍ إعادة حساب المسار…',
+        recalcError: 'تعذّرت إعادة حساب المسار.',
       },
       cn: {
         routes: '路线', details: '路线详情',
@@ -343,6 +400,13 @@
         loadingRoutes: '正在加载路线…', refresh: '刷新路线',
         loadError: '无法加载路线数据 — 请重新提问。',
         netError: '无法获取路线数据：数据服务器不可达。',
+        fromLabel: '出发', toLabel: '到达', stationPlaceholder: '车站…',
+        stationsLoading: '正在加载车站列表…',
+        stationsLoadError: '无法加载车站列表。',
+        noMatches: '未找到匹配项',
+        sameStations: '出发站与到达站相同。',
+        recalculating: '正在重新规划路线…',
+        recalcError: '无法重新规划路线。',
       },
     };
     let L = DICT.en;
@@ -386,10 +450,48 @@
     let data = null;
     let selected = 0;
     // The self-describing signed link the widget loads its route data from. The "Refresh route"
-    // button reuses it with the `at` parameter removed, so the route is rebuilt for "now".
+    // button reuses it with the `at` parameter removed, so the route is rebuilt for "now". It is
+    // never overwritten by a recompute: it stays the card's anchor for renewing an expired token.
     let currentDataUrl = null;
     // Host capabilities from the ui/initialize response (used to gate ui/update-model-context).
     let hostCapabilities = {};
+
+    // ─── Station-select state ────────────────────────────────────────────────
+    // The card's two dropdowns let the user swap either end of the route. Picking a station sends a
+    // token-authorized recompute to the server and re-renders the card in place — no new question
+    // to the bot. All of it hangs on the state below.
+
+    /** Minimum interval (ms) between two recompute requests — mirrors the server-side floor */
+    const RECOMPUTE_MS = 2000;
+    const ENDS = ['from', 'to'];
+
+    /** Current choice per end: { name, ids, lines } — `ids` are the platform ids sent to the server */
+    const sel = { from: null, to: null };
+    /** Whole-city station list, fetched lazily on the first dropdown open and kept for the card's life */
+    let stationList = null;
+    let stationsPending = null;
+    let stationsFailed = false;
+    /** «lang|city» the cached list was built for — a card reused for another one refetches it */
+    let stationsKey = null;
+    /** Recompute token from the last successful data response (its expiry slides forward on every one) */
+    let recomputeToken = null;
+    /** One silent token renewal per expiry — a second 403 in a row is a real error */
+    let tokenRenewed = false;
+    /** Open dropdown: which end, the typed filter, the highlighted option and the options shown */
+    let openEnd = null;
+    let optQuery = '';
+    let optIndex = -1;
+    let optItems = [];
+    /** True once the user picked a different station — from then on "Refresh" recomputes the new pair */
+    let stationsChanged = false;
+    /** Walk times of the original link; the one describing a replaced end is dropped */
+    let walkParams = { walk: null, walkFrom: null };
+    /** Message shown above the live card: recompute progress, a hint or an error */
+    let notice = null;
+    let noticeKind = 'info';
+    /** Trailing-throttle bookkeeping: when the last request went out and the pending timer */
+    let lastRecomputeAt = 0;
+    let recomputeTimer = null;
 
     /** Applies a response language before data arrives (loading / error states) */
     function applyLang(lang) {
@@ -573,15 +675,11 @@
       }
 
       const v = d.variants[selected];
-      const od = d.variants.length ? `<div class="od">
-          <div class="od-chip">${badgeHtml(d.variants[0].departure.line)}<span>${esc(d.from)}</span></div>
-          <div class="od-chip">${badgeHtml(d.variants[0].arrival.line)}<span>${esc(d.to)}</span></div>
-        </div>`
-        : `<div class="od"><div class="od-chip"><span>${esc(d.from)} → ${esc(d.to)}</span></div></div>`;
 
       document.getElementById('app').innerHTML = `<div class="panel">
         ${currentDataUrl ? `<button class="refresh" id="refreshBtn" type="button">↻ ${esc(L.refresh)}</button>` : ''}
-        ${od}
+        <div class="od">${ENDS.map(selectHtml).join('')}</div>
+        <div id="odNotice" class="hidden"></div>
         ${banner}
         <div class="sect">${L.routes}</div>
         ${d.variants.length
@@ -612,6 +710,483 @@
       const refreshBtn = document.getElementById('refreshBtn');
       if (refreshBtn) {
         refreshBtn.addEventListener('click', refreshRoute);
+      }
+
+      // The panel markup was rebuilt from scratch — re-attach the selects and restore the notice
+      mountSelects();
+      showNotice(notice, noticeKind);
+    }
+
+    // ─── Station selects: markup and interaction ─────────────────────────────
+
+    /** Search parameters of a URL; an empty set when the string is not a URL at all */
+    function urlParamsOf(url) {
+      try {
+        return new URL(url).searchParams;
+      } catch {
+        return new URLSearchParams();
+      }
+    }
+
+    /** A parameter of the card's signed link (language, city, walk times) */
+    const routeParam = (name) => urlParamsOf(currentDataUrl).get(name);
+
+    /** «12,163» → [12, 163]; anything non-numeric is dropped */
+    const idsFromParam = (raw) => String(raw || '')
+      .split(',')
+      .map((s) => Number(s.trim()))
+      .filter((n) => Number.isInteger(n) && n >= 0);
+
+    /** One combo field: a text input over the station list plus the badges of the chosen station */
+    function selectHtml(end) {
+      const cur = sel[end] || { name: '', lines: [] };
+      const label = end === 'from' ? L.fromLabel : L.toLabel;
+      return `<div class="od-sel" id="odsel-${end}">
+        <div class="od-field">
+          <span class="od-badges" id="odb-${end}">${(cur.lines || []).map(badgeHtml).join('')}</span>
+          <input id="odi-${end}" type="text" autocomplete="off" spellcheck="false"
+                 role="combobox" aria-expanded="false" aria-controls="odl-${end}" aria-autocomplete="list"
+                 aria-label="${esc(label)}" placeholder="${esc(L.stationPlaceholder)}" value="${esc(cur.name)}">
+          <span class="od-caret" aria-hidden="true">⌄</span>
+        </div>
+        <div class="od-list hidden" id="odl-${end}" role="listbox" aria-label="${esc(label)}"></div>
+      </div>`;
+    }
+
+    /** Wires both combo fields after the panel markup has been (re)built */
+    function mountSelects() {
+      // The previous markup is gone, so no dropdown can still be open over it
+      openEnd = null;
+      optItems = [];
+      optIndex = -1;
+      for (const end of ENDS) {
+        const input = document.getElementById(`odi-${end}`);
+        if (!input) {
+          continue;
+        }
+        input.addEventListener('focus', () => openDropdown(end));
+        input.addEventListener('click', () => openDropdown(end));
+        input.addEventListener('input', () => {
+          optQuery = input.value;
+          optIndex = -1;
+          renderOptions(end);
+        });
+        input.addEventListener('keydown', (e) => onSelectKeydown(end, e));
+      }
+    }
+
+    /**
+     * Opens one dropdown. The typed filter starts empty (the whole city, alphabetical) while the
+     * input keeps showing the current station with its text selected — typing replaces it.
+     */
+    function openDropdown(end) {
+      if (openEnd === end) {
+        return;
+      }
+      closeDropdown();
+      const input = document.getElementById(`odi-${end}`);
+      const list = document.getElementById(`odl-${end}`);
+      if (!input || !list) {
+        return;
+      }
+      openEnd = end;
+      optQuery = '';
+      optIndex = -1;
+      input.setAttribute('aria-expanded', 'true');
+      list.classList.remove('hidden');
+      input.select();
+      renderOptions(end);
+      ensureStations().then(() => {
+        if (openEnd === end) {
+          renderOptions(end);
+        }
+      });
+    }
+
+    /** Closes the open dropdown and puts the current station's name back into the input */
+    function closeDropdown() {
+      if (!openEnd) {
+        return;
+      }
+      const end = openEnd;
+      openEnd = null;
+      optItems = [];
+      const input = document.getElementById(`odi-${end}`);
+      const list = document.getElementById(`odl-${end}`);
+      if (input) {
+        input.setAttribute('aria-expanded', 'false');
+        input.removeAttribute('aria-activedescendant');
+        input.value = (sel[end] && sel[end].name) || '';
+      }
+      if (list) {
+        list.classList.add('hidden');
+        list.innerHTML = '';
+      }
+      reportSize();
+    }
+
+    /** Stations matching the typed filter — plain case-insensitive substring, empty filter matches all */
+    function filteredStations() {
+      if (!stationList) {
+        return [];
+      }
+      const q = optQuery.trim().toLocaleLowerCase();
+      if (!q) {
+        return stationList;
+      }
+      return stationList.filter((s) => s.name.toLocaleLowerCase().includes(q));
+    }
+
+    /** Fills the open dropdown: the loading note, the load error, «nothing found» or the options */
+    function renderOptions(end) {
+      const list = document.getElementById(`odl-${end}`);
+      if (!list) {
+        return;
+      }
+      if (!stationList) {
+        optItems = [];
+        list.innerHTML = `<div class="od-note">${esc(stationsFailed ? L.stationsLoadError : L.stationsLoading)}</div>`;
+        reportSize();
+        return;
+      }
+      optItems = filteredStations();
+      if (!optItems.length) {
+        list.innerHTML = `<div class="od-note">${esc(L.noMatches)}</div>`;
+        reportSize();
+        return;
+      }
+      list.innerHTML = optItems.map((s, i) => `<div class="od-opt${i === optIndex ? ' active' : ''}" role="option"
+          id="odo-${end}-${i}" data-i="${i}" aria-selected="${i === optIndex ? 'true' : 'false'}">
+          <span class="od-nm">${esc(s.name)}</span>${(s.lines || []).map(badgeHtml).join('')}
+        </div>`).join('');
+      for (const el of list.querySelectorAll('.od-opt')) {
+        // mousedown, not click: the input's blur must not tear the list down before the pick lands
+        el.addEventListener('mousedown', (e) => {
+          e.preventDefault();
+          chooseStation(end, optItems[+el.dataset.i]);
+        });
+      }
+      updateActiveDescendant(end);
+      reportSize();
+    }
+
+    /** Points the input's aria-activedescendant at the highlighted option (or clears it) */
+    function updateActiveDescendant(end) {
+      const input = document.getElementById(`odi-${end}`);
+      if (!input) {
+        return;
+      }
+      if (optIndex >= 0) {
+        input.setAttribute('aria-activedescendant', `odo-${end}-${optIndex}`);
+      } else {
+        input.removeAttribute('aria-activedescendant');
+      }
+    }
+
+    /** Moves the highlight to another option, keeping it inside the scrolled viewport */
+    function setActiveOption(end, idx) {
+      optIndex = idx;
+      const list = document.getElementById(`odl-${end}`);
+      if (!list) {
+        return;
+      }
+      for (const el of list.querySelectorAll('.od-opt')) {
+        const on = +el.dataset.i === idx;
+        el.classList.toggle('active', on);
+        el.setAttribute('aria-selected', on ? 'true' : 'false');
+        if (on) {
+          el.scrollIntoView({ block: 'nearest' });
+        }
+      }
+      updateActiveDescendant(end);
+    }
+
+    /** Keyboard: arrows move the highlight, Enter picks, Esc and Tab close */
+    function onSelectKeydown(end, e) {
+      if (e.key === 'Escape' || e.key === 'Tab') {
+        closeDropdown();
+        return;
+      }
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (openEnd !== end) {
+          openDropdown(end);
+          return;
+        }
+        if (!optItems.length) {
+          return;
+        }
+        let next = optIndex + (e.key === 'ArrowDown' ? 1 : -1);
+        if (next < 0) {
+          next = optItems.length - 1;
+        }
+        if (next >= optItems.length) {
+          next = 0;
+        }
+        setActiveOption(end, next);
+        return;
+      }
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        if (openEnd === end && optIndex >= 0) {
+          chooseStation(end, optItems[optIndex]);
+        }
+      }
+    }
+
+    /** True when both ends share a platform — one and the same hub, so there is no route to build */
+    function sameStations() {
+      const a = (sel.from && sel.from.ids) || [];
+      const b = new Set((sel.to && sel.to.ids) || []);
+      return a.some((id) => b.has(id));
+    }
+
+    /** Applies a pick: updates the field, forgets the stale walk time and schedules the recompute */
+    function chooseStation(end, station) {
+      if (!station) {
+        return;
+      }
+      const previous = sel[end];
+      sel[end] = { name: station.name, ids: station.ids.slice(), lines: station.lines || [] };
+      closeDropdown();
+      const input = document.getElementById(`odi-${end}`);
+      if (input) {
+        input.value = station.name;
+      }
+      const badges = document.getElementById(`odb-${end}`);
+      if (badges) {
+        badges.innerHTML = (station.lines || []).map(badgeHtml).join('');
+      }
+      if (previous && previous.ids.join(',') === sel[end].ids.join(',')) {
+        return; // the very same station picked again — nothing to recompute
+      }
+      // The user's walk time to (or from) the replaced end describes a station that is no longer there
+      if (end === 'from') {
+        walkParams.walk = null;
+      } else {
+        walkParams.walkFrom = null;
+      }
+      stationsChanged = true;
+      if (sameStations()) {
+        showNotice(L.sameStations, 'warn');
+        return;
+      }
+      scheduleRecompute();
+    }
+
+    /** Shows (or clears with a null text) the message strip above the live card */
+    function showNotice(text, kind) {
+      notice = text || null;
+      noticeKind = kind || 'info';
+      const el = document.getElementById('odNotice');
+      if (!el) {
+        return;
+      }
+      el.className = notice ? `banner ${noticeKind}` : 'hidden';
+      el.textContent = notice || '';
+      reportSize();
+    }
+
+    // ─── Station list over REST ──────────────────────────────────────────────
+
+    /** One GET /api/widget-stations attempt: `{ status, stations? }`, status 0 for a transport failure */
+    async function requestStations() {
+      let url;
+      try {
+        url = new URL('/api/widget-stations', currentDataUrl);
+      } catch {
+        return { status: 0 };
+      }
+      url.searchParams.set('lang', routeParam('lang') || 'en');
+      const city = routeParam('city');
+      if (city) {
+        url.searchParams.set('city', city);
+      }
+      url.searchParams.set('token', recomputeToken || '');
+      let resp;
+      try {
+        resp = await fetch(url.toString(), { headers: { accept: 'application/json' } });
+      } catch {
+        return { status: 0 };
+      }
+      if (!resp.ok) {
+        return { status: resp.status };
+      }
+      try {
+        const json = await resp.json();
+        return Array.isArray(json && json.stations) ? { status: 200, stations: json.stations } : { status: 0 };
+      } catch {
+        return { status: 0 };
+      }
+    }
+
+    /**
+     * Fetches the station list once and caches it. Concurrent callers share the same in-flight
+     * promise. A 403 means the card's token expired while it sat open — renew it once and retry.
+     */
+    function ensureStations() {
+      // A host may hand the same card a result for another language or city — the list is per pair
+      const key = `${routeParam('lang') || 'en'}|${routeParam('city') || 'moscow'}`;
+      if (key !== stationsKey) {
+        stationsKey = key;
+        stationList = null;
+        stationsPending = null;
+      }
+      if (stationList) {
+        return Promise.resolve();
+      }
+      if (stationsPending) {
+        return stationsPending;
+      }
+      stationsFailed = false;
+      stationsPending = (async () => {
+        let res = await requestStations();
+        if (res.status === 403 && (await renewToken())) {
+          res = await requestStations();
+        }
+        if (res.stations) {
+          stationList = res.stations;
+        } else {
+          stationsFailed = true;
+        }
+        stationsPending = null;
+      })();
+      return stationsPending;
+    }
+
+    // ─── Route recompute over REST ───────────────────────────────────────────
+
+    /** Recompute URL for the current pick; null while the card has no token or no selection yet */
+    function recomputeUrl() {
+      if (!currentDataUrl || !recomputeToken || !sel.from || !sel.to) {
+        return null;
+      }
+      let url;
+      try {
+        url = new URL('/api/widget-data', currentDataUrl);
+      } catch {
+        return null;
+      }
+      url.searchParams.set('from', sel.from.ids.join(','));
+      url.searchParams.set('to', sel.to.ids.join(','));
+      url.searchParams.set('lang', routeParam('lang') || 'en');
+      const city = routeParam('city');
+      if (city) {
+        url.searchParams.set('city', city);
+      }
+      // Only the walk time of the end the user did NOT replace still describes something real
+      if (walkParams.walk) {
+        url.searchParams.set('walk', walkParams.walk);
+      }
+      if (walkParams.walkFrom) {
+        url.searchParams.set('walkFrom', walkParams.walkFrom);
+      }
+      url.searchParams.set('token', recomputeToken);
+      return url.toString();
+    }
+
+    /** One GET of a widget-data URL: `{ status, data? }`, status 0 for a transport failure */
+    async function requestRouteData(url) {
+      let resp;
+      try {
+        resp = await fetch(url, { headers: { accept: 'application/json' } });
+      } catch {
+        return { status: 0 };
+      }
+      if (!resp.ok) {
+        return { status: resp.status };
+      }
+      try {
+        return { status: 200, data: await resp.json() };
+      } catch {
+        return { status: 0 };
+      }
+    }
+
+    /**
+     * One silent token renewal: re-request the card's signed link (without `at`) purely to pick up a
+     * fresh token. The route payload of that response is intentionally ignored — the user's current
+     * station choice must survive the renewal. Allowed once per expiry; a second 403 is a real error.
+     */
+    async function renewToken() {
+      if (tokenRenewed || !currentDataUrl) {
+        return false;
+      }
+      tokenRenewed = true;
+      let url;
+      try {
+        url = new URL(currentDataUrl);
+      } catch {
+        return false;
+      }
+      url.searchParams.delete('at');
+      const res = await requestRouteData(url.toString());
+      if (res.data && typeof res.data.token === 'string') {
+        recomputeToken = res.data.token;
+        return true;
+      }
+      return false;
+    }
+
+    /**
+     * Trailing throttle: a request goes out immediately when the previous one is at least
+     * RECOMPUTE_MS old, otherwise it is deferred to the boundary of the interval and carries the
+     * LAST pick — intermediate choices made in a quick burst collapse into one request.
+     */
+    function scheduleRecompute() {
+      showNotice(L.recalculating, 'info');
+      const wait = Math.max(0, RECOMPUTE_MS - (Date.now() - lastRecomputeAt));
+      if (recomputeTimer) {
+        clearTimeout(recomputeTimer);
+        recomputeTimer = null;
+      }
+      if (!wait) {
+        runRecompute();
+        return;
+      }
+      recomputeTimer = setTimeout(() => {
+        recomputeTimer = null;
+        runRecompute();
+      }, wait);
+    }
+
+    /**
+     * Sends the recompute and swaps the card's data in place. A failure never wipes the card: the
+     * current route stays on screen with a warning strip above it and the selects still working.
+     */
+    async function runRecompute() {
+      if (sameStations()) {
+        showNotice(L.sameStations, 'warn');
+        return;
+      }
+      const url = recomputeUrl();
+      if (!url) {
+        showNotice(L.recalcError, 'danger');
+        return;
+      }
+      lastRecomputeAt = Date.now();
+      let res = await requestRouteData(url);
+      if (res.status === 403 && (await renewToken())) {
+        const retryUrl = recomputeUrl();
+        res = retryUrl ? await requestRouteData(retryUrl) : res;
+      }
+      if (!res.data) {
+        showNotice(L.recalcError, 'danger');
+        return;
+      }
+      data = res.data;
+      adoptToken(data);
+      selected = 0;
+      notice = null;
+      renderRoutes();
+      pushModelContext();
+    }
+
+    /** Remembers the fresh recompute token carried by every successful data response */
+    function adoptToken(json) {
+      if (json && typeof json.token === 'string') {
+        recomputeToken = json.token;
+        tokenRenewed = false;
       }
     }
 
@@ -657,9 +1232,29 @@
         return;
       }
       data = json;
+      adoptToken(json);
       selected = 0;
+      notice = null;
+      // A signed link describes one fixed pair of stations: the card starts over from it
+      stationsChanged = false;
+      const q = urlParamsOf(url);
+      walkParams = { walk: q.get('walk'), walkFrom: q.get('walkFrom') };
+      syncSelectionFromLink(q);
       renderRoutes();
       pushModelContext();
+    }
+
+    /**
+     * Initial state of the two selects: the names come from the loaded route data, the platform ids
+     * from the link the data was loaded by, and the badges from the first variant's endpoints (until
+     * the station list arrives and a pick brings the hub's full set of badges).
+     */
+    function syncSelectionFromLink(params) {
+      const first = data && data.variants && data.variants[0];
+      const depLine = first && first.departure ? first.departure.line : null;
+      const arrLine = first && first.arrival ? first.arrival.line : null;
+      sel.from = { name: (data && data.from) || '', ids: idsFromParam(params.get('from')), lines: depLine ? [depLine] : [] };
+      sel.to = { name: (data && data.to) || '', ids: idsFromParam(params.get('to')), lines: arrLine ? [arrLine] : [] };
     }
 
     /**
@@ -675,8 +1270,16 @@
       rpcRequest('ui/update-model-context', { content: [{ type: 'text', text: text }] }).catch(() => {});
     }
 
-    /** "Refresh route": reload the same link without `at` — the route is rebuilt for "now" */
+    /**
+     * "Refresh route": until the user touches the selects this reloads the card's own link without
+     * `at`, so the original route is rebuilt for "now". Once the stations have been changed, the
+     * same button re-runs the token recompute for the pair currently shown in the selects.
+     */
     function refreshRoute() {
+      if (stationsChanged) {
+        scheduleRecompute();
+        return;
+      }
       if (!currentDataUrl) {
         return;
       }
@@ -820,6 +1423,17 @@
       }
       if (m.method === 'ping' && m.id != null) {
         rpcRespond(m.id, {});
+      }
+    });
+
+    // A click anywhere outside the open dropdown closes it (mousedown so it beats the input's blur)
+    document.addEventListener('mousedown', (ev) => {
+      if (!openEnd) {
+        return;
+      }
+      const wrap = document.getElementById(`odsel-${openEnd}`);
+      if (!wrap || !wrap.contains(ev.target)) {
+        closeDropdown();
       }
     });
 

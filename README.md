@@ -33,6 +33,8 @@ Arabic and Chinese. Typos welcome.
   (`hovrino`) and Russian case forms (`до Чеховской`) all resolve to the right station.
 - 🖼 **Interactive widget (MCP Apps)** — SEP-1865 hosts get clickable route cards; text-only hosts get clean
   Markdown. Nobody gets a wall of JSON.
+- 🔄 **Swap stations right in the card** — pick another «from» or «to» from a searchable dropdown and the card
+  recomputes the route in place, without asking the bot again.
 - 🚈 **The whole network** — Metro, MCC and MCD, plus ground transport at both ends, station services and
   vestibule opening hours.
 - ⚡ **Never hostage to the network** — a primary source, a backup source and an atomic disk cache, refreshed
@@ -66,9 +68,9 @@ Client configs are one click away: [Connect your client](#connect-your-client) b
 | [Tool Reference](./readme-docs/tool-reference.md)         | `metro_info` parameters and answers, MCP resources and prompts               |
 | [Route Search](./readme-docs/route-search.md)             | The graph, Yen's algorithm, the time model, closures, operating hours        |
 | [Station Resolution](./readme-docs/station-resolution.md) | Fuzzy matching in four languages, interchange-hub clustering, clarifications |
-| [Route Widget](./readme-docs/route-widget.md)             | MCP Apps contract, signed data links, caching, reverse-proxy and CORS setup  |
+| [Route Widget](./readme-docs/route-widget.md)             | MCP Apps contract, signed links, in-card station selects, reverse proxy, CORS |
 | [Data Sources](./readme-docs/data-sources.md)             | Primary/backup cascade, disk cache, refresh schedule, Telegram alerts        |
-| [REST API](./readme-docs/rest-api.md)                     | Four read-only endpoints, rate limits, status codes, response shapes         |
+| [REST API](./readme-docs/rest-api.md)                     | Five read-only endpoints, rate limits, status codes, response shapes         |
 | [Configuration](./readme-docs/configuration.md)           | Every setting, resolution order, environment variables                       |
 | [Authentication](./readme-docs/authentication.md)         | JWT / Basic / permanent tokens, issuing tokens, what stays open              |
 | [Testing](./readme-docs/testing.md)                       | Unit tests, MCP protocol tests, Agent Tester and the Headless API            |

@@ -9,9 +9,16 @@ import { randomBytes } from 'node:crypto';
 import { appConfig } from 'fa-mcp-sdk';
 
 import { CustomAppConfig } from '../../_types_/custom-config.js';
-import { buildSignedUrl, IWidgetDataParams, parseSignedQuery } from './widget-data-sign.js';
+import {
+  buildSignedUrl,
+  IWidgetDataParams,
+  parseSignedQuery,
+  signToken,
+  TOKEN_TTL_SEC,
+  verifyToken,
+} from './widget-data-sign.js';
 
-export { WidgetLinkError } from './widget-data-sign.js';
+export { parseTokenQuery, WidgetLinkError } from './widget-data-sign.js';
 export type { IWidgetDataParams } from './widget-data-sign.js';
 
 let cachedSecret: string | null = null;
@@ -50,3 +57,13 @@ export const buildWidgetDataUrl = (params: IWidgetDataParams): string =>
 /** Parses and verifies a widget-data query against the server secret */
 export const parseWidgetDataQuery = (query: Record<string, unknown>): IWidgetDataParams =>
   parseSignedQuery(getSignSecret(), query);
+
+/**
+ * Mints a fresh recompute token for a client IP, valid for TOKEN_TTL_SEC. Every successful
+ * widget-data response carries one, so a card in active use keeps sliding its expiry forward.
+ */
+export const issueWidgetToken = (ip: string): string =>
+  signToken(getSignSecret(), ip, Math.floor(Date.now() / 1000) + TOKEN_TTL_SEC);
+
+/** Verifies a recompute token presented by a client IP against the server secret */
+export const verifyWidgetToken = (ip: string, token: string): boolean => verifyToken(getSignSecret(), ip, token);

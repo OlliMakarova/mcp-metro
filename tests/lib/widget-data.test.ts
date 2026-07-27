@@ -5,7 +5,15 @@
 
 import { describe, expect, it } from '@jest/globals';
 
-import { buildSignedUrl, parseSignedQuery, WidgetLinkError } from '../../src/tools/widget/widget-data-sign.js';
+import {
+  buildSignedUrl,
+  parseSignedQuery,
+  parseTokenQuery,
+  signToken,
+  TOKEN_TTL_SEC,
+  verifyToken,
+  WidgetLinkError,
+} from '../../src/tools/widget/widget-data-sign.js';
 
 const SECRET = 'unit-test-secret';
 const BASE = 'https://example.test';
@@ -108,5 +116,103 @@ describe('widget-data-sign', () => {
     const q = queryOf(buildSignedUrl(BASE, SECRET, { fromIds, toIds, lang: 'en' }));
     q.at = 'not-a-date';
     expect(() => parseSignedQuery(SECRET, q)).toThrow(WidgetLinkError);
+  });
+});
+
+describe('recompute token', () => {
+  const IP = '203.0.113.7';
+  const nowSec = () => Math.floor(Date.now() / 1000);
+
+  it('accepts a freshly minted token for the same IP', () => {
+    const token = signToken(SECRET, IP, nowSec() + TOKEN_TTL_SEC);
+    expect(verifyToken(SECRET, IP, token)).toBe(true);
+  });
+
+  it('has the documented «<exp>.<hmac>» shape with a 32-hex signature', () => {
+    const exp = nowSec() + TOKEN_TTL_SEC;
+    const [expPart, hmacPart] = signToken(SECRET, IP, exp).split('.');
+    expect(Number(expPart)).toBe(exp);
+    expect(hmacPart).toMatch(/^[0-9a-f]{32}$/);
+  });
+
+  it('rejects an expired token', () => {
+    const token = signToken(SECRET, IP, nowSec() - 1);
+    expect(verifyToken(SECRET, IP, token)).toBe(false);
+  });
+
+  it('rejects a token minted for another IP', () => {
+    const token = signToken(SECRET, '198.51.100.4', nowSec() + TOKEN_TTL_SEC);
+    expect(verifyToken(SECRET, IP, token)).toBe(false);
+  });
+
+  it('rejects a token minted with another secret', () => {
+    const token = signToken('other-secret', IP, nowSec() + TOKEN_TTL_SEC);
+    expect(verifyToken(SECRET, IP, token)).toBe(false);
+  });
+
+  it('rejects a token whose expiry was pushed forward without re-signing', () => {
+    const exp = nowSec() + TOKEN_TTL_SEC;
+    const hmac = signToken(SECRET, IP, exp).split('.')[1];
+    expect(verifyToken(SECRET, IP, `${exp + 3600}.${hmac}`)).toBe(false);
+  });
+
+  it('rejects malformed token strings', () => {
+    for (const bad of ['', '.', 'abc', 'abc.def', `${nowSec() + 60}.`, `${nowSec() + 60}.zz`, 'f'.repeat(32)]) {
+      expect(verifyToken(SECRET, IP, bad)).toBe(false);
+    }
+  });
+
+  it('never verifies a link signature as a token', () => {
+    const sig = queryOf(buildSignedUrl(BASE, SECRET, { fromIds: [1], toIds: [2], lang: 'en' })).sig as string;
+    expect(verifyToken(SECRET, IP, `${nowSec() + 60}.${sig}`)).toBe(false);
+  });
+});
+
+describe('parseTokenQuery', () => {
+  it('parses the full set of recompute parameters', () => {
+    const parsed = parseTokenQuery({
+      from: '10,11',
+      to: '20',
+      lang: 'ru',
+      city: 'spb',
+      walk: '8',
+      walkFrom: '3',
+    });
+    expect(parsed.fromIds).toEqual([10, 11]);
+    expect(parsed.toIds).toEqual([20]);
+    expect(parsed.lang).toBe('ru');
+    expect(parsed.city).toBe('spb');
+    expect(parsed.walkToMin).toBe(8);
+    expect(parsed.walkFromMin).toBe(3);
+  });
+
+  it('omits the city for Moscow and leaves walks undefined when not given', () => {
+    const parsed = parseTokenQuery({ from: '10', to: '20', lang: 'en' });
+    expect(parsed.city).toBeUndefined();
+    expect(parsed.walkToMin).toBeUndefined();
+    expect(parsed.walkFromMin).toBeUndefined();
+  });
+
+  it('ignores at — a recompute is always built for «now»', () => {
+    const parsed = parseTokenQuery({ from: '10', to: '20', lang: 'en', at: AT.toISOString() });
+    expect(parsed.at).toBeUndefined();
+  });
+
+  it('requires from, to and lang', () => {
+    expect(() => parseTokenQuery({ to: '20', lang: 'en' })).toThrow(WidgetLinkError);
+    expect(() => parseTokenQuery({ from: '10', lang: 'en' })).toThrow(WidgetLinkError);
+    expect(() => parseTokenQuery({ from: '10', to: '20' })).toThrow(WidgetLinkError);
+  });
+
+  it('rejects malformed ids, city and walk values', () => {
+    expect(() => parseTokenQuery({ from: 'abc', to: '20', lang: 'en' })).toThrow(WidgetLinkError);
+    expect(() => parseTokenQuery({ from: '10', to: '-3', lang: 'en' })).toThrow(WidgetLinkError);
+    expect(() => parseTokenQuery({ from: '10', to: '20', lang: 'en', city: 'kazan' })).toThrow(WidgetLinkError);
+    expect(() => parseTokenQuery({ from: '10', to: '20', lang: 'en', walk: '601' })).toThrow(WidgetLinkError);
+    expect(() => parseTokenQuery({ from: '10', to: '20', lang: 'en', walkFrom: '0' })).toThrow(WidgetLinkError);
+  });
+
+  it('falls back to English for an unsupported language', () => {
+    expect(parseTokenQuery({ from: '10', to: '20', lang: 'de' }).lang).toBe('en');
   });
 });

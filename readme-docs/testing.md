@@ -21,7 +21,8 @@ npx jest tests/lib/routing.test.ts        # one file
 | `refresh.test.ts`           | The source cascade, notification time-to-live, deletion of stale closures    |
 | `public-source.test.ts`     | Scrubbing of source names from outward-facing text                          |
 | the backup-source test      | Parsing of the backup source's embedded graph and its enrichment            |
-| `widget-data.test.ts`       | Link signing and parsing, payload assembly                                  |
+| `widget-data.test.ts`       | Link signing and parsing, recompute tokens, payload assembly                |
+| `widget-stations.test.ts`   | The hub list behind the widget's selects: clustering, badges, sort order    |
 | `model-summary.test.ts`     | The localized one-line summary in all four languages                        |
 | `telegram-notify.test.ts`   | Send success, failure isolation, the disabled state                         |
 
@@ -35,12 +36,24 @@ npm run test:mcp        # STDIO — spawns the server itself
 npm start               # ... in another terminal, for the two below
 npm run test:mcp-http   # Streamable HTTP
 npm run test:mcp-sse    # SSE
-npm run test:mcp-widget # the widget-data endpoint end to end
+npm run test:mcp-widget # the two widget endpoints end to end
 ```
 
 The shared cases live in `tests/mcp/test-cases.js` — tool names, arguments and expected results. That is the file to
 edit when adding a tool or a scenario; the three transport runners consume it. HTTP and SSE runners connect to an
 already-running server, STDIO spawns its own.
+
+`test:mcp-widget` walks the whole widget data path against a running server: the signed link and its "Refresh" variant,
+a tampered signature, the recompute token every response carries, the station list behind that token, a recompute for
+another pair of stations, the one-per-2-seconds limiter, and the rejections for a missing, forged or expired token. It
+pauses two seconds between successive recomputes on purpose, so the run takes about ten seconds. Two checks — the `404`
+for non-existent ids and the expired-token `403` — need to forge a valid signature and are skipped unless
+`WIDGET_DATA_SIGN_SECRET` is set to the same secret the server runs with:
+
+```bash
+WIDGET_DATA_SIGN_SECRET=my-secret npm start          # in one terminal
+WIDGET_DATA_SIGN_SECRET=my-secret npm run test:mcp-widget
+```
 
 ## Agent Tester
 

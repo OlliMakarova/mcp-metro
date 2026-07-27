@@ -132,7 +132,11 @@ const lineBadge = (line: ILineInfo, lang: TLang): string | undefined => {
   return String(line.ordering);
 };
 
-const widgetLine = (line: ILineInfo | undefined, lang: TLang): IWidgetLine | undefined => {
+/**
+ * Badge + color + name of a line as the widget renders it. Exported so the station-select list
+ * (widget-stations.ts) shows exactly the same badges as the route card itself.
+ */
+export const widgetLine = (line: ILineInfo | undefined, lang: TLang): IWidgetLine | undefined => {
   if (!line) {
     return undefined;
   }

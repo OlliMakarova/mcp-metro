@@ -11,6 +11,11 @@
 // departure station and from the arrival station) are likewise outside the signature: they are
 // display-only presentation data with no compute cost, and keeping them unsigned lets the Refresh
 // path reuse the link untouched.
+//
+// The same secret also mints the recompute TOKEN the widget uses when the user picks other stations
+// in its two station selects. A signed link is bound to one route, so it cannot authorize arbitrary
+// from/to pairs; the token is bound to the client IP and a short expiry instead. Its HMAC domain is
+// prefixed with `wtok|`, so a token can never be mistaken for a link signature and vice versa.
 
 import { createHmac, timingSafeEqual } from 'node:crypto';
 
@@ -19,6 +24,9 @@ import { TMetroCity } from '../../lib/metro-data/types.js';
 
 /** Length (hex chars) the HMAC signature is truncated to in the link */
 export const SIG_HEX_LEN = 32;
+
+/** Lifetime (seconds) of a recompute token issued to the widget — 30 minutes */
+export const TOKEN_TTL_SEC = 30 * 60;
 
 /** Upper bound (minutes) accepted for the walk-to-metro time — anything above is malformed input */
 export const WALK_MIN_MAX = 600;
@@ -180,6 +188,79 @@ export const parseSignedQuery = (secret: string, query: Record<string, unknown>)
     lang,
     ...(city !== 'moscow' ? { city } : {}),
     ...(at ? { at } : {}),
+    ...(walkToMin !== undefined ? { walkToMin } : {}),
+    ...(walkFromMin !== undefined ? { walkFromMin } : {}),
+  };
+};
+
+// ─── Recompute token ───────────────────────────────────────────────────────────
+
+/**
+ * Canonical string a recompute token is computed over. The `wtok|` prefix keeps the token domain
+ * separate from the link-signature domain, so neither can ever verify as the other.
+ */
+const tokenCanonical = (ip: string, exp: number): string => `wtok|${ip}|${exp}`;
+
+/**
+ * Mints a recompute token `"<exp>.<hmac>"` for a client IP. `exp` is the expiry in unix seconds;
+ * the HMAC is truncated to SIG_HEX_LEN hex chars, exactly like a link signature.
+ */
+const tokenHmac = (secret: string, ip: string, exp: number): string =>
+  createHmac('sha256', secret).update(tokenCanonical(ip, exp)).digest('hex').slice(0, SIG_HEX_LEN);
+
+export const signToken = (secret: string, ip: string, exp: number): string => `${exp}.${tokenHmac(secret, ip, exp)}`;
+
+/**
+ * Verifies a recompute token against a client IP: the format must be `"<exp>.<hmac>"`, the expiry
+ * must not be in the past, and the HMAC must match (constant-time comparison).
+ */
+export const verifyToken = (
+  secret: string,
+  ip: string,
+  token: string,
+  nowSec: number = Math.floor(Date.now() / 1000),
+): boolean => {
+  const m = /^(\d{1,15})\.([0-9a-f]+)$/.exec(token);
+  if (!m) {
+    return false;
+  }
+  const exp = Number(m[1]);
+  if (exp < nowSec) {
+    return false;
+  }
+  return signaturesMatch(m[2] ?? '', tokenHmac(secret, ip, exp));
+};
+
+/**
+ * Parses the query of a token-authorized recompute request: the same route parameters as a signed
+ * link, minus the signature and minus `at` (a recompute is always built for "now"). Any `at` in the
+ * query is ignored rather than honored, so a token can never be used to probe arbitrary moments.
+ */
+export const parseTokenQuery = (query: Record<string, unknown>): IWidgetDataParams => {
+  const fromStr = firstQueryValue(query.from);
+  const toStr = firstQueryValue(query.to);
+  const langStr = firstQueryValue(query.lang);
+
+  if (!fromStr || !toStr || !langStr) {
+    throw new WidgetLinkError('Missing required parameters: from, to and lang are all required.');
+  }
+
+  const cityStr = firstQueryValue(query.city);
+  if (cityStr && cityStr !== 'moscow' && cityStr !== 'spb') {
+    throw new WidgetLinkError('Invalid "city" parameter.');
+  }
+  const city: TMetroCity = cityStr === 'spb' ? 'spb' : 'moscow';
+
+  const fromIds = parseIds(fromStr, 'from');
+  const toIds = parseIds(toStr, 'to');
+  const walkToMin = parseWalk(query.walk, 'walk');
+  const walkFromMin = parseWalk(query.walkFrom, 'walkFrom');
+
+  return {
+    fromIds,
+    toIds,
+    lang: toLang(langStr),
+    ...(city !== 'moscow' ? { city } : {}),
     ...(walkToMin !== undefined ? { walkToMin } : {}),
     ...(walkFromMin !== undefined ? { walkFromMin } : {}),
   };

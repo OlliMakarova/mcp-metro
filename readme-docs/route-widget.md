@@ -63,6 +63,39 @@ than turning into a public route-search API — the k-shortest-paths search is n
 The signing core (`src/tools/widget/widget-data-sign.ts`) is pure and config-free, so it can be unit-tested in
 isolation; the thin wrappers that read the secret and the base URL from config live in `widget-data-link.ts`.
 
+## Changing the stations inside the card
+
+The card's header is not a pair of labels but two combo fields — «from» and «to». Opening either one drops down every
+station of the city in alphabetical order, and typing narrows it to a case-insensitive substring match. Picking a
+station makes the card recompute the route and redraw itself in place; the user never has to ask the bot again.
+
+**Station list.** `GET /api/widget-stations` returns one entry per interchange hub: `name` in the requested language,
+`ids` — every platform of the hub, exactly what goes back as `from` / `to` — and `lines`, the badges of all lines
+serving it. Same-named stations that are *not* joined by a transfer stay separate entries and are told apart by those
+badges. The list is fetched lazily on the first dropdown open, memoized on the server per dataset and language, and
+cached in the widget for the lifetime of the card.
+
+**Why a token and not a signature.** A signed link is bound to one route, so it cannot authorize an arbitrary pair of
+stations. A recompute is therefore gated by a short-lived **token** instead: the string `"<exp>.<hmac>"`, where the HMAC
+is taken over `wtok|<ip>|<exp>` with the same `widgetData.signSecret`. The `wtok|` prefix separates the token domain
+from the link-signature domain, so neither can ever verify as the other. The token lives 30 minutes and is bound to the
+client IP, and **every** successful `GET /api/widget-data` response carries a fresh one — a card in active use keeps
+sliding its expiry forward. If a card sat open past the expiry, the widget silently re-requests its own signed link once
+to pick up a new token and retries; a second `403` in a row surfaces as an error strip.
+
+**Throttling on both sides.** The server accepts at most one token-authorized recompute per 2 seconds per IP
+(`429` with `Retry-After`); the first load of a card goes through a signed link and is deliberately outside that limit,
+so several cards in one chat still load simultaneously. The widget mirrors the same interval with a trailing throttle:
+a pick made when the previous request is already 2 seconds old goes out at once, otherwise it waits for the boundary and
+the request that finally leaves carries the **last** pick — a quick burst of choices collapses into a single request.
+In practice the user never meets a rejection.
+
+**Failure never wipes the card.** A recompute that fails leaves the current route on screen with a localized warning
+strip above it and both selects still working. Picking the same station on both ends shows a hint and sends nothing.
+The walk-to-metro time is kept only for the end the user did *not* replace — a walk time to a station that is no longer
+in the route describes nothing. The "Refresh route" button follows the same split: until the stations are touched it
+reloads the card's own link without `at`, afterwards it re-runs the recompute for the pair currently selected.
+
 ## Compute cache
 
 `src/tools/widget/widget-data-service.ts` keeps a small cache in front of the route search. This is a cache of
@@ -82,8 +115,9 @@ sandboxes) or a dynamically generated host subdomain. Neither can be matched by 
 guard is switched off here (`webServer.cors.enabled: false`); the SDK then answers preflight requests and adds
 `Access-Control-Allow-Origin: *` to every response, and no per-route CORS handling is needed.
 
-The consequence is explicit: `GET /api/widget-data` is a public, read-only, signature-gated route endpoint. Protect it
-by network policy and by the reverse proxy, and set an explicit `widgetData.signSecret` so links survive restarts.
+The consequence is explicit: `GET /api/widget-data` and `GET /api/widget-stations` are public, read-only endpoints gated
+by a signature or a token rather than by a header. Protect them by network policy and by the reverse proxy, and set an
+explicit `widgetData.signSecret` so links survive restarts.
 
 ## Known limitation
 
@@ -94,6 +128,6 @@ a text-only client returns the complete Markdown.
 
 ## Related
 
-- [REST API](./rest-api.md) — the `/api/widget-data` contract and its status codes.
+- [REST API](./rest-api.md) — the `/api/widget-data` and `/api/widget-stations` contracts and their status codes.
 - [Route Search](./route-search.md) — what the payload's variants contain.
 - [Configuration](./configuration.md) — `webServer.publicBaseUrl`, `webServer.cors.enabled`, `widgetData.signSecret`.

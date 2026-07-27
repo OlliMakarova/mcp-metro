@@ -1,9 +1,11 @@
 // REST API of the metro MCP server.
 //
-// Three endpoints (routes) on top of the same data layer used by the MCP tool:
-//   GET /api/stations/search  — fuzzy station search by name;
+// Five endpoints (routes) on top of the same data layer used by the MCP tool:
+//   GET /api/stations/search   — fuzzy station search by name;
 //   GET /api/stations/info     — exhaustive station details;
-//   GET /api/routes            — up to 4 shortest routes between stations.
+//   GET /api/routes            — up to 4 shortest routes between stations;
+//   GET /api/widget-data       — route payload of the MCP Apps widget (signed link or token);
+//   GET /api/widget-stations   — station list for the widget's «from» / «to» selects (token).
 //
 // Each route is protected by rate limiting based on RateLimiterMemory from the
 // rate-limiter-flexible library — the same one the SDK uses for the MCP endpoint.
@@ -17,15 +19,24 @@ import { appConfig, createAuthMW, logger } from 'fa-mcp-sdk';
 
 import { CustomAppConfig } from '../_types_/custom-config.js';
 import { getMetroDatasetOrNull } from '../lib/metro-data/cache.js';
+import { toLang } from '../lib/metro-data/localized-name.js';
 import { hideSourceNames } from '../lib/metro-data/public-source.js';
-import { TMetroCity } from '../lib/metro-data/types.js';
+import { IMetroDataset, TMetroCity } from '../lib/metro-data/types.js';
 import { findBestRoutes } from '../lib/routing/find-routes.js';
 import { resolveStation } from '../lib/station-search/resolve-station.js';
 import { fuzzySearchStations } from '../lib/station-search/search-stations.js';
-import { getStationClusters } from '../lib/station-search/station-clusters.js';
+import { getStationClusters, IStationClusters } from '../lib/station-search/station-clusters.js';
 import { buildStationInfo } from '../lib/station-info.js';
-import { parseWidgetDataQuery, WidgetLinkError } from '../tools/widget/widget-data-link.js';
+import {
+  issueWidgetToken,
+  type IWidgetDataParams,
+  parseTokenQuery,
+  parseWidgetDataQuery,
+  verifyWidgetToken,
+  WidgetLinkError,
+} from '../tools/widget/widget-data-link.js';
 import { getRoutesWidgetData, WidgetStationsMissingError } from '../tools/widget/widget-data-service.js';
+import { getWidgetStations } from '../tools/widget/widget-stations.js';
 
 // Real data source names are confidential: internal error texts are scrubbed of them
 // before being sent to the client (the original goes to the log above)
@@ -66,6 +77,16 @@ const rateLimitMW = async (req: Request, res: Response, next: (err?: unknown) =>
   }
 };
 
+/**
+ * Strict limiter for token-authorized route recomputes: at most one per 2 seconds per IP. The widget
+ * mirrors the same interval with a trailing throttle, so a person clicking through stations never
+ * sees a rejection — this is the server-side floor, not the normal path. The first load of a card
+ * goes through a signed link and is deliberately NOT counted here: several cards in one chat load at
+ * the same moment.
+ */
+const RECOMPUTE_INTERVAL_SEC = 2;
+const recomputeLimiter = new RateLimiterMemory({ points: 1, duration: RECOMPUTE_INTERVAL_SEC });
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 /** `city` query parameter → internal city id: `spb` selects Saint Petersburg, anything else — Moscow */
@@ -87,6 +108,28 @@ const requireDataset = (req: Request, res: Response) => {
     return null;
   }
   return dataset;
+};
+
+/** First value of a query field — Express hands an array when a parameter is repeated */
+const firstParam = (value: unknown): string => {
+  if (Array.isArray(value)) {
+    return typeof value[0] === 'string' ? value[0] : '';
+  }
+  return typeof value === 'string' ? value : '';
+};
+
+/**
+ * Interchange-hub id of a platform list — the cluster of its first id that exists in the dataset.
+ * Returns null when none of the ids are known, leaving the "missing station" verdict to the service.
+ */
+const clusterRootOf = (dataset: IMetroDataset, clusters: IStationClusters, ids: number[]): number | null => {
+  const known = new Set(dataset.stations.map((s) => s.id));
+  for (const id of ids) {
+    if (known.has(id)) {
+      return clusters.clusterOf(id);
+    }
+  }
+  return null;
 };
 
 const parseIntParam = (value: unknown, fallback: number, min: number, max: number): number => {
@@ -204,29 +247,80 @@ apiRouter.get('/routes', rateLimitMW, authMW, (req: Request, res: Response) => {
   }
 });
 
-// ─── Route 4: MCP Apps widget data (self-describing signed link) ───────────────
+// ─── Route 4: MCP Apps widget data (signed link or recompute token) ────────────
 //
 // The route widget loads its dynamic data from here (see src/tools/widget/widget-data-link.ts).
 // The endpoint is intentionally public (no auth): the widget fetches it from a sandboxed iframe
-// that sends no credentials — the HMAC signature in the link is the gate. Cross-origin access from
-// the sandbox (Origin: null or a dynamic host subdomain) is provided by the SDK, which — with
-// `webServer.cors.enabled: false` — adds `Access-Control-Allow-Origin: *` to every response and
-// answers preflight requests, so no per-route CORS handling is needed here.
+// that sends no credentials. Cross-origin access from the sandbox (Origin: null or a dynamic host
+// subdomain) is provided by the SDK, which — with `webServer.cors.enabled: false` — adds
+// `Access-Control-Allow-Origin: *` to every response and answers preflight requests, so no
+// per-route CORS handling is needed here.
+//
+// Two ways in, one response format:
+//   • signed link (`sig`)   — the first load of a card; the route identity is baked into the HMAC;
+//   • recompute token (`token`) — the user picked other stations in the card's selects, so `from` /
+//     `to` are free-form; the gate is a short-lived token bound to the client IP, plus the strict
+//     one-per-2-seconds limiter.
+// Every successful response carries a freshly minted `token`, so an actively used card keeps sliding
+// its expiry forward.
 
-apiRouter.get('/widget-data', rateLimitMW, (req: Request, res: Response) => {
+/** Both widget-data modes end in the same place: build the payload and answer with a fresh token */
+const respondWidgetData = (req: Request, res: Response, params: IWidgetDataParams): void => {
+  const dataset = getMetroDatasetOrNull(params.city ?? 'moscow');
+  if (!dataset) {
+    res.status(503).json({ success: false, error: 'Metro data is temporarily unavailable.' });
+    return;
+  }
+  const data = getRoutesWidgetData(dataset, params);
+  res.json({ ...data, token: issueWidgetToken(clientKey(req)) });
+};
+
+apiRouter.get('/widget-data', rateLimitMW, async (req: Request, res: Response) => {
   try {
-    // Malformed parameters or a bad signature — before touching the data layer
-    const params = parseWidgetDataQuery(req.query);
+    const sig = firstParam(req.query.sig);
+    if (sig) {
+      // Signed-link mode: malformed parameters or a bad signature — before touching the data layer.
+      // The city is part of the signature, so the widget always hits its own city's dataset.
+      respondWidgetData(req, res, parseWidgetDataQuery(req.query));
+      return;
+    }
 
-    // The city is part of the signed link, so the widget always hits its own city's dataset
+    const token = firstParam(req.query.token);
+    if (!token) {
+      res.status(400).json({ success: false, error: 'Missing authorization: either sig or token is required.' });
+      return;
+    }
+
+    // Token mode: identity first, then the strict interval, only then any parsing or computing
+    if (!verifyWidgetToken(clientKey(req), token)) {
+      res.status(403).json({ success: false, error: 'Invalid or expired token.' });
+      return;
+    }
+    try {
+      await recomputeLimiter.consume(clientKey(req));
+    } catch (rejection: any) {
+      const retryAfterSec = Math.ceil((rejection?.msBeforeNext ?? 1000) / 1000);
+      res.setHeader('Retry-After', String(retryAfterSec));
+      res.status(429).json({ success: false, error: 'Too many route recomputes. Please retry later.', retryAfterSec });
+      return;
+    }
+
+    const params = parseTokenQuery(req.query);
     const dataset = getMetroDatasetOrNull(params.city ?? 'moscow');
     if (!dataset) {
       res.status(503).json({ success: false, error: 'Metro data is temporarily unavailable.' });
       return;
     }
+    // Two platforms of one interchange hub are the same station — there is no route to build
+    const clusters = getStationClusters(dataset);
+    const fromRoot = clusterRootOf(dataset, clusters, params.fromIds);
+    const toRoot = clusterRootOf(dataset, clusters, params.toIds);
+    if (fromRoot !== null && fromRoot === toRoot) {
+      res.status(400).json({ success: false, error: 'The departure and arrival stations are the same.' });
+      return;
+    }
 
-    const data = getRoutesWidgetData(dataset, params);
-    res.json(data);
+    respondWidgetData(req, res, params);
   } catch (error) {
     if (error instanceof WidgetLinkError) {
       res.status(400).json({ success: false, error: error.message });
@@ -240,5 +334,28 @@ apiRouter.get('/widget-data', rateLimitMW, (req: Request, res: Response) => {
     // produced from the current data; report 404 with a source-scrubbed message.
     logger.error('REST /widget-data error:', error);
     res.status(404).json({ success: false, error: publicErrorText(error) });
+  }
+});
+
+// ─── Route 5: station list for the widget's «from» / «to» selects ──────────────
+//
+// Public like /widget-data and gated by the very same recompute token: the widget asks for the list
+// lazily, the first time the user opens one of its two dropdowns.
+
+apiRouter.get('/widget-stations', rateLimitMW, (req: Request, res: Response) => {
+  try {
+    const token = firstParam(req.query.token);
+    if (!token || !verifyWidgetToken(clientKey(req), token)) {
+      res.status(403).json({ success: false, error: 'Invalid or expired token.' });
+      return;
+    }
+    const dataset = requireDataset(req, res);
+    if (!dataset) {
+      return;
+    }
+    res.json({ success: true, stations: getWidgetStations(dataset, toLang(firstParam(req.query.lang))) });
+  } catch (error) {
+    logger.error('REST /widget-stations error:', error);
+    res.status(500).json({ success: false, error: publicErrorText(error) });
   }
 });

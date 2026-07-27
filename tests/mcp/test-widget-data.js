@@ -10,7 +10,13 @@
  *   4. fetches the same link without `at` (the "Refresh route" path) and checks it still works;
  *   5. fetches a link with a tampered signature and checks 400;
  *   6. (only when WIDGET_DATA_SIGN_SECRET matches the server) forges a validly-signed link with
- *      non-existent station ids and checks 404.
+ *      non-existent station ids and checks 404;
+ *   7. exercises the station-select path the widget uses: the recompute token every data response
+ *      carries, the station list behind it, a recompute for another pair of stations, the strict
+ *      one-per-2-seconds limiter and the rejections for a forged, expired or missing token.
+ *
+ * The token checks pause 2+ seconds between successive recomputes on purpose — the server allows
+ * only one token-authorized recompute per 2 seconds per IP, so the run is a few seconds long.
  *
  * Windows note: this uses only ASCII station names, so no CP1251 encoding pitfalls apply here.
  */
@@ -19,7 +25,7 @@ import { appConfig, getAuthHeadersForTests } from 'fa-mcp-sdk';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 
-import { buildSignedUrl } from '../../dist/src/tools/widget/widget-data-sign.js';
+import { buildSignedUrl, signToken } from '../../dist/src/tools/widget/widget-data-sign.js';
 
 const baseURL = (process.env.TEST_MCP_SERVER_URL || `http://localhost:${appConfig.webServer.port}`).replace(/\/+$/, '');
 const MCP_URL = `${baseURL}/mcp`;
@@ -38,6 +44,9 @@ const check = (name, cond, details) => {
     failed++;
   }
 };
+
+/** Pause between token-authorized recomputes — the server allows only one per 2 seconds per IP */
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function main() {
   console.log('🧪 Widget-data end-to-end test (requires a running HTTP server)');
@@ -156,17 +165,110 @@ async function main() {
     } else {
       console.log('  ⏭️   404 check skipped (set WIDGET_DATA_SIGN_SECRET to the server secret to enable it)');
     }
+
+    // ── Station-select path: recompute token, station list, recompute, throttling ──
+
+    // 8. Every successful data response carries a fresh recompute token
+    const token = j1?.token;
+    check(
+      'dataUrl JSON carries a recompute token',
+      typeof token === 'string' && /^\d+\.[0-9a-f]{32}$/.test(token),
+      token,
+    );
+    if (typeof token !== 'string') {
+      throw new Error('No recompute token in the widget-data response — cannot continue.');
+    }
+
+    // 9. Station list behind the token
+    const stationsUrl = (t) =>
+      `${baseURL}/api/widget-stations?lang=ru${t === null ? '' : `&token=${encodeURIComponent(t)}`}`;
+    const r6 = await fetch(stationsUrl(token));
+    const j6 = await r6.json().catch(() => null);
+    check('GET /api/widget-stations with a valid token → 200', r6.status === 200, r6.status);
+    check(
+      'station list is a non-empty array',
+      Array.isArray(j6?.stations) && j6.stations.length > 50,
+      j6?.stations?.length,
+    );
+    check(
+      'station entries carry a name, platform ids and line badges',
+      j6?.stations?.every(
+        (s) => typeof s.name === 'string' && Array.isArray(s.ids) && s.ids.length > 0 && Array.isArray(s.lines),
+      ),
+    );
+    check(
+      'station list is sorted alphabetically for the requested language',
+      JSON.stringify(j6?.stations?.map((s) => s.name)) ===
+        JSON.stringify(j6?.stations?.map((s) => s.name).sort((a, b) => a.localeCompare(b, 'ru'))),
+    );
+
+    // 10. Missing / forged token on the station list → 403
+    const r7 = await fetch(stationsUrl(null));
+    check('GET /api/widget-stations without a token → 403', r7.status === 403, r7.status);
+    const r8 = await fetch(stationsUrl(`${Math.floor(Date.now() / 1000) + 600}.${'f'.repeat(32)}`));
+    check('GET /api/widget-stations with a forged token → 403', r8.status === 403, r8.status);
+
+    // 11. Recompute for a different pair of stations
+    const pick = (name) => j6.stations.find((s) => s.name === name);
+    const altFrom = pick('Арбатская') ?? j6.stations[0];
+    const altTo = pick('Динамо') ?? j6.stations[j6.stations.length - 1];
+    const recomputeUrl = (t, from, to) =>
+      `${baseURL}/api/widget-data?from=${from.ids.join(',')}&to=${to.ids.join(',')}&lang=ru&token=${encodeURIComponent(t)}`;
+
+    await sleep(2100);
+    const r9 = await fetch(recomputeUrl(token, altFrom, altTo));
+    const j9 = await r9.json().catch(() => null);
+    check('token recompute for another pair → 200', r9.status === 200, { status: r9.status, body: j9 });
+    check(
+      'recomputed JSON describes the newly requested stations',
+      j9?.from === altFrom.name && j9?.to === altTo.name,
+      {
+        from: j9?.from,
+        to: j9?.to,
+      },
+    );
+    check('recomputed JSON has variants[]', Array.isArray(j9?.variants) && j9.variants.length > 0);
+    check('recomputed JSON carries a refreshed token', typeof j9?.token === 'string' && j9.token !== token, j9?.token);
+
+    // 12. An immediate second recompute hits the strict one-per-2-seconds limiter
+    const r10 = await fetch(recomputeUrl(j9.token, altTo, altFrom));
+    check('immediate second token recompute → 429', r10.status === 429, r10.status);
+    check('429 response carries Retry-After', !!r10.headers.get('retry-after'), r10.headers.get('retry-after'));
+
+    // 13. Both ends of one interchange hub → 400
+    await sleep(2100);
+    const r11 = await fetch(recomputeUrl(j9.token, altFrom, altFrom));
+    check('token recompute with the same station on both ends → 400', r11.status === 400, r11.status);
+
+    // 14. Forged and expired tokens are rejected before anything is computed
+    await sleep(2100);
+    const r12 = await fetch(recomputeUrl(`${Math.floor(Date.now() / 1000) + 600}.${'f'.repeat(32)}`, altFrom, altTo));
+    check('token recompute with a forged token → 403', r12.status === 403, r12.status);
+    if (secret) {
+      const expired = signToken(secret, '::1', Math.floor(Date.now() / 1000) - 60);
+      const r13 = await fetch(recomputeUrl(expired, altFrom, altTo));
+      check('token recompute with an expired token → 403', r13.status === 403, r13.status);
+    } else {
+      console.log('  ⏭️   expired-token check skipped (needs WIDGET_DATA_SIGN_SECRET)');
+    }
+
+    // 15. Neither sig nor token → 400
+    const r14 = await fetch(`${baseURL}/api/widget-data?from=1&to=2&lang=ru`);
+    check('widget-data without sig and without token → 400', r14.status === 400, r14.status);
   } finally {
     await client.close().catch(() => undefined);
   }
 
   console.log(`\nSummary: ${passed} passed, ${failed} failed`);
-  if (failed > 0) {
-    process.exitCode = 1;
-  }
 }
 
-main().catch((e) => {
-  console.error('Test failed:', e?.message || e);
-  process.exit(1);
-});
+// Explicit exit like the sibling transport tests: the streamable-HTTP transport keeps a handle open
+// after close(), so without it the process would linger once the checks are done.
+main()
+  .then(() => {
+    process.exit(failed > 0 ? 1 : 0);
+  })
+  .catch((e) => {
+    console.error('Test failed:', e?.message || e);
+    process.exit(1);
+  });

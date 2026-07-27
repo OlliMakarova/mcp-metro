@@ -58,7 +58,7 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
     "dotenv": "^17.4.2",
-    "fa-mcp-sdk": "^0.12.54",
+    "fa-mcp-sdk": "^0.12.57",
     "nodemailer": "^9.0.3",
     "rate-limiter-flexible": "^11.2.0",
     "yaml": "^2.9.0"

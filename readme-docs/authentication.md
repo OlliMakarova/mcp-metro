@@ -12,12 +12,18 @@ request without credentials. That is intentional for local development and for t
 a publicly reachable address — either enable authentication or keep the server behind a reverse proxy and a network
 policy that restricts who can reach it.
 
-Two endpoints stay open even when authentication is on:
+Three endpoints stay open even when authentication is on, because the route widget runs in a sandboxed iframe that
+cannot send credentials — they are gated by cryptographic material carried in the request itself instead of by a header:
 
 - `/health` — the healthcheck the container and the proxy poll.
-- `GET /api/widget-data` — the route widget's data endpoint. It is gated by the HMAC signature in the link instead of by
-  a header, because the widget runs in a sandboxed iframe that cannot send credentials. See
-  [Route Widget](./route-widget.md).
+- `GET /api/widget-data` — the widget's data endpoint. The gate is the HMAC signature baked into the link, or — for a
+  recompute after the user changed a station in the card — a short-lived token bound to the client IP.
+- `GET /api/widget-stations` — the station list behind the widget's selects, gated by that same token.
+
+See [Route Widget](./route-widget.md) for the reasoning and the security implications.
+
+Note that `webServer.trustProxy` matters for the recompute token: it is bound to the client IP, so behind a reverse
+proxy the server must see the real address rather than the proxy's.
 
 ## Turning authentication on
 
