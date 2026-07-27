@@ -90,14 +90,14 @@ export const METRO_TESTS = {
       }
     },
     async (client) => {
-      const name = 'Версионированный ресурс ui://mos-metro/routes.<hash>.html возвращает HTML-виджет MCP Apps';
+      const name = 'Версионированный ресурс ui://metro/routes.<hash>.html возвращает HTML-виджет MCP Apps';
       try {
         // The URI carries the widget's content hash, so it is discovered from the listing rather
-        // than hardcoded: `ui://mos-metro/routes.<hash>.html`.
+        // than hardcoded: `ui://metro/routes.<hash>.html`.
         const list = await client.listResources();
         const resources = list?.resources || list;
         const uris = Array.isArray(resources) ? resources.map((r) => r.uri) : [];
-        const uri = uris.find((u) => /^ui:\/\/mos-metro\/routes\.[^/]+\.html$/.test(u));
+        const uri = uris.find((u) => /^ui:\/\/metro\/routes\.[^/]+\.html$/.test(u));
         if (!uri) {
           return fail(name, { uris });
         }

@@ -262,7 +262,7 @@ describe('Подпись виджетной ссылки с городом', () 
     expect(() => parseSignedQuery(SECRET, forged)).toThrow(WidgetLinkError);
   });
 
-  test('московские ссылки без города остаются валидными (обратная совместимость)', () => {
+  test('московская ссылка не несёт city в запросе и разбирается обратно', () => {
     const mskUrl = buildSignedUrl('http://x', SECRET, { fromIds: [1], toIds: [2], lang: 'ru' });
     const mskQuery = Object.fromEntries(new URL(mskUrl).searchParams);
     expect(mskQuery.city).toBeUndefined();

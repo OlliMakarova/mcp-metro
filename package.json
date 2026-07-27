@@ -2,7 +2,7 @@
   "name": "mcp-metro",
   "productName": "MCP METRO",
   "version": "0.1.0",
-  "description": "MCP server to search for routes in the Moscow metro and calculate the duration of the trip",
+  "description": "MCP server that builds metro routes and estimates trip duration for Moscow and Saint Petersburg",
   "type": "module",
   "main": "dist/src/start.js",
   "engines": {

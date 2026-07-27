@@ -23,7 +23,6 @@ npx jest tests/lib/routing.test.ts        # one file
 | the backup-source test      | Parsing of the backup source's embedded graph and its enrichment            |
 | `widget-data.test.ts`       | Link signing and parsing, recompute tokens, payload assembly                |
 | `widget-stations.test.ts`   | The hub list behind the widget's selects: clustering, badges, sort order    |
-| `widget-uri-history.test.ts`| That no widget address ever published has been dropped (derived from git)   |
 | `model-summary.test.ts`     | The localized one-line summary in all four languages                        |
 | `telegram-notify.test.ts`   | Send success, failure isolation, the disabled state                         |
 

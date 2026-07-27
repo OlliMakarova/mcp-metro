@@ -34,29 +34,17 @@ The same summary is produced once by `buildModelSummary()` and reused in two pla
 
 That push is invisible in the chat but keeps the summary in the model context for later questions. It is sent only when
 the host advertises the `updateModelContext` capability in its `ui/initialize` response; otherwise the widget silently
-does nothing. Every load, including a press of "Refresh route", overwrites the previous summary.
+does nothing. Every load, including a press of "Refresh", overwrites the previous summary.
 
 ## Cacheable UI, dynamic data
 
 The design splits the two halves deliberately.
 
-**UI** — a versioned resource, `ui://mos-metro/routes.<hash>.html`, where `<hash>` is the first 8 hex characters of the
+**UI** — a versioned resource, `ui://metro/routes.<hash>.html`, where `<hash>` is the first 8 hex characters of the
 widget HTML's SHA-256. Hosts that cache HTML by URI indefinitely re-read it only when the widget actually changes. The
 HTML is read synchronously at module load, because the URI must exist before the tool definition that advertises it in
 `_meta.ui.resourceUri` is built. The resource also declares `preferredFrameSize: ['100%', '520px']` and its own
 `connect-src` CSP entry.
-
-**Every earlier address stays readable.** A host does not embed the widget into the chat message — it stores the
-`ui://` address it saw at the time of the answer and re-reads that address every time the card is displayed, months
-later included. An address the server stops serving therefore does not merely go stale: it turns every route card
-already sitting in the user's history into "widget unavailable", and for a few minutes after a release it does the
-same to brand-new cards, while the host still answers from its cached tool list and hands out the previous address.
-So `src/tools/widget/widget-uri-history.ts` keeps the hash of every build ever published, and each of those addresses
-resolves — to the **current** HTML. That is the right content rather than a compromise: the widget is a renderer and
-the route data comes from the signed link stored in the message, so an old card rendered by today's widget shows the
-same route with today's fixes. **When the widget HTML changes, add the hash it had before the change to that list** —
-`tests/lib/widget-uri-history.test.ts` derives the full set from the file's git history and fails when an entry is
-missing, and `test:mcp-widget` reads every address against a running server.
 
 **Data** — the widget fetches its own route data from `dataUrl` (`GET /api/widget-data`). The link is
 **self-describing**: it carries the departure and arrival platform ids, the language and the moment `at`, plus a
@@ -64,7 +52,7 @@ truncated HMAC-SHA256 signature over `from|to|lang`. The server rebuilds the rou
 
 - the link is **permanent** — no cache of issued payloads, no time-to-live, nothing lost on restart, as long as
   `widgetData.signSecret` is set to a fixed value;
-- the signature deliberately does **not** cover `at`, so the widget's **"Refresh route"** button simply drops `at` and
+- the signature deliberately does **not** cover `at`, so the widget's **"Refresh"** button simply drops `at` and
   rebuilds the route for "now" without invalidating the signature;
 - because refreshing is a plain `fetch` and never a `tools/call`, the button works in every channel, including a
   Telegram Mini App where no MCP session exists.
@@ -80,6 +68,15 @@ isolation; the thin wrappers that read the secret and the base URL from config l
 The card's header is not a pair of labels but two combo fields — «from» and «to». Opening either one drops down every
 station of the city in alphabetical order, and typing narrows it to a case-insensitive substring match. Picking a
 station makes the card recompute the route and redraw itself in place; the user never has to ask the bot again.
+
+**Swapping the two ends.** A round button with two opposite arrows sits to the right of the pair of fields. It flips
+«from» and «to» — the same trip in the opposite direction — and therefore trades the two walk times as well: the walk to
+the metro becomes the walk from it and vice versa. Then it recomputes through exactly the same token path as a pick.
+
+**The «Refresh» button shares the «Routes» title row**, pushed to its right end, so it costs no vertical space of its
+own. It is also the card's only progress indicator: while a request is in flight its leading glyph turns into a spinning
+ring and both it and the swap button are disabled, so a second press cannot start a parallel request. A refresh keeps
+the card on screen instead of replacing it with a loading placeholder.
 
 **Station list.** `GET /api/widget-stations` returns one entry per interchange hub: `name` in the requested language,
 `ids` — every platform of the hub, exactly what goes back as `from` / `to` — and `lines`, the badges of all lines
@@ -105,7 +102,7 @@ In practice the user never meets a rejection.
 **Failure never wipes the card.** A recompute that fails leaves the current route on screen with a localized warning
 strip above it and both selects still working. Picking the same station on both ends shows a hint and sends nothing.
 The walk-to-metro time is kept only for the end the user did *not* replace — a walk time to a station that is no longer
-in the route describes nothing. The "Refresh route" button follows the same split: until the stations are touched it
+in the route describes nothing. The "Refresh" button follows the same split: until the stations are touched it
 reloads the card's own link without `at`, afterwards it re-runs the recompute for the pair currently selected.
 
 ## Compute cache

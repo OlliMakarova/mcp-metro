@@ -52,7 +52,7 @@ answer carries an interactive widget instead of the full Markdown — see [Route
 |-----------------------------------------|-----------------------------|---------------------------------------------------------------------------------|
 | `metro://lines`                         | text/markdown               | All metro / MCC / MCD lines with name, kind and color.                          |
 | `metro://status`                        | text/markdown               | Loaded-data summary: station, line, segment and active-advisory counts.         |
-| `ui://mos-metro/routes.<hash>.html`     | text/html;profile=mcp-app   | Route widget for MCP Apps hosts; the URI is versioned by the widget content hash. |
+| `ui://metro/routes.<hash>.html`         | text/html;profile=mcp-app   | Route widget for MCP Apps hosts; the URI is versioned by the widget content hash. |
 | `doc://readme`                          | text/markdown               | The README with every `readme-docs/*.md` satellite appended (served by the SDK). |
 
 | Prompt         | Description                                                            |

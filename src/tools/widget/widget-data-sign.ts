@@ -40,9 +40,9 @@ export interface IWidgetDataParams {
   /** Response language */
   lang: TLang;
   /**
-   * City of the metro network the ids belong to; absent means Moscow. Part of the signature:
-   * station ids of the two cities overlap, so a link must not be replayable across cities.
-   * Moscow links omit the field entirely, keeping links issued before multi-city support valid.
+   * City of the metro network the ids belong to; absent means Moscow, and the link omits the field for it.
+   * Part of the signature: station ids of the two cities overlap, so a link must never be replayable
+   * across cities.
    */
   city?: TMetroCity;
   /** Moment the route is built for; absent means "now" (the Refresh button path) */
@@ -61,13 +61,9 @@ export class WidgetLinkError extends Error {
   }
 }
 
-/**
- * Canonical string the signature is computed over — the route identity, without the moment `at`.
- * For Moscow the city component is omitted (not `|moscow`), so links issued before multi-city
- * support keep verifying.
- */
+/** Canonical string the signature is computed over — the route identity, without the moment `at` */
 const canonical = (fromStr: string, toStr: string, lang: string, city?: TMetroCity): string =>
-  `${fromStr}|${toStr}|${lang}${city && city !== 'moscow' ? `|${city}` : ''}`;
+  `${fromStr}|${toStr}|${lang}|${city ?? 'moscow'}`;
 
 /** HMAC-SHA256 of the canonical string, truncated to SIG_HEX_LEN hex chars */
 export const signSig = (secret: string, fromStr: string, toStr: string, lang: string, city?: TMetroCity): string =>

@@ -18,8 +18,8 @@ Arabic and Chinese. Typos welcome.
   </tr>
   <tr>
     <td><sub>In any chat the agent calls one tool and retells the route in the user's language.</sub></td>
-    <td><sub>Hosts with MCP Apps render a live widget instead of text — route cards, a timeline, a working
-    "Refresh route" button.</sub></td>
+    <td><sub>Hosts with MCP Apps render a live widget instead of text — station selects, route cards, a timeline
+    and a working "Refresh" button.</sub></td>
   </tr>
 </table>
 

@@ -27,7 +27,6 @@ import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/
 
 import { buildSignedUrl, signToken } from '../../dist/src/tools/widget/widget-data-sign.js';
 import { ROUTES_WIDGET_URI } from '../../dist/src/tools/widget/widget-resource.js';
-import { LEGACY_WIDGET_HASHES, widgetUri } from '../../dist/src/tools/widget/widget-uri-history.js';
 
 const baseURL = (process.env.TEST_MCP_SERVER_URL || `http://localhost:${appConfig.webServer.port}`).replace(/\/+$/, '');
 const MCP_URL = `${baseURL}/mcp`;
@@ -270,10 +269,7 @@ async function main() {
         return false;
       }
     };
-    check(`current widget address ${ROUTES_WIDGET_URI} is readable`, await widgetIsServed(ROUTES_WIDGET_URI));
-    for (const hash of LEGACY_WIDGET_HASHES) {
-      check(`earlier widget address routes.${hash}.html still readable`, await widgetIsServed(widgetUri(hash)));
-    }
+    check(`widget address ${ROUTES_WIDGET_URI} is readable`, await widgetIsServed(ROUTES_WIDGET_URI));
   } finally {
     await client.close().catch(() => undefined);
   }
