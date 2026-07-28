@@ -1,7 +1,7 @@
 {
   "name": "mcp-metro",
   "productName": "MCP METRO",
-  "version": "0.1.1",
+  "version": "0.1.3",
   "description": "MCP server that builds metro routes and estimates trip duration for Moscow and Saint Petersburg",
   "type": "module",
   "main": "dist/src/start.js",
@@ -58,7 +58,7 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
     "dotenv": "^17.4.2",
-    "fa-mcp-sdk": "^0.12.69",
+    "fa-mcp-sdk": "^0.12.70",
     "nodemailer": "^9.0.3",
     "rate-limiter-flexible": "^11.2.0",
     "yaml": "^2.9.0"

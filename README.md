@@ -60,6 +60,7 @@ curl http://localhost:9049/health
 MCP endpoint: `http://localhost:9049/mcp`. No database, no API keys, no credentials — it just runs.
 Client configs are one click away: [Connect your client](#connect-your-client) below.
 
+
 ## Documentation
 
 | Topic                                                     | What's inside                                                                |
