@@ -17,7 +17,7 @@ export default {
       {
         useESM: true,
         // The project type-checks with TypeScript 7 (native), which does not expose the JS
-        // compiler API ts-jest needs — tests compile with the TypeScript 6 line instead.
+        // compiler API ts-jest needs — tests compile with the TypeScript 6
         compiler: '@typescript/typescript6',
       },
     ],

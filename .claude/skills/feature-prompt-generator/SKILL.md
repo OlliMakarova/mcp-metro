@@ -8,7 +8,7 @@ description: >-
   examples, and testing scenario. Universal for any fa-mcp-sdk project.
 disable-model-invocation: true
 argument-hint: "[feature description | path to task file]"
-allowed-tools: Read, Grep, Glob, Bash(git *), Bash(yarn *), Bash(npm *), Bash(node *), Bash(ls *), Bash(cat *)
+allowed-tools: Read, Grep, Glob, Bash(git *), Bash(yarn *), Bash(npm *), Bash(node *), Bash(ls *), Bash(cat *), Bash(curl *), WebFetch, WebSearch, mcp__context7__resolve-library-id, mcp__context7__query-docs
 ---
 
 # feature-prompt-generator — META-SKILL for generating prompts for an AI CLI
@@ -36,17 +36,21 @@ or the equivalent UI invocation). Ignore any implicit triggers from phrasing in 
 - The operator describes a feature/functionality but does not write code themselves.
 - A production-ready prompt is needed to hand off to Claude Code / another AI agent.
 
-## Core principles (Karpathy-style, think-before-code)
+## Method — shared with the other skills
 
-1. **Think before code.** Architecture first, implementation second. Do not rush to code.
-2. **Simplicity first.** KISS / YAGNI / DRY — the minimal sufficient solution. No speculative features.
-3. **Surgical changes.** Touch only what is required. Do not "improve" adjacent code.
-4. **Goal-driven.** Every step has a verifiable success criterion.
-5. **Anti-hallucination.** Do not invent files, functions, or APIs. Only what actually exists in
-   the code (verified via Read/Grep/Glob).
-6. **Surface assumptions.** Explicitly mark anything inferred on behalf of the operator as
-   `ASSUMPTION:`.
-7. **Ask, don't guess.** If anything is ambiguous — stop, name the ambiguity, ask.
+How you think, and how you study a source of truth, is defined once — in
+`${CLAUDE_SKILL_DIR}/../_shared/source-research.md`. **Read that file before STEP 1 and follow it for
+the whole run.** It carries the seven core principles (think before code, simplicity first, surgical
+changes, goal-driven steps, anti-hallucination, surfaced assumptions, ask rather than guess), the
+classification of source kinds, the baseline project reads, the inventory each kind of source demands,
+the rules for mapping a source's operations onto an MCP surface, and the hard prohibitions.
+
+The shape of the document you produce is defined once as well — in
+`${CLAUDE_SKILL_DIR}/../_shared/prompt-plan-format.md`. Part B of your output is a prompt-plan and
+obeys that format. Read it before writing Part B.
+
+Neither file is optional, and neither is summarized into the output: this skill adds only what is
+specific to turning research into a hand-off prompt.
 
 ## Input
 
@@ -76,51 +80,27 @@ Extract from the input:
 If ambiguities exist — ask the operator clarifying questions **before** analyzing the code.
 If the operator says "decide yourself" — record the decision as `ASSUMPTION:`.
 
-### STEP 2 — Codebase Discovery
+### STEP 2 — Source and codebase discovery
 
-**Real Read/Grep/Glob only. No guesses.**
+Carry out the research described in `${CLAUDE_SKILL_DIR}/../_shared/source-research.md`: classify the
+source, do the baseline project reads, inventory the source's operations with their inputs, outputs,
+access rules and limits, map those operations onto an MCP surface, and list what is already reusable
+here. **Real Read / Grep / Glob / WebFetch only. No guesses.**
 
-Baseline input reads (universal for fa-mcp-sdk projects):
+On top of what that file requires, record these four things — the prompt you are about to write needs
+them and they are specific to this SDK:
 
-- `CLAUDE.md` — project rules, commands, protocols.
-- `package.json` — dependencies, scripts, `fa-mcp-sdk` version, package manager in use.
-- `README.md` — general context.
-- `tsconfig.json` — TypeScript settings (`strict`, `moduleResolution`, `paths`).
-- `FA-MCP-SDK-DOC/` (if present) — framework documentation; entry point
-  `00-FA-MCP-SDK-index.md`, then by topic: `02-1-tools-and-api.md`,
-  `02-2-prompts-and-resources.md`, `03-configuration.md`, `04-authentication.md`,
-  `06-utilities.md`, `07-testing-and-operations.md`.
-- `config/default.yaml` (+ `config/local.yaml` if present) — current configuration.
-- `src/start.ts` (or equivalent) — entry point; how `McpServerData` is assembled and
-  `initMcpServer()` is called.
+1. **SDK extension points** — which `fa-mcp-sdk` exports the implementation will use: `initMcpServer`,
+   `appConfig`, `formatToolResult`, `ToolExecutionError`, and the types `ITemplateTool`,
+   `IToolHandlerParams`, `TToolHandlerResponse`, `ITransportContext`.
+2. **Configuration** — which new fields belong in `config/default.yaml`, whether a mapping in
+   `config/custom-environment-variables.yaml` is required, and how they are typed in `CustomAppConfig`.
+3. **Authentication / authorization** — when the feature introduces an endpoint or a tool that requires
+   permissions, cross-check against `webServer.auth` and the validator patterns already in the project.
+4. **Duplication risks** — where logic could get duplicated during implementation, and how that is
+   avoided.
 
-Then — targeted by the feature's topic:
-
-- `src/tools/` — if the feature adds/changes an MCP tool: find similar tools, learn the pattern
-  (`ToolWithHandler`, `inputSchema`, `annotations`, `handler`).
-- `src/prompts/`, `src/resources/` — if the feature concerns prompts/resources.
-- `src/lib/` — common utilities: HTTP client, logger, errors, cache, concurrency.
-- `src/_types_/` (or `src/types/`) — domain types, `CustomAppConfig`.
-- `tests/` — test layout (STDIO/HTTP), existing helpers, emulators.
-- `scripts/` — auxiliary scripts that might be reused.
-
-Identify and document:
-
-1. **Reusable artifacts** — functions/classes/types that already solve adjacent problems.
-   For each, cite `path/to/file.ts:<line>` and describe what it does.
-2. **Similar features/tools** — the implementation pattern to be replicated (do not reinvent).
-3. **Dependencies in `package.json`** — what is already installed and solves adjacent tasks.
-   Do not pull new npm packages without necessity.
-4. **SDK extension points** — which `fa-mcp-sdk` exports to use: `initMcpServer`, `appConfig`,
-   `formatToolResult`, `ToolExecutionError`, types `ToolWithHandler`, `IToolHandlerParams`,
-   `ITransportContext`, etc.
-5. **Configuration** — which new fields are needed in `config/default.yaml`, whether mapping in
-   `config/custom-environment-variables.yaml` is required, how to type them in `CustomAppConfig`.
-6. **Authentication / authorization** — if the feature introduces an endpoint or tool requiring
-   permissions, cross-check with `webServer.auth` and `jiraHeadersAuthValidator`-style patterns.
-7. **Duplication risks** — where logic might get duplicated; how to avoid it.
-
-The step's output is a "Reusable Artifacts" section, e.g.
+Every reusable artifact is cited with a `file:line` path and one line on what it does, e.g.
 `src/lib/http-client.ts:42 — createHttpClient(): use for all requests with per-request auth`.
 
 ### STEP 3 — Architecture Design
@@ -139,8 +119,10 @@ Describe:
 - Which **existing** abstractions are reused, which **new** ones are introduced — and why.
 - If alternatives exist — briefly list them with a justification for the chosen variant.
 - Data flow: `input → validation → action → formatting → output`.
-- SDK patterns: tool handler via `ToolWithHandler`, per-request context (`httpClient`, `logger`,
-  `mcpRequestHeaders`), response via `formatToolResult`, errors via `ToolExecutionError`.
+- SDK patterns: one tool per file, each exporting an `ITemplateTool` (`{ definition, handler }`) and
+  listed in `src/tools/tools.ts`; the handler receives `IToolHandlerParams` (arguments, headers, JWT
+  payload, transport); the response goes through `formatToolResult`; failures raise
+  `ToolExecutionError`.
 
 Explicit prohibitions:
 
@@ -158,16 +140,18 @@ Table: each row is one file, one action.
 
 Under each row — 2–5 specific bullets: which function, where exactly, with what signature.
 
-Group by layers in dependency order:
+Group by layers in dependency order. These layers are also the stages of the checklist in the finished
+prompt, so name them the same way in both places:
 
 1. Types (`src/_types_/*.ts`)
-2. Configuration (`config/*.yaml`, `src/bootstrap/*.ts`)
+2. Configuration (`config/*.yaml`)
 3. Utilities / lib (`src/lib/*.ts`)
-4. Tool / prompt / resource / REST handler (`src/tools/**/*.ts` or `src/rest/*.ts`)
-5. Registration in `src/start.ts` (if needed)
-6. Tests (`tests/**`)
-7. Documentation (`CLAUDE.md`, `README.md`, `FA-MCP-SDK-DOC/*` — only if the feature genuinely
-   requires it)
+4. Tool / prompt / resource / REST handler — one tool per file in `src/tools/<tool-name>.ts`, each
+   registered in the list in `src/tools/tools.ts`; prompts in `src/prompts/*`, resources in
+   `src/custom-resources.ts`, REST endpoints in `src/api/router.ts`
+5. Tests (`tests/mcp/**`)
+6. Documentation (`README.md`, `readme-docs/*`, `AGENTS.md` where a rule actually changes) — this
+   layer is the **last stage and it is mandatory**, never "only if the feature requires it"
 
 For each "create", reference an **existing template file** (file:line) whose pattern must be
 replicated. For each "modify" and "delete", verify via Read/Glob that the file actually exists.
@@ -179,19 +163,32 @@ Concrete TypeScript snippets:
 - Strict typing, no `any`, no stubs, no `TODO`/`FIXME`.
 - Signatures of new functions/classes.
 - Interfaces/DTOs with TSDoc on every field.
-- Tool-handler skeleton following the project pattern:
+- Tool skeleton following the project pattern — one tool per file, `src/tools/<tool-name>.ts`, the
+  tool's `name` with every `_` replaced by `-`, definition and handler together in that one file:
 
   ```ts
-  import type { ToolWithHandler, ToolContext } from '../../_types_/tool.js';
+  import { Tool } from '@modelcontextprotocol/sdk/types.js';
+  import { formatToolResult, ToolExecutionError, IToolHandlerParams, TToolHandlerResponse } from 'fa-mcp-sdk';
+  import { ITemplateTool } from './tool.js';
 
-  export const <tool_name>: ToolWithHandler = {
+  const definition: Tool = {
     name: '<tool_name>',
     description: '...',
     inputSchema: { type: 'object', properties: { /* ... */ }, required: [/* ... */] },
     annotations: { title: '...', readOnlyHint: <bool>, destructiveHint: <bool> },
-    handler: async (args, ctx: ToolContext) => { /* ... */ },
   };
+
+  async function handler (params: IToolHandlerParams): Promise<TToolHandlerResponse> {
+    const { arguments: args, headers, payload } = params;
+    if (!args?.<required_field>) throw new ToolExecutionError('<tool_name>', '<field> is required');
+    return formatToolResult({ /* ... */ });
+  }
+
+  export const <toolCamelCase>Tool: ITemplateTool = { definition, handler };
   ```
+
+  Registration is a single line added to the list in `src/tools/tools.ts`; the dispatcher in
+  `src/tools/handle-tool-call.ts` picks the tool up by name and is not edited.
 
 - YAML config fragment and matching typing in `CustomAppConfig`.
 - SQL / migrations — only if the project actually uses a DB and the feature requires it.
@@ -303,35 +300,50 @@ Separate with an explicit heading:
 # === PROMPT FOR AI CLI — <TICKET-ID | FEATURE-SLUG>: <title> ===
 ```
 
-The prompt contains exactly 15 sections:
+Part B is a **prompt-plan**, so its shape comes from
+`${CLAUDE_SKILL_DIR}/../_shared/prompt-plan-format.md` — read that file before writing it. The two
+opening sections are prescribed there and come first; the sections below fill in everything after
+them. Eighteen sections in total:
 
-1. **Context** — goal, components, affected layers.
-2. **Mandatory input reads** — list of files "read before starting":
-   `CLAUDE.md`, `package.json`, `FA-MCP-SDK-DOC/*.md` (if present), `config/default.yaml`,
+1. **Essence** — the plain-language opening block required by the format file: what this changes and
+   why, written for a non-programmer, with no path, identifier, protocol name, or unexpanded
+   abbreviation in it. Nothing goes above this section.
+2. **Note to the executor** — the standing instructions for the whole run, including the rule that
+   every checklist box is ticked in this same file the moment the item is genuinely done.
+3. **Context** — goal, components, affected layers.
+4. **Mandatory input reads** — list of files "read before starting":
+   `AGENTS.md`, `package.json`, `FA-MCP-SDK-DOC/*.md` (if present), `config/default.yaml`,
    `src/start.ts`, + targeted files by topic.
-3. **Preconditions** — system state, access, dependencies, environment variables.
-4. **Functional requirements** — numbered list of "what must work".
-5. **Non-functional requirements** — performance, security, logging, compatibility
+5. **Source of truth** — what the feature's knowledge is drawn from and how it was verified: paths,
+   URLs, documentation sections. Anything that could not be opened is named here as a blocker.
+6. **Preconditions** — system state, access, dependencies, environment variables.
+7. **Functional requirements** — numbered list of "what must work".
+8. **Non-functional requirements** — performance, security, logging, compatibility
    (if critical — different transports / API versions), concurrency.
-6. **Workflow** — step-by-step "who → to whom → what → result".
-7. **Branches and errors** — explicit deviation cases and how they are handled
-   (via `ToolExecutionError`, HTTP codes, structured logs).
-8. **Interfaces** — tool `inputSchema` / REST signature / DTOs with sample payloads.
-9. **Data changes** — migrations/DDL, if the feature uses a DB; otherwise
-   "not required — feature without DB".
-10. **Change plan** — table "file → action → what we do" (from STEP 4).
-11. **Code examples** — concrete snippets (from STEP 5), with file headers and TSDoc.
-12. **Code standard** — short extract of project rules from `CLAUDE.md` + key SDK rules:
-    ESM imports with `.js` extension, use `appConfig` instead of reading config directly,
-    response via `formatToolResult`, strict typing.
-13. **Test cases** — numbered "action → expected result" (from STEP 6).
-14. **Execution instructions** — commands with expected outcomes (from STEP 7).
-15. **Success criteria** — checklist (from STEP 8).
+9. **Workflow** — step-by-step "who → to whom → what → result".
+10. **Branches and errors** — explicit deviation cases and how they are handled
+    (via `ToolExecutionError`, HTTP codes, structured logs).
+11. **Interfaces** — tool `inputSchema` / REST signature / DTOs with sample payloads.
+12. **Data changes** — migrations/DDL, if the feature uses a DB; otherwise
+    "not required — feature without DB".
+13. **Change plan** — table "file → action → what we do" (from STEP 4).
+14. **Code examples** — concrete snippets (from STEP 5), with file headers and TSDoc.
+15. **Code standard** — short extract of project rules from `AGENTS.md` + key SDK rules:
+    one tool per file exporting an `ITemplateTool`, ESM imports with `.js` extension, configuration
+    read through `appConfig`, responses through `formatToolResult`, strict typing.
+16. **Test cases** — numbered "action → expected result" (from STEP 6).
+17. **Execution instructions** — commands with expected outcomes (from STEP 7).
+18. **Implementation checklist** — the stages from STEP 4, each item a `- [ ]` checkbox grouped by
+    stage, with the documentation update as the last stage. The success criteria from STEP 8 close the
+    document as a sign-off block.
 
 Hard rules for the prompt:
 
 - The prompt **does not reference** this skill. No phrases like "as said in the skill" or
-  "per the instructions above".
+  "per the instructions above". The same applies to the two shared reference files: their rules are
+  obeyed, their names never appear in the output.
+- Everything is stated **in the target state** — decisions, not transitions. No "was replaced by",
+  no "moved from X to Y", no before/after wording anywhere in the document.
 - Do not leave `TODO`/`FIXME`, stubs, "code example omitted", `any`, empty sections.
 - If a section is not applicable — state it explicitly: "not required — <one-line reason>".
 - All paths — relative to the repository root, POSIX separators (`/`).
@@ -339,8 +351,8 @@ Hard rules for the prompt:
 
 ## Anti-bullshit mode (hard prohibitions)
 
-- ❌ Inventing files, functions, exports, SDK methods. Only what is verified via Read/Grep/Glob
-  and/or documented in `FA-MCP-SDK-DOC/`.
+- ❌ Inventing files, functions, exports, endpoints, SDK methods. Only what is verified via
+  Read/Grep/Glob/WebFetch and/or documented in `FA-MCP-SDK-DOC/` or the source's own documentation.
 - ❌ Vague wording like "implement correctly", "handle properly". Specifics only: what, where, how.
 - ❌ "Bonus features" — do not add what was not asked for (YAGNI).
 - ❌ `any`, stubs, `throw new Error('Not implemented')`, `// TODO: ...`.
@@ -350,7 +362,11 @@ Hard rules for the prompt:
 
 ## Quality gate before release (mandatory checklist)
 
-- [ ] Part B contains all 15 sections, or an explicit "not required — …" with justification.
+- [ ] Part B contains all 18 sections, or an explicit "not required — …" with justification.
+- [ ] Part B obeys the prompt-plan format: the plain-language block opens it with nothing above it and
+      carries no path, identifier, protocol name, or unexpanded abbreviation; the note to the executor
+      is second and states the tick-the-boxes rule; the stage checklist is grouped and its last stage
+      is the documentation update; nowhere does the text describe a transition from old to new.
 - [ ] Every cited source file actually exists (verified via Read/Glob).
 - [ ] Every reusable function is cited with a `file:line` path.
 - [ ] No references to "see the skill" / "as agreed earlier" / "per our conversation".
