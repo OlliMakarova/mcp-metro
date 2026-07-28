@@ -44,7 +44,7 @@ Returns:
 - services
 - first and last train schedules
 
-Pass station names exactly as the user writes them.`,
+For recognizable typos or inflection, pass the closest official nominative station name.`,
   inputSchema: {
     type: 'object',
     properties: {

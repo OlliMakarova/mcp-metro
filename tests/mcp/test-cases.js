@@ -134,6 +134,22 @@ export const METRO_TESTS = {
       }
     },
     async (client) => {
+      const name = 'Описание metro_info просит исправлять узнаваемые названия станций';
+      try {
+        const list = await client.listTools();
+        const tools = list?.tools || list;
+        const tool = Array.isArray(tools) ? tools.find((item) => item.name === 'metro_info') : undefined;
+        const description = String(tool?.description ?? '');
+        const good =
+          description.includes(
+            'For recognizable typos or inflection, pass the closest official nominative station name.',
+          ) && !description.includes('Pass station names exactly as the user writes them.');
+        return good ? ok(name, { description }) : fail(name, { description });
+      } catch (e) {
+        return fail(name, { error: e?.message });
+      }
+    },
+    async (client) => {
       const name = 'get_station_info по «Пушкинская» возвращает сведения о станции (названия — en по умолчанию)';
       try {
         const text = extractToolText(
