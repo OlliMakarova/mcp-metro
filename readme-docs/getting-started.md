@@ -1,9 +1,10 @@
 # Getting Started
 
 From `npm install` to a connected AI client in a few minutes. The server needs no database, no API keys and no
-credentials to start — authentication is off by default and the metro data sources require none. This page covers
-running the server, wiring it into MCP clients (Claude Code, Claude Desktop, Qwen Code, OpenCode, Codex), the
-available transports, and the build and test commands.
+credentials to start — authentication is off by default and the metro data sources require none. Both cities, Moscow
+and Saint Petersburg, are loaded at startup with no extra setup. This page covers running the server, wiring it into
+MCP clients (Claude Code, Claude Desktop, Qwen Code, OpenCode, Codex), the available transports, and the build and
+test commands.
 
 ## Quick Start
 
@@ -18,6 +19,7 @@ Verify the server is up and the data layer loaded:
 ```bash
 curl http://localhost:9049/health
 curl "http://localhost:9049/api/stations/info?q=%D0%9A%D0%B8%D0%B5%D0%B2%D1%81%D0%BA%D0%B0%D1%8F"
+curl "http://localhost:9049/api/routes?from=devyatkino&to=kupchino&city=spb"   # the second city
 ```
 
 For STDIO mode (Claude Desktop spawns the process directly):
@@ -193,6 +195,7 @@ Environment variables:
 
 ## Where to go next
 
+- What each of the two cities carries in its answers: [Cities](./cities.md).
 - Every setting the server reads: [Configuration](./configuration.md).
 - Locking the server down for a public address: [Authentication](./authentication.md).
 - Testing, including the Agent Tester and its Headless API: [Testing](./testing.md).

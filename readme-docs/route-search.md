@@ -17,7 +17,9 @@ variants more than 30% slower than the fastest one are dropped. The rest of this
 - **Weights** are seconds. There is no separate "transfer penalty": the walking time is the transfer edge's own weight,
   and a ground transfer (out to the street and back in) is flagged as such.
 
-The Moscow graph is roughly 450 nodes and 1200 edges, so a single search takes a fraction of a millisecond.
+The Moscow graph is roughly 450 nodes and 1200 edges; the Saint Petersburg one is an order of magnitude smaller, about
+75 nodes. Either way a single search takes a fraction of a millisecond. The builder is city-agnostic — it is handed a
+dataset and never asks which city it came from.
 
 ### Closures are baked into the graph, not filtered afterwards
 
@@ -54,8 +56,15 @@ Interval bands, by line kind and time of Moscow day:
 MCD figures are the roughest of the three: real intervals there depend on the individual train and its terminus
 (express runs, short runs), which the public data does not expose.
 
-**Door-to-door estimate.** When the primary source supplies street-to-platform enter and exit times, the response adds a
-door-to-door figure next to the pure travel time. With backup-source data those fields are simply absent.
+The bands were calibrated on Moscow observations, and the metro row is reused as-is for Saint Petersburg — its service
+pattern is close enough for an estimate, but the figures are not measured there. Both cities keep the same wall clock,
+so "peak" and "late evening" mean the same hours in either.
+
+**Door-to-door estimate.** When the data supplies street-to-platform enter and exit times, the response adds a
+door-to-door figure next to the pure travel time. Moscow has them per station from the primary source; Saint Petersburg
+uses one network-wide figure taken from the official route calculator. With Moscow backup-source data those fields are
+simply absent. When the model was told how long the user walks to or from the metro, those minutes are added on top and
+drawn as separate walking segments.
 
 ## k shortest paths and variant identity
 
@@ -87,10 +96,12 @@ Variants are sorted by total time. Anything more than **30%** slower than the fa
 
 ## Operating hours
 
-`src/lib/routing/operating-hours.ts` computes the entry status of the departure hub in Moscow time: whether at least one
-vestibule is open right now, the governing window, minutes until entry closes, or when it opens next. The check reads
-per-weekday vestibule hours from the primary source; when no vestibule of the hub has usable hours (the backup source
-has none), the typical Moscow window **05:30–01:00** is assumed and the status is marked approximate.
+`src/lib/routing/operating-hours.ts` computes the entry status of the departure hub in Moscow time — which is also
+Petersburg time, so one clock serves both cities: whether at least one vestibule is open right now, the governing
+window, minutes until entry closes, or when it opens next. In Moscow the check reads per-weekday vestibule hours from
+the primary source; in Saint Petersburg the official source publishes no weekday split, so its single window is applied
+to all seven days. When no vestibule of the hub has usable hours (the Moscow backup source has none), the typical
+window **05:30–01:00** is assumed and the status is marked approximate.
 
 Travel times are never adjusted by this — the status is informational and is rendered as a warning at the top of the
 route answer. The status is computed across *all* vestibules of the departure hub, not just the platform the fastest
@@ -99,14 +110,15 @@ variant starts from.
 ## What a variant carries
 
 - Ride legs: line (with kind, color and MCC/MCD flags) and the full ordered station list.
-- Transfer legs: both stations, walking time, whether it goes via the street, which cars to board (primary source only),
-  and whether the edge is a notification-supplied detour.
-- Ground transport at the departure and arrival stations, derived from the exit descriptions.
+- Transfer legs: both stations, walking time, whether it goes via the street, which cars to board (Moscow primary source
+  only), and whether the edge is a notification-supplied detour.
+- Ground transport at the departure and arrival stations, derived from the exit descriptions (Moscow only).
 - Station warnings collected along the route.
 - Whether closure data was applied at all (`closuresApplied`) — false means the notifications file was unavailable.
 
 ## Related
 
 - [Station Resolution](./station-resolution.md) — how the two names become platform ids.
+- [Cities](./cities.md) — which of these fields each city actually fills.
 - [Data Sources](./data-sources.md) — where segment times, vestibule hours and advisories come from.
 - [Route Widget](./route-widget.md) — how variants are presented in MCP Apps hosts.

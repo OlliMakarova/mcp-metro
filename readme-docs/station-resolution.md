@@ -36,7 +36,8 @@ clusters automatically without any invalidation logic.
 
 `src/lib/station-search/search-index.ts` builds, for every station, a list of normalized spelling variants:
 
-- names in all four languages present in the data — Russian, English, Arabic, Chinese;
+- every language the data has for that station — Russian, English, Arabic and Chinese in Moscow, Russian in Saint
+  Petersburg;
 - transliteration of the Russian name into Latin (`Ховрино` → `khovrino`);
 - reverse transliteration of the English name back into Cyrillic, which catches sources that spell a name differently;
 - search aliases — the "second" names of interchange hubs, added when running on backup-source data;
@@ -48,7 +49,10 @@ They are matched **only exactly**, never fuzzily: comparing similarity against d
 queries cross the threshold, while a typo in an oblique-case query is already caught by fuzzy matching against the
 nominative. An occasionally wrong generated form is harmless — it just sits in the index as a variant nobody types.
 
-Like the clusters, the index is memoized per dataset object.
+Like the clusters, the index is memoized per dataset object — and since each city has its own dataset, each city gets
+its own index and its own clusters, with no name ever leaking across the city boundary. The variants that matter most in
+practice — transliteration and case forms — are generated from the Russian name rather than read from the data, so they
+work in Saint Petersburg exactly as they do in Moscow even though its data carries Russian names only.
 
 ## Similarity metric
 
@@ -92,4 +96,5 @@ The same data is available over HTTP without the tool layer: `GET /api/stations/
 ## Related
 
 - [Route Search](./route-search.md) — what happens once both names resolve.
+- [Cities](./cities.md) — which languages exist in each city's data.
 - [Data Sources](./data-sources.md) — which languages and aliases each source provides.

@@ -8,6 +8,9 @@ Interactive documentation is served at `/docs` (Swagger UI); the raw OpenAPI spe
 ## Common behavior
 
 - **Method** — `GET` only. Nothing in this API modifies state.
+- **City** — every route accepts an optional `city` parameter. `city=spb` (or `city=stpetersburg`, case-insensitive)
+  selects Saint Petersburg; an absent or unrecognized value means Moscow. Each city answers from its own dataset, so a
+  name that exists in one city is not found in the other. See [Cities](./cities.md).
 - **Encoding** — Cyrillic query values must be URL-encoded (`%D0%9A%D0%B8%D0%B5%D0%B2%D1%81%D0%BA%D0%B0%D1%8F` for
   `Киевская`).
 - **Authentication** — the first three routes go through the SDK auth middleware, so they require an `Authorization`
@@ -33,10 +36,11 @@ Interactive documentation is served at `/docs` (Swagger UI); the raw OpenAPI spe
 
 Fuzzy station search — the raw output of the matcher, useful for debugging why a name resolves the way it does.
 
-| Parameter | Required | Range        | Default | Description                     |
-|-----------|----------|--------------|---------|---------------------------------|
-| `q`       | yes      | —            | —       | Station name in any of the four languages |
-| `limit`   | no       | 1–50         | `8`     | Maximum number of matches       |
+| Parameter | Required | Range        | Default  | Description                                            |
+|-----------|----------|--------------|----------|--------------------------------------------------------|
+| `q`       | yes      | —            | —        | Station name, in any language the city's data carries   |
+| `limit`   | no       | 1–50         | `8`      | Maximum number of matches                              |
+| `city`    | no       | —            | `moscow` | `spb` for Saint Petersburg                              |
 
 ```bash
 curl "http://localhost:9049/api/stations/search?q=hovrino&limit=3"
@@ -69,9 +73,10 @@ missing.
 
 Full station details for a resolved name.
 
-| Parameter | Required | Description                       |
-|-----------|----------|-----------------------------------|
-| `q`       | yes      | Station name to describe          |
+| Parameter | Required | Description                                            |
+|-----------|----------|--------------------------------------------------------|
+| `q`       | yes      | Station name to describe                                |
+| `city`    | no       | `spb` for Saint Petersburg; absent means Moscow          |
 
 | Status | Body                                                                                  |
 |--------|---------------------------------------------------------------------------------------|
@@ -87,14 +92,16 @@ options.
 
 Route variants between two stations.
 
-| Parameter | Required | Range | Default | Description                       |
-|-----------|----------|-------|---------|-----------------------------------|
-| `from`    | yes      | —     | —       | Departure station name            |
-| `to`      | yes      | —     | —       | Arrival station name               |
-| `k`       | no       | 1–4   | `4`     | Maximum number of route variants   |
+| Parameter | Required | Range | Default  | Description                                     |
+|-----------|----------|-------|----------|-------------------------------------------------|
+| `from`    | yes      | —     | —        | Departure station name                           |
+| `to`      | yes      | —     | —        | Arrival station name                             |
+| `k`       | no       | 1–4   | `4`      | Maximum number of route variants                 |
+| `city`    | no       | —     | `moscow` | `spb` for Saint Petersburg                       |
 
 ```bash
 curl "http://localhost:9049/api/routes?from=hovrino&to=kievskaya&k=2"
+curl "http://localhost:9049/api/routes?from=devyatkino&to=kupchino&city=spb"
 ```
 
 A successful answer carries the resolved endpoint names plus the search result: `variants` (see
@@ -182,4 +189,5 @@ reasoning and the security implications.
 ## Related
 
 - [Authentication](./authentication.md) — what protects these routes when auth is on.
+- [Cities](./cities.md) — what the `city` parameter changes in the answers.
 - [Configuration](./configuration.md) — `restApi.rateLimit`, `webServer.cors.enabled`.

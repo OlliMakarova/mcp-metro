@@ -18,9 +18,10 @@ npx jest tests/lib/routing.test.ts        # one file
 | `search.test.ts`            | Fuzzy matching, transliteration, case forms, hub clustering                 |
 | `operating-hours.test.ts`   | Vestibule windows, the midnight-crossing case, the approximate fallback     |
 | `train-intervals.test.ts`   | Interval bands per line kind, weekday versus weekend, expected wait          |
-| `refresh.test.ts`           | The source cascade, notification time-to-live, deletion of stale closures    |
+| `refresh.test.ts`           | The Moscow source cascade, notification time-to-live, deletion of stale closures |
 | `public-source.test.ts`     | Scrubbing of source names from outward-facing text                          |
 | the backup-source test      | Parsing of the backup source's embedded graph and its enrichment            |
+| `spb-data.test.ts`          | Saint Petersburg: parsing of each source, dataset assembly with the line-6 supplement, transfer and entrance times from the route calculator, routing and search over the result, and the city inside the signed widget link |
 | `widget-data.test.ts`       | Link signing and parsing, recompute tokens, payload assembly                |
 | `widget-stations.test.ts`   | The hub list behind the widget's selects: clustering, badges, sort order    |
 | `model-summary.test.ts`     | The localized one-line summary in all four languages                        |

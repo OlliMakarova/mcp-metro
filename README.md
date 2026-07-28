@@ -1,8 +1,8 @@
 # MCP METRO
 
-**Moscow Metro for AI agents.** Ask *"how do I get from Khovrino to Sportivnaya?"* in plain language — get real
-route variants with travel times, transfers, car-boarding hints and today's closures. Works in Russian, English,
-Arabic and Chinese. Typos welcome.
+**Moscow and Saint Petersburg metro for AI agents.** Ask *"how do I get from Khovrino to Sportivnaya?"* in plain
+language — get real route variants with travel times, transfers, car-boarding hints and today's closures. Both
+networks answer through one tool. Understands Russian, English, Arabic and Chinese. Typos welcome.
 
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D20-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
@@ -27,23 +27,23 @@ Arabic and Chinese. Typos welcome.
 
 - 🚇 **Routes people can actually follow** — up to 3 variants with travel time, every station on the way, transfer
   walks, a door-to-door estimate and "board the first car" hints for faster interchanges.
-- 🚧 **Knows what's closed today** — escalator repairs, closed stations and official detours are applied to the
-  route graph *before* the search runs, not footnoted after.
-- 🌍 **Understands humans, not codes** — fuzzy station matching in four languages; typos, transliteration
-  (`hovrino`) and Russian case forms (`до Чеховской`) all resolve to the right station.
-- 🖼 **Interactive widget (MCP Apps)** — SEP-1865 hosts get clickable route cards; text-only hosts get clean
-  Markdown. Nobody gets a wall of JSON.
-- 🔄 **Swap stations right in the card** — pick another «from» or «to» from a searchable dropdown and the card
-  recomputes the route in place, without asking the bot again.
-- 🚈 **The whole network** — Metro, MCC and MCD, plus ground transport at both ends, station services and
-  vestibule opening hours.
-- ⚡ **Never hostage to the network** — a primary source, a backup source and an atomic disk cache, refreshed
-  daily; the server answers within a second of starting.
+- 🏙 **Two cities, one tool** — 21 Moscow lines with MCC and MCD, 6 Saint Petersburg lines; one `city` argument
+  switches datasets, and each city is loaded and refreshed independently.
+- 🚧 **Knows what's closed today** — escalator repairs, closed stations, closed transfers and official detours are
+  applied to the route graph *before* the search runs, not footnoted after.
+- 🌍 **Understands humans, not codes** — typos, transliteration (`hovrino`) and Russian case forms (`до Чеховской`)
+  all resolve; Moscow names are matched and returned in four languages, Petersburg names in Russian.
+- 🖼 **Interactive widget (MCP Apps)** — SEP-1865 hosts get clickable route cards whose «from» / «to» selects
+  recompute the trip in place; text-only hosts get clean Markdown, and nobody gets a wall of JSON.
+- 🚈 **Beyond the tunnel** — vestibule hours and first/last trains in both cities; in Moscow also ground transport
+  at either end and on-station services.
+- ⚡ **Never hostage to the network** — every city has a backup source behind its primary one and an atomic disk
+  cache, refreshed daily; the server answers within a second of starting.
 - 🔌 **Every way in** — MCP over STDIO / HTTP / SSE, a rate-limited REST API with Swagger at `/docs`, and a
   built-in Agent Tester that drives the tool through a real LLM.
 
 One tool — `metro_info` — answers the two questions a passenger asks: *how do I get from A to B*
-(`search_route`) and *what is there at station X* (`get_station_info`).
+(`search_route`) and *what is there at station X* (`get_station_info`), in the city its `city` argument selects.
 
 ## Try it in 60 seconds
 
@@ -67,10 +67,11 @@ Client configs are one click away: [Connect your client](#connect-your-client) b
 |-----------------------------------------------------------|------------------------------------------------------------------------------|
 | [Getting Started](./readme-docs/getting-started.md)       | Install, run, connect MCP clients, transports, build & test commands         |
 | [Tool Reference](./readme-docs/tool-reference.md)         | `metro_info` parameters and answers, MCP resources and prompts               |
+| [Cities](./readme-docs/cities.md)                         | Moscow and Saint Petersburg: sizes, what each answer carries, what differs   |
 | [Route Search](./readme-docs/route-search.md)             | The graph, Yen's algorithm, the time model, closures, operating hours        |
-| [Station Resolution](./readme-docs/station-resolution.md) | Fuzzy matching in four languages, interchange-hub clustering, clarifications |
+| [Station Resolution](./readme-docs/station-resolution.md) | Fuzzy matching, transliteration, case forms, hub clustering, clarifications  |
 | [Route Widget](./readme-docs/route-widget.md)             | MCP Apps contract, signed links, in-card station selects, reverse proxy, CORS |
-| [Data Sources](./readme-docs/data-sources.md)             | Primary/backup cascade, disk cache, refresh schedule, Telegram alerts        |
+| [Data Sources](./readme-docs/data-sources.md)             | Per-city source cascade, disk cache, refresh schedule, Telegram alerts       |
 | [REST API](./readme-docs/rest-api.md)                     | Five read-only endpoints, rate limits, status codes, response shapes         |
 | [Configuration](./readme-docs/configuration.md)           | Every setting, resolution order, environment variables                       |
 | [Authentication](./readme-docs/authentication.md)         | JWT / Basic / permanent tokens, issuing tokens, what stays open              |
@@ -81,18 +82,20 @@ Client configs are one click away: [Connect your client](#connect-your-client) b
 ## The tool, up close
 
 One tool — `metro_info`, read-only. `action=search_route` builds up to 3 route variants between two stations;
-`action=get_station_info` describes one station. Answers are English Markdown; station and line names are
-localized to the user's language.
+`action=get_station_info` describes one station. `city` picks the network — Moscow by default, Saint Petersburg on
+request. Answers are English Markdown; station and line names are localized to the user's language.
 
 <details><summary><b>Parameters and what the answers contain</b></summary><br>
 
-| Parameter              | Required   | Description                                                                                                                                                |
-|------------------------|------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `first_metro_station`  | yes        | Departure station (for a route) or the station to describe. Any of the four languages, typos allowed — resolved by fuzzy search.                           |
-| `second_metro_station` | for routes | Arrival station. Required for `action=search_route`, unused for `get_station_info`.                                                                        |
-| `action`               | yes        | `search_route` — build routes between two stations; `get_station_info` — describe `first_metro_station`.                                                   |
-| `city`                 | no         | `Moscow` (default) or `StPetersburg`. St. Petersburg data is not wired in yet: for now every value falls back to the Moscow dataset.                       |
-| `language`             | no         | Language the user communicates in: `en` (default), `ru`, `ar` or `cn`. Station and line names are localized to it; all other response text is English.     |
+| Parameter                 | Required   | Description                                                                                                                                             |
+|---------------------------|------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `first_metro_station`     | yes        | Departure station (for a route) or the station to describe. Typos, transliteration and Russian case forms allowed — resolved by fuzzy search.            |
+| `second_metro_station`    | for routes | Arrival station. Required for `action=search_route`, unused for `get_station_info`.                                                                      |
+| `action`                  | yes        | `search_route` — build routes between two stations; `get_station_info` — describe `first_metro_station`.                                                 |
+| `city`                    | no         | `Moscow` (default) or `StPetersburg`. Each city has its own dataset; an unrecognized value falls back to Moscow.                                         |
+| `language`                | no         | Language the user communicates in: `en` (default), `ru`, `ar` or `cn`. Station and line names are localized to it; all other response text is English.   |
+| `walk_to_metro_minutes`   | no         | Walk time to the departure station, 1–600. Added to the total and shown as a walking segment. Set only when the conversation states it — never guessed.  |
+| `walk_from_metro_minutes` | no         | Walk time from the arrival station, same rules.                                                                                                         |
 
 A `search_route` answer contains: up to 3 route variants with travel time and a door-to-door estimate, the full
 station sequence of every leg, transfers with "board the first car" hints, which legs run on MCD / MCC, ground
@@ -101,12 +104,16 @@ transport at both ends, advisories along the route, and the vestibule status of 
 A `get_station_info` answer contains: lines at the station, city exits with nearby ground transport, on-station
 services, first and last train times per direction, available interchanges, and current advisories.
 
+Saint Petersburg answers carry the same routes, transfers, hours and closures, but no ground transport, no
+on-station services and no train-car hints — its sources do not publish them; station names come in Russian.
+
 When a name is ambiguous the answer is a numbered list to choose from; for a route request with two ambiguous
 names, both lists come at once.
 
 </details>
 
 Full reference, including MCP resources and prompts: [Tool Reference](./readme-docs/tool-reference.md).
+What each city carries: [Cities](./readme-docs/cities.md).
 
 ## Connect your client
 
@@ -237,7 +244,8 @@ Transports, endpoints and STDIO mode: [Getting Started](./readme-docs/getting-st
 
 TypeScript (ESM) on Node.js ≥ 20, built on [fa-mcp-sdk](https://github.com/Bazilio-san/fa-mcp-sdk) — server core,
 transports, auth, Swagger and Agent Tester come from the SDK. Routing is Yen's k-shortest-paths over a weighted
-graph rebuilt for the requested moment. Data lives in JSON on disk — no database.
+graph rebuilt for the requested moment; the routing, search and widget layers are city-agnostic and simply receive
+the dataset of the requested city. Data lives in JSON on disk — no database.
 
 ## License
 
