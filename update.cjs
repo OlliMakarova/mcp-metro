@@ -81,6 +81,8 @@ const cumulativeLogFile = path.join(VON, `deploy__${scriptDirName}__cumulative.l
 // Machine-readable one-line verdict of the last actual update, for external monitors
 // (e.g. the deploy skill's `status` / `updatelog`): "SUCCESS|FAIL | <ts> | <detail>".
 const statusFile = path.join(VON, `deploy__${scriptDirName}__status.log`);
+const gitFailureStateFile = path.join(VON, `deploy__${scriptDirName}__git_failures.json`);
+const GIT_FAILURE_NOTIFICATION_THRESHOLD = 5;
 
 const clearColors = (text) => text.replace(/\x1B\[[0-9;]*[mGKH]/g, '');
 const clearHtmlColors = (text) => text.replace(/<\/?(red|y|g|r|status)>/g, '');
@@ -184,6 +186,59 @@ function execCommand(command, options = {}, withSetupScript = false) {
 function execWithNODE(command, options = {}) {
   return execCommand(command, options, true);
 }
+
+const formatError = (error) => {
+  const stderr = error?.stderr ? String(error.stderr).trim() : '';
+  const message = error?.message ? String(error.message).trim() : String(error).trim();
+  return [...new Set([stderr, message].filter(Boolean))].join('\n');
+};
+
+class RepoInfoError extends Error {
+  constructor(cause) {
+    super(formatError(cause));
+    this.name = 'RepoInfoError';
+    this.cause = cause;
+  }
+}
+
+const readGitFailureState = () => {
+  try {
+    return JSON.parse(fs.readFileSync(gitFailureStateFile, 'utf8'));
+  } catch {
+    return null;
+  }
+};
+
+const recordGitFailure = (error) => {
+  const previous = readGitFailureState();
+  const now = new Date().toISOString();
+  const state = {
+    count: Number(previous?.count || 0) + 1,
+    firstFailureAt: previous?.firstFailureAt || now,
+    lastFailureAt: now,
+    lastError: formatError(error),
+    notified: Boolean(previous?.notified),
+  };
+  fs.writeFileSync(gitFailureStateFile, `${JSON.stringify(state, null, 2)}\n`);
+  return state;
+};
+
+const markGitFailureNotified = (state) => {
+  const nextState = { ...state, notified: true };
+  fs.writeFileSync(gitFailureStateFile, `${JSON.stringify(nextState, null, 2)}\n`);
+};
+
+const clearGitFailureState = () => {
+  const previous = readGitFailureState();
+  try {
+    fs.unlinkSync(gitFailureStateFile);
+  } catch (error) {
+    if (error.code !== 'ENOENT') {
+      throw error;
+    }
+  }
+  return previous;
+};
 
 /**
  * Load NVM environment and get Node.js version
@@ -376,12 +431,7 @@ function getRepoInfo() {
       upstreamHash,
     };
   } catch (error) {
-    const message = String(error.message).includes(error.stderr)
-      ? error.message
-      : [error.stderr, error.message].join('\n');
-
-    console.error('Error getting repo info:', message);
-    return null;
+    throw new RepoInfoError(error);
   }
 }
 
@@ -700,7 +750,35 @@ async function main() {
 
     let needUpdate = false;
     let updateReason = args.force ? 'force' : '';
-    const repoInfo = getRepoInfo();
+    let repoInfo;
+    try {
+      repoInfo = getRepoInfo();
+      const previousGitFailure = clearGitFailureState();
+      if (previousGitFailure?.notified) {
+        writeStatus('SUCCESS', 'Git repository access recovered');
+      }
+    } catch (error) {
+      if (!(error instanceof RepoInfoError)) {
+        throw error;
+      }
+
+      const failureState = recordGitFailure(error);
+      if (failureState.count < GIT_FAILURE_NOTIFICATION_THRESHOLD) {
+        logIt(
+          `Git repository check failed (${failureState.count}/${GIT_FAILURE_NOTIFICATION_THRESHOLD}). The next automatic check will retry without sending a failure notification.`,
+        );
+        return;
+      }
+      if (failureState.notified) {
+        logIt(`Git repository is still unavailable. The persistent failure has already been reported.`);
+        return;
+      }
+
+      markGitFailureNotified(failureState);
+      throw new Error(
+        `Git repository check failed ${failureState.count} consecutive times since ${failureState.firstFailureAt}.\n${formatError(error)}`,
+      );
+    }
     let { branch, headHash, upstreamHash } = repoInfo;
 
     // 2) If the branch is not the same, hard switch to the head of the deleted expectedBranch
@@ -748,9 +826,10 @@ async function main() {
       await sendNotifications(config, 'SUCCESS', logBuffer, serviceName);
     } else {
       logIt('No changes detected. Update skipped.');
+      writeStatus('SUCCESS', 'check completed; no changes');
     }
   } catch (err) {
-    const message = String(err.message).includes(err.stderr) ? err.message : [err.stderr, err.message].join('\n');
+    const message = formatError(err);
     logError(message);
     writeStatus('FAIL', message);
     await sendNotifications(config, 'FAIL', logBuffer, serviceName);

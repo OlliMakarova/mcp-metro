@@ -262,30 +262,6 @@ logger:
   #> Disable built-in secret/email/URL masking (maskValuesRegEx becomes []). Default: false.
   disableMasking: true
 
-#> ========================================================================
-#> METRO DATA LAYER
-#> Daily download of metro data for both cities.
-#> Moscow: primary source mosmetro.ru, fallback metrobook.ru.
-#> Saint Petersburg: graph from spb.metrobook.ru, enriched with the hh.ru metro
-#> reference (coordinates, line names/colors) and the official metro.spb.ru
-#> operating-hours page (vestibule hours, first/last trains, closures).
-#> Disk cache in `dataDir` (outside version control).
-#> ========================================================================
-#> ========================================================================
-#> TELEGRAM NOTIFICATIONS
-#> Alerts about metro data source state changes (mosmetro.ru down / recovered,
-#> fallback to metrobook.ru or disk copy, no data at all). A message is sent only
-#> on state TRANSITIONS, not on every failed refresh.
-#> Real botToken/chatId belong in config/local.yaml (gitignored) or ENV.
-#> ========================================================================
-telegram:
-  #> Master switch. false — no messages are sent even if token/chat are set.
-  enabled: false
-  #> Bot token from @BotFather (secret!)
-  botToken: '***'
-  #> Target chat id: personal chat, group or channel the bot was added to
-  chatId: ''
-
 #> Disk cache folder (data-cache/) and source URLs are hardcoded in src/lib/metro-data/metro-config.ts
 metro:
   #> Scheduled refresh period, hours (applies to both cities)
@@ -309,6 +285,30 @@ restApi:
     maxRequests: 60
     #> Rate limit window length, seconds
     windowSec: 60
+
+#> ========================================================================
+#> METRO DATA LAYER
+#> Daily download of metro data for both cities.
+#> Moscow: primary source mosmetro.ru, fallback metrobook.ru.
+#> Saint Petersburg: graph from spb.metrobook.ru, enriched with the hh.ru metro
+#> reference (coordinates, line names/colors) and the official metro.spb.ru
+#> operating-hours page (vestibule hours, first/last trains, closures).
+#> Disk cache in `dataDir` (outside version control).
+#> ========================================================================
+#> ========================================================================
+#> TELEGRAM NOTIFICATIONS
+#> Alerts about metro data source state changes (mosmetro.ru down / recovered,
+#> fallback to metrobook.ru or disk copy, no data at all). A message is sent only
+#> on state TRANSITIONS, not on every failed refresh.
+#> Real botToken/chatId belong in config/local.yaml (gitignored) or ENV.
+#> ========================================================================
+telegram:
+  #> Master switch. false — no messages are sent even if token/chat are set.
+  enabled: false
+  #> Bot token from @BotFather (secret!)
+  botToken: '***'
+  #> Target chat id: personal chat, group or channel the bot was added to
+  chatId: ''
 
 #> ========================================================================
 #> WIDGET DATA LINKS
